@@ -4,6 +4,8 @@ Static HTML MVP for launching and executing the OTA video workflow across campai
 
 Open `index.html` in a browser. The app stores workspace data in `localStorage` and can export a JSON workspace file from the top bar.
 
+Any database added during this MVP phase is temporary testing infrastructure only. It is not intended to be the production system of record.
+
 ## Current MVP
 
 - Campaign launcher
@@ -20,7 +22,7 @@ Open `index.html` in a browser. The app stores workspace data in `localStorage` 
 
 - Bunny.net upload and CDN URL creation
 - Blotato publishing draft creation
-- Shared database for team-wide campaign state
+- Temporary testing database for team-wide campaign state
 - Authentication and reviewer roles
 - File upload surfaces for final video, thumbnails, captions, scene files, and approval docs
 
