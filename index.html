@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTA Content Command Center</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">OTA Social Engine</p>
+          <h1>Content Command Center</h1>
+        </div>
+        <div class="top-actions">
+          <button id="exportWorkspace" class="icon-button" type="button" title="Export workspace">Export</button>
+          <button id="seedWorkspace" class="ghost-button" type="button">Reset Demo</button>
+          <button id="openCampaignForm" class="primary-button" type="button">New Campaign</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar" aria-label="Campaign queue">
+          <section class="metric-strip" aria-label="Workflow summary">
+            <div>
+              <strong id="metricActive">0</strong>
+              <span>Active</span>
+            </div>
+            <div>
+              <strong id="metricApproved">0</strong>
+              <span>Approved</span>
+            </div>
+            <div>
+              <strong id="metricBlocked">0</strong>
+              <span>Blocked</span>
+            </div>
+          </section>
+
+          <section class="panel compact-panel">
+            <div class="field search-field">
+              <label for="campaignSearch">Search</label>
+              <input id="campaignSearch" type="search" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label for="stageFilter">Stage</label>
+              <select id="stageFilter"></select>
+            </div>
+          </section>
+
+          <nav id="campaignList" class="campaign-list" aria-label="Campaigns"></nav>
+        </aside>
+
+        <section class="content" aria-live="polite">
+          <section id="emptyState" class="empty-state" hidden>
+            <h2>No campaign selected</h2>
+            <p>Create a campaign to begin packaging video production work.</p>
+            <button class="primary-button" type="button" data-action="new-campaign">New Campaign</button>
+          </section>
+
+          <section id="campaignView" class="campaign-view">
+            <div class="campaign-header">
+              <div>
+                <p id="campaignBrand" class="eyebrow"></p>
+                <h2 id="campaignTitle"></h2>
+                <div id="campaignMeta" class="meta-row"></div>
+              </div>
+              <div class="header-actions">
+                <button class="ghost-button review-jump" type="button" data-review-section="campaign-overview">
+                  Comment
+                </button>
+                <div class="readiness-card">
+                  <span id="readinessScore">0%</span>
+                  <small>ready</small>
+                </div>
+              </div>
+            </div>
+
+            <section id="reviewPanel" class="panel review-panel">
+              <div class="panel-heading tight">
+                <div>
+                  <p class="eyebrow">GitHub review</p>
+                  <h3>Section Improvement Requests</h3>
+                </div>
+                <span id="reviewCount" class="status-pill not-started">0 requests</span>
+              </div>
+              <div id="reviewSectionButtons" class="review-section-grid"></div>
+              <div class="review-form">
+                <label class="field">
+                  <span>Reviewer</span>
+                  <input id="reviewerName" type="text" autocomplete="name" />
+                </label>
+                <label class="field">
+                  <span>Priority</span>
+                  <select id="reviewPriority">
+                    <option>Nice to have</option>
+                    <option>Important</option>
+                    <option>Blocking</option>
+                  </select>
+                </label>
+                <label class="field full-width">
+                  <span>Improvement Request</span>
+                  <textarea id="reviewComment" rows="4"></textarea>
+                </label>
+                <div class="review-actions full-width">
+                  <button id="copyReviewRequest" class="ghost-button" type="button">Copy Request</button>
+                  <button id="openGithubIssue" class="primary-button" type="button">Open GitHub Issue</button>
+                </div>
+              </div>
+              <div id="reviewRequestList" class="review-request-list"></div>
+            </section>
+
+            <section class="stage-rail" aria-label="Workflow stages">
+              <button class="stage-tab" type="button" data-stage-index="0">
+                <span>01</span>
+                Setup
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="1">
+                <span>02</span>
+                Scenes
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="2">
+                <span>03</span>
+                Higgsfield
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="3">
+                <span>04</span>
+                QA
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="4">
+                <span>05</span>
+                Assembly
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="5">
+                <span>06</span>
+                Package
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="6">
+                <span>07</span>
+                Bunny
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="7">
+                <span>08</span>
+                Blotato
+              </button>
+            </section>
+
+            <div class="main-grid">
+              <section class="panel stage-panel">
+                <div class="panel-heading">
+                  <div>
+                    <p id="stageKicker" class="eyebrow"></p>
+                    <h3 id="stageTitle"></h3>
+                  </div>
+                  <div class="panel-actions">
+                    <button class="mini-button review-jump" type="button" data-review-section="workflow-stage">
+                      Comment
+                    </button>
+                    <select id="stageStatus" aria-label="Stage status">
+                      <option value="not-started">Not Started</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="needs-review">Needs Review</option>
+                      <option value="approved">Approved</option>
+                      <option value="blocked">Blocked</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="stageChecklist" class="checklist"></div>
+
+                <div class="stage-fields">
+                  <label class="field">
+                    <span>Owner</span>
+                    <input id="stageOwner" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Due</span>
+                    <input id="stageDue" type="date" />
+                  </label>
+                  <label class="field full-width">
+                    <span>Notes</span>
+                    <textarea id="stageNotes" rows="6"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <aside class="side-stack">
+                <section class="panel">
+                  <div class="panel-heading tight">
+                    <h3>Scene Queue</h3>
+                    <div class="panel-actions">
+                      <button class="mini-button review-jump" type="button" data-review-section="scene-queue">
+                        Comment
+                      </button>
+                      <button id="addScene" class="ghost-button" type="button">Add Scene</button>
+                    </div>
+                  </div>
+                  <div id="sceneList" class="scene-list"></div>
+                </section>
+
+                <section class="panel">
+                  <div class="panel-heading tight">
+                    <h3>Approval Gate</h3>
+                    <div class="panel-actions">
+                      <button class="mini-button review-jump" type="button" data-review-section="approval-gate">
+                        Comment
+                      </button>
+                      <span id="approvalStatus" class="status-pill"></span>
+                    </div>
+                  </div>
+                  <div id="approvalChecks" class="approval-grid"></div>
+                </section>
+              </aside>
+            </div>
+
+            <section class="handoff-grid">
+              <article class="panel">
+                <div class="panel-heading tight">
+                  <h3>Bunny Storage</h3>
+                  <div class="panel-actions">
+                    <button class="mini-button review-jump" type="button" data-review-section="bunny-storage">
+                      Comment
+                    </button>
+                    <button id="copyBunnyManifest" class="ghost-button" type="button">Copy Manifest</button>
+                  </div>
+                </div>
+                <div class="storage-layout">
+                  <label class="field">
+                    <span>Folder</span>
+                    <input id="bunnyFolder" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Final Video URL</span>
+                    <input id="assetVideo" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Thumbnail URL</span>
+                    <input id="assetThumbnail" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Caption Doc URL</span>
+                    <input id="assetCaptionDoc" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Scene Files URL</span>
+                    <input id="assetScenes" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Approval Doc URL</span>
+                    <input id="assetApprovalDoc" type="url" autocomplete="off" />
+                  </label>
+                </div>
+              </article>
+
+              <article class="panel">
+                <div class="panel-heading tight">
+                  <h3>Publishing Package</h3>
+                  <div class="panel-actions">
+                    <button class="mini-button review-jump" type="button" data-review-section="publishing-package">
+                      Comment
+                    </button>
+                    <button id="copyPublishingPackage" class="ghost-button" type="button">Copy Package</button>
+                  </div>
+                </div>
+                <label class="field full-width">
+                  <span>Caption</span>
+                  <textarea id="captionText" rows="5"></textarea>
+                </label>
+                <label class="field full-width">
+                  <span>Hashtags</span>
+                  <input id="hashtags" type="text" autocomplete="off" />
+                </label>
+                <label class="field full-width">
+                  <span>Platform Notes</span>
+                  <textarea id="platformNotes" rows="4"></textarea>
+                </label>
+              </article>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="campaignDialog" class="campaign-dialog">
+      <form id="campaignForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Campaign setup</p>
+            <h2>Launch Workstream</h2>
+          </div>
+          <button class="icon-button close-button" value="cancel" type="submit" title="Close">Close</button>
+        </div>
+
+        <div class="dialog-grid">
+          <label class="field">
+            <span>Brand</span>
+            <input name="brand" type="text" value="CRS" required />
+          </label>
+          <label class="field">
+            <span>Campaign Name</span>
+            <input name="name" type="text" required />
+          </label>
+          <label class="field">
+            <span>Platform</span>
+            <select name="platform">
+              <option>TikTok</option>
+              <option>Instagram Reels</option>
+              <option>YouTube Shorts</option>
+              <option>LinkedIn</option>
+              <option>Multi-platform</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Output Quantity</span>
+            <input name="quantity" type="number" min="1" value="3" required />
+          </label>
+          <label class="field">
+            <span>Due Date</span>
+            <input name="dueDate" type="date" required />
+          </label>
+          <label class="field">
+            <span>Owner</span>
+            <input name="owner" type="text" required />
+          </label>
+          <label class="field full-width">
+            <span>Creative Direction</span>
+            <textarea name="creativeDirection" rows="4" required></textarea>
+          </label>
+          <label class="field full-width">
+            <span>Compliance Guardrails</span>
+            <textarea name="guardrails" rows="4"></textarea>
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Launch Campaign</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="sceneDialog" class="campaign-dialog compact-dialog">
+      <form id="sceneForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Scene planning</p>
+            <h2>Add Scene</h2>
+          </div>
+          <button class="icon-button close-button" value="cancel" type="submit" title="Close">Close</button>
+        </div>
+        <div class="dialog-grid one-column">
+          <label class="field">
+            <span>Scene Title</span>
+            <input name="title" type="text" required />
+          </label>
+          <label class="field">
+            <span>Higgsfield Prompt</span>
+            <textarea name="prompt" rows="5" required></textarea>
+          </label>
+          <label class="field">
+            <span>Compliance Note</span>
+            <textarea name="compliance" rows="3"></textarea>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Add Scene</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
