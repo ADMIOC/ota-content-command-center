@@ -392,7 +392,11 @@
         <div class="dialog-grid">
           <label class="field">
             <span>Brand</span>
-            <input name="brand" type="text" value="CRS" required />
+            <select id="campaignBrandSelect" name="brandSelect" required></select>
+          </label>
+          <label id="customBrandField" class="field" hidden>
+            <span>New Brand</span>
+            <input id="customBrandName" name="customBrand" type="text" autocomplete="organization" />
           </label>
           <label class="field">
             <span>Campaign Name</span>
@@ -420,10 +424,13 @@
             <span>Owner</span>
             <input name="owner" type="text" required />
           </label>
-          <label class="field full-width">
-            <span>Creative Direction</span>
+          <div class="field full-width">
+            <div class="field-heading-row">
+              <span>Creative Direction</span>
+              <button id="generateCreativeDirection" class="mini-button" type="button">Regenerate Direction</button>
+            </div>
             <textarea name="creativeDirection" rows="4" required></textarea>
-          </label>
+          </div>
           <label class="field full-width">
             <span>Compliance Guardrails</span>
             <textarea name="guardrails" rows="4"></textarea>

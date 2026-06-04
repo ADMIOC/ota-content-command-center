@@ -213,6 +213,13 @@ h3 {
   gap: 6px;
 }
 
+.field-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .field span,
 .field label,
 .field > label {
@@ -773,6 +780,11 @@ textarea {
   .dialog-grid,
   .review-form {
     grid-template-columns: 1fr;
+  }
+
+  .field-heading-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .metric-strip {

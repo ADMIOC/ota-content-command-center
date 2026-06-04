@@ -11,6 +11,9 @@ Any database added during this MVP phase is temporary testing infrastructure onl
 - Campaign launcher
 - Ten-stage production workflow
 - Stage owners, due dates, status, notes, and checklists
+- Active-brand dropdown with an `Other` path for new brands
+- Brand-tied creative direction drafts that creators can edit or regenerate
+- Regulated-brand compliance guardrails for CRS and The VFO
 - Scene queue with Higgsfield prompt and compliance notes
 - ElevenLabs script/audio tracking for the active `agentic@ownthealgo.com` account
 - Codex + Remotion handoff tracking for the output Higgsfield Studio ingests

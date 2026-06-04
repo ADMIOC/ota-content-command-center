@@ -6,11 +6,12 @@ const stageTemplates = [
     name: "Campaign setup and creative direction",
     shortName: "Setup",
     checklist: [
-      "Brand and campaign name confirmed",
-      "Creative direction written",
+      "Active brand and campaign name confirmed",
+      "Agentic creative direction generated and reviewed",
+      "Creator edits or augmentations captured",
       "Platform target selected",
       "Output quantity and owner assigned",
-      "Compliance guardrails added"
+      "Compliance guardrails reviewed when applicable"
     ]
   },
   {
@@ -124,6 +125,33 @@ const approvalLabels = [
   "Publishing package ready for Blotato"
 ];
 
+const activeBrands = [
+  {
+    name: "Own The Algo",
+    regulated: false,
+    perspective:
+      "founder-led operator POV, sharp screen-life pacing, direct-to-camera confidence, and visible proof of repeatable AI systems"
+  },
+  {
+    name: "Own The Algo Podcast",
+    regulated: false,
+    perspective:
+      "podcast host energy, conversational authority, studio-to-field transitions, and cinematic closeups that make expertise feel immediate"
+  },
+  {
+    name: "CRS",
+    regulated: true,
+    perspective:
+      "hospital operations documentary tone, calm revenue-cycle urgency, anonymous workflow visuals, and grounded eligibility-intelligence storytelling"
+  },
+  {
+    name: "The VFO",
+    regulated: true,
+    perspective:
+      "executive finance war-room perspective, fiduciary clarity, measured confidence, and clean boardroom visuals that avoid exaggerated claims"
+  }
+];
+
 const reviewSections = [
   { id: "campaign-overview", name: "Campaign Overview" },
   { id: "workflow-stage", name: "Workflow Stage" },
@@ -174,6 +202,7 @@ let state = loadState();
 let selectedCampaignId = state.selectedCampaignId || state.campaigns[0]?.id || "";
 let selectedStageIndex = state.selectedStageIndex || 0;
 let selectedReviewSectionId = state.selectedReviewSectionId || reviewSections[0].id;
+let creativeDirectionTouched = false;
 
 const elements = {
   metricActive: document.querySelector("#metricActive"),
@@ -222,6 +251,10 @@ const elements = {
   platformNotes: document.querySelector("#platformNotes"),
   campaignDialog: document.querySelector("#campaignDialog"),
   campaignForm: document.querySelector("#campaignForm"),
+  campaignBrandSelect: document.querySelector("#campaignBrandSelect"),
+  customBrandField: document.querySelector("#customBrandField"),
+  customBrandName: document.querySelector("#customBrandName"),
+  generateCreativeDirection: document.querySelector("#generateCreativeDirection"),
   sceneDialog: document.querySelector("#sceneDialog"),
   sceneForm: document.querySelector("#sceneForm"),
   reviewPanel: document.querySelector("#reviewPanel"),
@@ -248,8 +281,119 @@ function createStage(template, owner = "", dueDate = "") {
   };
 }
 
+function getBrandProfile(brandName) {
+  const normalized = String(brandName || "").trim().toLowerCase();
+  return activeBrands.find((brand) => brand.name.toLowerCase() === normalized);
+}
+
+function getCampaignFormField(name) {
+  return elements.campaignForm.elements[name];
+}
+
+function getCampaignFormBrandName() {
+  const selectedBrand = elements.campaignBrandSelect.value;
+  if (selectedBrand === "__other__") return elements.customBrandName.value.trim();
+  return selectedBrand;
+}
+
+function isRegulatedBrand(brandName) {
+  return Boolean(getBrandProfile(brandName)?.regulated);
+}
+
+function buildCreativeDirectionDraft(formInput = {}) {
+  const brand = formInput.brand || getCampaignFormBrandName() || "the selected brand";
+  const profile = getBrandProfile(brand);
+  const campaignName = formInput.name || getCampaignFormField("name")?.value.trim() || "the campaign";
+  const platform = formInput.platform || getCampaignFormField("platform")?.value || "the target platform";
+  const quantity = formInput.quantity || getCampaignFormField("quantity")?.value || "the planned";
+  const perspective =
+    profile?.perspective ||
+    "brand-native point of view, cinematic texture, clear emotional stakes, and repeatable visual language";
+
+  return [
+    `Create ${quantity} ${platform} outputs for ${brand} around "${campaignName}" with ${perspective}.`,
+    "The storytelling should define the voiceover rhythm first, then shape scene composition, camera movement, lighting, pacing, captions, and transitions around that audio-led spine.",
+    "Each scene should make the viewer feel the before-and-after shift: the tension the audience recognizes, the insight that reframes it, and the confident action the brand makes possible."
+  ].join("\n\n");
+}
+
+function buildComplianceGuardrails(brandName) {
+  if (brandName === "CRS") {
+    return [
+      "No patient-identifying information, patient names, visible medical records, or PHI.",
+      "Avoid guaranteed eligibility, coverage, reimbursement, recovery, or clinical outcome claims.",
+      "Describe AI as workflow support and eligibility intelligence, not autonomous medical or coverage decision-making.",
+      "Use anonymous operational visuals and route final copy through human compliance review before publishing."
+    ].join("\n");
+  }
+
+  if (brandName === "The VFO") {
+    return [
+      "No guaranteed investment, tax, legal, valuation, return, exit, or financing outcomes.",
+      "Avoid personalized financial advice unless the asset is reviewed and approved for that use.",
+      "Use measured fiduciary language and make uncertainty, context, and review boundaries clear.",
+      "Route final copy through human compliance review before publishing."
+    ].join("\n");
+  }
+
+  return "";
+}
+
+function renderBrandOptions() {
+  elements.campaignBrandSelect.innerHTML = activeBrands
+    .map((brand) => `<option value="${escapeHtml(brand.name)}">${escapeHtml(brand.name)}</option>`)
+    .concat('<option value="__other__">Other</option>')
+    .join("");
+}
+
+function syncCampaignSetupFields({ forceCreative = false } = {}) {
+  const selectedBrand = elements.campaignBrandSelect.value;
+  const isOtherBrand = selectedBrand === "__other__";
+  elements.customBrandField.hidden = !isOtherBrand;
+  elements.customBrandName.required = isOtherBrand;
+
+  const brandName = getCampaignFormBrandName();
+  const creativeDirection = getCampaignFormField("creativeDirection");
+  if (creativeDirection && (forceCreative || !creativeDirectionTouched || !creativeDirection.value.trim())) {
+    creativeDirection.value = buildCreativeDirectionDraft({ brand: brandName });
+    creativeDirectionTouched = false;
+  }
+
+  const guardrails = getCampaignFormField("guardrails");
+  const regulated = isRegulatedBrand(brandName);
+  if (!guardrails) return;
+
+  guardrails.disabled = !regulated;
+  guardrails.required = regulated;
+  if (!regulated) {
+    guardrails.value = "";
+    guardrails.placeholder = "Only enabled for regulated brands.";
+    guardrails.dataset.generated = "";
+    return;
+  }
+
+  guardrails.placeholder = "";
+  if (!guardrails.value.trim() || guardrails.dataset.generated === "true") {
+    guardrails.value = buildComplianceGuardrails(brandName);
+    guardrails.dataset.generated = "true";
+  }
+}
+
+function resetCampaignSetupState() {
+  creativeDirectionTouched = false;
+  elements.campaignForm.reset();
+  elements.campaignBrandSelect.value = "Own The Algo Podcast";
+  elements.customBrandName.value = "";
+  syncCampaignSetupFields({ forceCreative: true });
+}
+
+function openCampaignDialog() {
+  resetCampaignSetupState();
+  elements.campaignDialog.showModal();
+}
+
 function createCampaign(input) {
-  const safeBrand = input.brand.trim() || "Brand";
+  const safeBrand = (input.brand || "").trim() || "Brand";
   const safeName = input.name.trim() || "Untitled Campaign";
   return {
     id: makeId(),
@@ -260,7 +404,7 @@ function createCampaign(input) {
     dueDate: input.dueDate,
     owner: input.owner.trim(),
     creativeDirection: input.creativeDirection.trim(),
-    guardrails: input.guardrails.trim(),
+    guardrails: (input.guardrails || "").trim(),
     createdAt: new Date().toISOString(),
     stages: stageTemplates.map((template, index) =>
       createStage(template, input.owner.trim(), index < 2 ? input.dueDate : "")
@@ -898,13 +1042,9 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-document.querySelector("#openCampaignForm").addEventListener("click", () => {
-  elements.campaignDialog.showModal();
-});
+document.querySelector("#openCampaignForm").addEventListener("click", openCampaignDialog);
 
-document.querySelector("[data-action='new-campaign']").addEventListener("click", () => {
-  elements.campaignDialog.showModal();
-});
+document.querySelector("[data-action='new-campaign']").addEventListener("click", openCampaignDialog);
 
 document.querySelector("#seedWorkspace").addEventListener("click", () => {
   state = {
@@ -987,14 +1127,43 @@ elements.campaignForm.addEventListener("submit", (event) => {
   if (event.submitter?.value === "cancel") return;
   event.preventDefault();
   const data = Object.fromEntries(new FormData(elements.campaignForm));
+  data.brand = getCampaignFormBrandName();
+  if (!isRegulatedBrand(data.brand)) data.guardrails = "";
   const campaign = createCampaign(data);
   state.campaigns.unshift(campaign);
   selectedCampaignId = campaign.id;
   selectedStageIndex = 0;
-  elements.campaignForm.reset();
   elements.campaignDialog.close();
   render();
   showToast("Campaign launched");
+});
+
+elements.campaignBrandSelect.addEventListener("change", () => {
+  syncCampaignSetupFields();
+  if (!elements.customBrandField.hidden) elements.customBrandName.focus();
+});
+
+elements.customBrandName.addEventListener("input", () => {
+  syncCampaignSetupFields();
+});
+
+["name", "platform", "quantity"].forEach((fieldName) => {
+  getCampaignFormField(fieldName).addEventListener("input", () => {
+    syncCampaignSetupFields();
+  });
+});
+
+getCampaignFormField("creativeDirection").addEventListener("input", () => {
+  creativeDirectionTouched = true;
+});
+
+getCampaignFormField("guardrails").addEventListener("input", () => {
+  getCampaignFormField("guardrails").dataset.generated = "false";
+});
+
+elements.generateCreativeDirection.addEventListener("click", () => {
+  syncCampaignSetupFields({ forceCreative: true });
+  getCampaignFormField("creativeDirection").focus();
 });
 
 elements.sceneForm.addEventListener("submit", (event) => {
@@ -1193,4 +1362,5 @@ if (!selectedCampaignId && state.campaigns[0]) {
   selectedCampaignId = state.campaigns[0].id;
 }
 
+renderBrandOptions();
 render();
