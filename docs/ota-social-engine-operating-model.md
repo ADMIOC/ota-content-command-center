@@ -243,9 +243,9 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 
 ## Immediate Next Builds
 
-1. Persist active brand profiles as structured data instead of hardcoded arrays.
-2. Add editable brand profile management to the Command Center.
-3. Add a creative direction preview/regenerate history so creators can compare versions.
-4. Add script fields per scene before ElevenLabs handoff.
-5. Add secure backend service boundaries for ElevenLabs, Bunny, Remotion, and Blotato.
-6. Add an agent activity log so automated work is visible and reviewable.
+1. Persist active brand profiles as structured data instead of hardcoded arrays. Done in MVP via workspace state and export.
+2. Add editable brand profile management to the Command Center. Done in MVP via the Brand Profile dialog.
+3. Add a creative direction preview/regenerate history so creators can compare versions. Done in MVP via campaign-level direction versions.
+4. Add script fields per scene before ElevenLabs handoff. Done in MVP via required scene script fields.
+5. Add secure backend service boundaries for ElevenLabs, Bunny, Remotion, and Blotato. Done in MVP docs at `docs/backend-integration-boundaries.md`.
+6. Add an agent activity log so automated work is visible and reviewable. Done in MVP via the Agent Operations activity log.

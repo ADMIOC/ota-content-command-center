@@ -10,15 +10,20 @@ Any database added during this MVP phase is temporary testing infrastructure onl
 
 The long-term system map lives in [docs/ota-social-engine-operating-model.md](docs/ota-social-engine-operating-model.md). It defines OTA Social Engine as a 24/7/365 agentically engineered marketing operation across research, planning, production, publishing, communications, scaling, and monetization.
 
+Secure API boundaries for future ElevenLabs, Remotion, Bunny, and Blotato services live in [docs/backend-integration-boundaries.md](docs/backend-integration-boundaries.md).
+
 ## Current MVP
 
 - Campaign launcher
 - Ten-stage production workflow
 - Stage owners, due dates, status, notes, and checklists
 - Active-brand dropdown with an `Other` path for new brands
+- Editable brand profile management
 - Brand-tied creative direction drafts that creators can edit or regenerate
+- Creative direction version history
 - Regulated-brand compliance guardrails for CRS and The VFO
-- Scene queue with Higgsfield prompt and compliance notes
+- Scene queue with video scripts, Higgsfield prompts, and compliance notes
+- Agent activity log
 - ElevenLabs script/audio tracking for the active `agentic@ownthealgo.com` account
 - Codex + Remotion handoff tracking for the output Higgsfield Studio ingests
 - Human approval gate

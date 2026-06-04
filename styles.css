@@ -243,6 +243,19 @@ select {
   padding: 9px 10px;
 }
 
+.checkbox-field {
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-content: end;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.checkbox-field input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
 textarea {
   min-height: 80px;
   resize: vertical;
@@ -531,6 +544,54 @@ textarea {
 .review-request-card a {
   color: var(--blue);
   font-weight: 850;
+}
+
+.profile-summary,
+.version-list,
+.activity-list {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-summary p,
+.version-card p,
+.activity-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.version-card,
+.activity-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.version-card header,
+.activity-item header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.version-card small,
+.activity-item small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
 }
 
 .checklist {

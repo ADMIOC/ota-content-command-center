@@ -15,6 +15,7 @@
         </div>
         <div class="top-actions">
           <a class="ghost-button top-link" href="./creator-journey.html">Creator Journey</a>
+          <button id="openBrandManager" class="ghost-button" type="button">Brands</button>
           <button id="exportWorkspace" class="icon-button" type="button" title="Export workspace">Export</button>
           <button id="seedWorkspace" class="ghost-button" type="button">Reset Demo</button>
           <button id="openCampaignForm" class="primary-button" type="button">New Campaign</button>
@@ -76,6 +77,30 @@
                 </div>
               </div>
             </div>
+
+            <section class="handoff-grid">
+              <article class="panel">
+                <div class="panel-heading tight">
+                  <div>
+                    <p class="eyebrow">Brand intelligence</p>
+                    <h3>Active Brand Profile</h3>
+                  </div>
+                  <button id="editActiveBrand" class="ghost-button" type="button">Edit Brand</button>
+                </div>
+                <div id="brandProfileSummary" class="profile-summary"></div>
+              </article>
+
+              <article class="panel">
+                <div class="panel-heading tight">
+                  <div>
+                    <p class="eyebrow">Agentic direction</p>
+                    <h3>Creative Direction Versions</h3>
+                  </div>
+                  <button id="regenerateCampaignDirection" class="ghost-button" type="button">Regenerate</button>
+                </div>
+                <div id="creativeDirectionVersions" class="version-list"></div>
+              </article>
+            </section>
 
             <section id="reviewPanel" class="panel review-panel">
               <div class="panel-heading tight">
@@ -374,6 +399,17 @@
                 </label>
               </article>
             </section>
+
+            <section class="panel">
+              <div class="panel-heading tight">
+                <div>
+                  <p class="eyebrow">Agent operations</p>
+                  <h3>Activity Log</h3>
+                </div>
+                <button id="copyActivityLog" class="ghost-button" type="button">Copy Log</button>
+              </div>
+              <div id="agentActivityLog" class="activity-list"></div>
+            </section>
           </section>
         </section>
       </main>
@@ -463,6 +499,10 @@
             <textarea name="prompt" rows="5" required></textarea>
           </label>
           <label class="field">
+            <span>Video Script</span>
+            <textarea name="script" rows="5" required></textarea>
+          </label>
+          <label class="field">
             <span>Compliance Note</span>
             <textarea name="compliance" rows="3"></textarea>
           </label>
@@ -470,6 +510,63 @@
         <div class="dialog-actions">
           <button class="ghost-button" value="cancel" type="submit">Cancel</button>
           <button class="primary-button" value="default" type="submit">Add Scene</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="brandDialog" class="campaign-dialog">
+      <form id="brandProfileForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Brand intelligence</p>
+            <h2>Manage Brand Profile</h2>
+          </div>
+          <button class="icon-button close-button" value="cancel" type="submit" title="Close">Close</button>
+        </div>
+
+        <div class="dialog-grid">
+          <label class="field full-width">
+            <span>Profile</span>
+            <select id="brandProfileSelect"></select>
+          </label>
+          <label class="field">
+            <span>Brand Name</span>
+            <input name="name" type="text" required />
+          </label>
+          <label class="field checkbox-field">
+            <input name="regulated" type="checkbox" />
+            <span>Regulated brand</span>
+          </label>
+          <label class="field full-width">
+            <span>Brand Voice</span>
+            <textarea name="voice" rows="3"></textarea>
+          </label>
+          <label class="field full-width">
+            <span>Audience</span>
+            <textarea name="audience" rows="3"></textarea>
+          </label>
+          <label class="field full-width">
+            <span>Offers / Monetization</span>
+            <textarea name="offers" rows="3"></textarea>
+          </label>
+          <label class="field full-width">
+            <span>Cinematic Perspective</span>
+            <textarea name="perspective" rows="4" required></textarea>
+          </label>
+          <label class="field full-width">
+            <span>Compliance Guardrails</span>
+            <textarea name="guardrails" rows="4"></textarea>
+          </label>
+          <label class="field full-width">
+            <span>Preferred Platforms</span>
+            <input name="platforms" type="text" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="dialog-actions">
+          <button id="newBrandProfile" class="ghost-button" type="button">New Brand</button>
+          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Save Brand</button>
         </div>
       </form>
     </dialog>

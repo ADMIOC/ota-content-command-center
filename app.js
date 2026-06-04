@@ -125,30 +125,68 @@ const approvalLabels = [
   "Publishing package ready for Blotato"
 ];
 
-const activeBrands = [
+const defaultBrandProfiles = [
   {
+    id: "brand-own-the-algo",
     name: "Own The Algo",
     regulated: false,
+    voice:
+      "Direct, useful, operator-led, and confident without hype. The brand should feel like a builder showing the actual system.",
+    audience:
+      "Founders, creators, operators, and business owners who want practical AI systems that create leverage.",
+    offers:
+      "AI implementation, agentic workflows, content systems, consulting, templates, and education.",
     perspective:
-      "founder-led operator POV, sharp screen-life pacing, direct-to-camera confidence, and visible proof of repeatable AI systems"
+      "founder-led operator POV, sharp screen-life pacing, direct-to-camera confidence, and visible proof of repeatable AI systems",
+    guardrails: "",
+    platforms: "TikTok, Instagram Reels, YouTube Shorts, LinkedIn"
   },
   {
+    id: "brand-own-the-algo-podcast",
     name: "Own The Algo Podcast",
     regulated: false,
+    voice:
+      "Conversational, curious, energetic, and intelligent. It should sound like smart builders talking through real moves.",
+    audience:
+      "Entrepreneurs, creators, investors, and AI-curious operators who want signal, strategy, and tactical ideas.",
+    offers:
+      "Podcast audience growth, sponsorships, community, consulting, content flywheel, and AI-native brand authority.",
     perspective:
-      "podcast host energy, conversational authority, studio-to-field transitions, and cinematic closeups that make expertise feel immediate"
+      "podcast host energy, conversational authority, studio-to-field transitions, and cinematic closeups that make expertise feel immediate",
+    guardrails: "",
+    platforms: "TikTok, Instagram Reels, YouTube Shorts, LinkedIn"
   },
   {
+    id: "brand-crs",
     name: "CRS",
     regulated: true,
+    voice:
+      "Calm, precise, operational, and trust-first. Avoid hype and keep AI positioned as workflow support.",
+    audience:
+      "Hospital leaders, revenue-cycle teams, eligibility teams, and healthcare operators responsible for Medicaid eligibility workflows.",
+    offers:
+      "Medicaid eligibility intelligence, operational workflow support, revenue-cycle enablement, and hospital-facing services.",
     perspective:
-      "hospital operations documentary tone, calm revenue-cycle urgency, anonymous workflow visuals, and grounded eligibility-intelligence storytelling"
+      "hospital operations documentary tone, calm revenue-cycle urgency, anonymous workflow visuals, and grounded eligibility-intelligence storytelling",
+    guardrails:
+      "No patient-identifying information, patient names, visible medical records, or PHI.\nAvoid guaranteed eligibility, coverage, reimbursement, recovery, or clinical outcome claims.\nDescribe AI as workflow support and eligibility intelligence, not autonomous medical or coverage decision-making.\nUse anonymous operational visuals and route final copy through human compliance review before publishing.",
+    platforms: "LinkedIn, YouTube Shorts, Instagram Reels"
   },
   {
+    id: "brand-the-vfo",
     name: "The VFO",
     regulated: true,
+    voice:
+      "Executive, measured, fiduciary-minded, and precise. The brand should feel like strategic finance leadership, not a hype machine.",
+    audience:
+      "Founders, family offices, operators, and business owners evaluating finance, valuation, exit, and growth decisions.",
+    offers:
+      "Virtual family office strategy, financial operating models, advisory, acquisition readiness, and executive finance support.",
     perspective:
-      "executive finance war-room perspective, fiduciary clarity, measured confidence, and clean boardroom visuals that avoid exaggerated claims"
+      "executive finance war-room perspective, fiduciary clarity, measured confidence, and clean boardroom visuals that avoid exaggerated claims",
+    guardrails:
+      "No guaranteed investment, tax, legal, valuation, return, exit, or financing outcomes.\nAvoid personalized financial advice unless the asset is reviewed and approved for that use.\nUse measured fiduciary language and make uncertainty, context, and review boundaries clear.\nRoute final copy through human compliance review before publishing.",
+    platforms: "LinkedIn, YouTube Shorts"
   }
 ];
 
@@ -179,6 +217,8 @@ const defaultCampaigns = [
       {
         id: makeId(),
         title: "Waiting Room Backlog",
+        script:
+          "Every unresolved eligibility file is not just paperwork. It is time, revenue, and patient access waiting for a clearer next step.",
         prompt:
           "Hospital eligibility team facing a visible backlog of unresolved Medicaid verification work, realistic operational tone, clean documentary lighting.",
         compliance:
@@ -188,6 +228,8 @@ const defaultCampaigns = [
       {
         id: makeId(),
         title: "CRS Workflow Reveal",
+        script:
+          "CRS helps eligibility teams turn scattered Medicaid work into a guided operational workflow, so staff can see what needs attention next.",
         prompt:
           "A calm operations dashboard organizes eligibility work into clear next actions, with staff moving from confusion to confident triage.",
         compliance:
@@ -198,7 +240,8 @@ const defaultCampaigns = [
   }
 ];
 
-let state = loadState();
+let state;
+state = loadState();
 let selectedCampaignId = state.selectedCampaignId || state.campaigns[0]?.id || "";
 let selectedStageIndex = state.selectedStageIndex || 0;
 let selectedReviewSectionId = state.selectedReviewSectionId || reviewSections[0].id;
@@ -216,6 +259,10 @@ const elements = {
   campaignBrand: document.querySelector("#campaignBrand"),
   campaignTitle: document.querySelector("#campaignTitle"),
   campaignMeta: document.querySelector("#campaignMeta"),
+  brandProfileSummary: document.querySelector("#brandProfileSummary"),
+  creativeDirectionVersions: document.querySelector("#creativeDirectionVersions"),
+  regenerateCampaignDirection: document.querySelector("#regenerateCampaignDirection"),
+  editActiveBrand: document.querySelector("#editActiveBrand"),
   readinessScore: document.querySelector("#readinessScore"),
   stageTabs: Array.from(document.querySelectorAll(".stage-tab")),
   stageKicker: document.querySelector("#stageKicker"),
@@ -255,6 +302,10 @@ const elements = {
   customBrandField: document.querySelector("#customBrandField"),
   customBrandName: document.querySelector("#customBrandName"),
   generateCreativeDirection: document.querySelector("#generateCreativeDirection"),
+  brandDialog: document.querySelector("#brandDialog"),
+  brandProfileForm: document.querySelector("#brandProfileForm"),
+  brandProfileSelect: document.querySelector("#brandProfileSelect"),
+  newBrandProfile: document.querySelector("#newBrandProfile"),
   sceneDialog: document.querySelector("#sceneDialog"),
   sceneForm: document.querySelector("#sceneForm"),
   reviewPanel: document.querySelector("#reviewPanel"),
@@ -264,6 +315,8 @@ const elements = {
   reviewPriority: document.querySelector("#reviewPriority"),
   reviewComment: document.querySelector("#reviewComment"),
   reviewRequestList: document.querySelector("#reviewRequestList"),
+  agentActivityLog: document.querySelector("#agentActivityLog"),
+  copyActivityLog: document.querySelector("#copyActivityLog"),
   toast: document.querySelector("#toast")
 };
 
@@ -281,13 +334,29 @@ function createStage(template, owner = "", dueDate = "") {
   };
 }
 
+function cloneDefaultBrandProfiles() {
+  return defaultBrandProfiles.map((profile) => ({ ...profile }));
+}
+
+function getBrandProfiles() {
+  return state?.brandProfiles?.length ? state.brandProfiles : defaultBrandProfiles;
+}
+
 function getBrandProfile(brandName) {
   const normalized = String(brandName || "").trim().toLowerCase();
-  return activeBrands.find((brand) => brand.name.toLowerCase() === normalized);
+  return getBrandProfiles().find((brand) => brand.name.toLowerCase() === normalized);
+}
+
+function getBrandProfileById(id) {
+  return getBrandProfiles().find((brand) => brand.id === id);
 }
 
 function getCampaignFormField(name) {
   return elements.campaignForm.elements[name];
+}
+
+function getBrandFormField(name) {
+  return elements.brandProfileForm.elements.namedItem(name);
 }
 
 function getCampaignFormBrandName() {
@@ -309,41 +378,60 @@ function buildCreativeDirectionDraft(formInput = {}) {
   const perspective =
     profile?.perspective ||
     "brand-native point of view, cinematic texture, clear emotional stakes, and repeatable visual language";
+  const voice = profile?.voice ? ` Voice should feel ${profile.voice.toLowerCase()}` : "";
+  const audience = profile?.audience ? ` Primary audience: ${profile.audience}` : "";
+  const offers = profile?.offers ? ` Monetization context: ${profile.offers}` : "";
 
   return [
     `Create ${quantity} ${platform} outputs for ${brand} around "${campaignName}" with ${perspective}.`,
-    "The storytelling should define the voiceover rhythm first, then shape scene composition, camera movement, lighting, pacing, captions, and transitions around that audio-led spine.",
+    `The storytelling should define the voiceover rhythm first, then shape scene composition, camera movement, lighting, pacing, captions, and transitions around that audio-led spine.${voice}${audience}${offers}`,
     "Each scene should make the viewer feel the before-and-after shift: the tension the audience recognizes, the insight that reframes it, and the confident action the brand makes possible."
   ].join("\n\n");
 }
 
 function buildComplianceGuardrails(brandName) {
-  if (brandName === "CRS") {
-    return [
-      "No patient-identifying information, patient names, visible medical records, or PHI.",
-      "Avoid guaranteed eligibility, coverage, reimbursement, recovery, or clinical outcome claims.",
-      "Describe AI as workflow support and eligibility intelligence, not autonomous medical or coverage decision-making.",
-      "Use anonymous operational visuals and route final copy through human compliance review before publishing."
-    ].join("\n");
-  }
-
-  if (brandName === "The VFO") {
-    return [
-      "No guaranteed investment, tax, legal, valuation, return, exit, or financing outcomes.",
-      "Avoid personalized financial advice unless the asset is reviewed and approved for that use.",
-      "Use measured fiduciary language and make uncertainty, context, and review boundaries clear.",
-      "Route final copy through human compliance review before publishing."
-    ].join("\n");
-  }
-
-  return "";
+  return getBrandProfile(brandName)?.guardrails || "";
 }
 
 function renderBrandOptions() {
-  elements.campaignBrandSelect.innerHTML = activeBrands
+  elements.campaignBrandSelect.innerHTML = getBrandProfiles()
     .map((brand) => `<option value="${escapeHtml(brand.name)}">${escapeHtml(brand.name)}</option>`)
     .concat('<option value="__other__">Other</option>')
     .join("");
+}
+
+function renderBrandManagerOptions(selectedId = elements.brandProfileSelect?.value) {
+  if (!elements.brandProfileSelect) return;
+  elements.brandProfileSelect.innerHTML = getBrandProfiles()
+    .map((brand) => `<option value="${escapeHtml(brand.id)}">${escapeHtml(brand.name)}</option>`)
+    .join("");
+  if (selectedId && getBrandProfileById(selectedId)) {
+    elements.brandProfileSelect.value = selectedId;
+  }
+}
+
+function loadBrandProfileForm(profileId = elements.brandProfileSelect.value) {
+  const profile = getBrandProfileById(profileId) || getBrandProfiles()[0];
+  if (!profile) return;
+  elements.brandProfileSelect.value = profile.id;
+  getBrandFormField("name").value = profile.name || "";
+  getBrandFormField("regulated").checked = Boolean(profile.regulated);
+  getBrandFormField("voice").value = profile.voice || "";
+  getBrandFormField("audience").value = profile.audience || "";
+  getBrandFormField("offers").value = profile.offers || "";
+  getBrandFormField("perspective").value = profile.perspective || "";
+  getBrandFormField("guardrails").value = profile.guardrails || "";
+  getBrandFormField("platforms").value = profile.platforms || "";
+}
+
+function openBrandDialog(profileName = "") {
+  renderBrandManagerOptions();
+  const profile = profileName ? getBrandProfile(profileName) : getBrandProfiles()[0];
+  loadBrandProfileForm(profile?.id);
+  if (!getBrandFormField("name").value && getBrandProfiles()[0]) {
+    loadBrandProfileForm(getBrandProfiles()[0].id);
+  }
+  elements.brandDialog.showModal();
 }
 
 function syncCampaignSetupFields({ forceCreative = false } = {}) {
@@ -392,18 +480,45 @@ function openCampaignDialog() {
   elements.campaignDialog.showModal();
 }
 
+function addAgentActivity(type, message, campaignId = selectedCampaignId) {
+  state.agentActivity = state.agentActivity || [];
+  state.agentActivity.push({
+    id: makeId(),
+    type,
+    message,
+    campaignId: campaignId || "",
+    createdAt: new Date().toISOString()
+  });
+  if (state.agentActivity.length > 100) {
+    state.agentActivity = state.agentActivity.slice(-100);
+  }
+}
+
+function createCreativeDirectionVersion(value, source = "Agentic draft") {
+  return {
+    id: makeId(),
+    value,
+    source,
+    createdAt: new Date().toISOString()
+  };
+}
+
 function createCampaign(input) {
   const safeBrand = (input.brand || "").trim() || "Brand";
   const safeName = input.name.trim() || "Untitled Campaign";
+  const creativeDirection = input.creativeDirection.trim();
+  const brandProfile = getBrandProfile(safeBrand);
   return {
     id: makeId(),
     brand: safeBrand,
+    brandProfileId: brandProfile?.id || "",
     name: safeName,
     platform: input.platform,
     quantity: Number(input.quantity) || 1,
     dueDate: input.dueDate,
     owner: input.owner.trim(),
-    creativeDirection: input.creativeDirection.trim(),
+    creativeDirection,
+    creativeDirectionVersions: [createCreativeDirectionVersion(creativeDirection, "Launch workstream draft")],
     guardrails: (input.guardrails || "").trim(),
     createdAt: new Date().toISOString(),
     stages: stageTemplates.map((template, index) =>
@@ -488,15 +603,26 @@ function loadState() {
   }
 
   return normalizeState({
+    brandProfiles: cloneDefaultBrandProfiles(),
     campaigns: defaultCampaigns.map(normalizeCampaign),
     selectedCampaignId: "",
     selectedStageIndex: 0,
     selectedReviewSectionId: reviewSections[0].id,
-    reviewRequests: []
+    reviewRequests: [],
+    agentActivity: [
+      {
+        id: makeId(),
+        type: "System",
+        message: "Demo workspace initialized with default brand profiles and production workflow.",
+        createdAt: new Date().toISOString()
+      }
+    ]
   });
 }
 
 function normalizeState(workspace) {
+  workspace.brandProfiles = normalizeBrandProfiles(workspace.brandProfiles);
+  workspace.agentActivity = Array.isArray(workspace.agentActivity) ? workspace.agentActivity : [];
   workspace.reviewRequests = workspace.reviewRequests || [];
   workspace.selectedReviewSectionId = workspace.selectedReviewSectionId || reviewSections[0].id;
   workspace.campaigns.forEach((campaign) => {
@@ -505,8 +631,42 @@ function normalizeState(workspace) {
   return workspace;
 }
 
+function normalizeBrandProfiles(profiles) {
+  const defaults = cloneDefaultBrandProfiles();
+  const byName = new Map(defaults.map((profile) => [profile.name.toLowerCase(), profile]));
+  (profiles || []).forEach((profile) => {
+    if (!profile?.name) return;
+    byName.set(profile.name.toLowerCase(), {
+      id: profile.id || makeId(),
+      name: profile.name,
+      regulated: Boolean(profile.regulated),
+      voice: profile.voice || "",
+      audience: profile.audience || "",
+      offers: profile.offers || "",
+      perspective: profile.perspective || "",
+      guardrails: profile.guardrails || "",
+      platforms: profile.platforms || ""
+    });
+  });
+  return Array.from(byName.values());
+}
+
 function normalizeCampaignShape(campaign) {
   campaign.reviewRequests = campaign.reviewRequests || [];
+  campaign.brandProfileId = campaign.brandProfileId || getBrandProfile(campaign.brand)?.id || "";
+  campaign.creativeDirectionVersions = Array.isArray(campaign.creativeDirectionVersions)
+    ? campaign.creativeDirectionVersions
+    : [];
+  if (!campaign.creativeDirectionVersions.length && campaign.creativeDirection) {
+    campaign.creativeDirectionVersions.push(
+      createCreativeDirectionVersion(campaign.creativeDirection, "Migrated creative direction")
+    );
+  }
+  campaign.scenes = (campaign.scenes || []).map((scene) => ({
+    ...scene,
+    script: scene.script || "",
+    voiceoverNotes: scene.voiceoverNotes || ""
+  }));
   campaign.stages = migrateStages(campaign.stages || [], campaign);
   campaign.stages = stageTemplates.map((template, index) => {
     const existing = campaign.stages[index] || {};
@@ -638,10 +798,13 @@ function formatStatus(status) {
 
 function render() {
   renderFilters();
+  renderBrandOptions();
+  renderBrandManagerOptions();
   renderMetrics();
   renderCampaignList();
   renderCampaign();
   renderReviewPanel();
+  renderAgentActivityLog();
   saveState();
 }
 
@@ -743,6 +906,77 @@ function renderCampaign() {
   renderScenes(campaign);
   renderApprovals(campaign);
   renderHandoff(campaign);
+  renderBrandProfileSummary(campaign);
+  renderCreativeDirectionVersions(campaign);
+}
+
+function renderBrandProfileSummary(campaign) {
+  const profile = getBrandProfile(campaign.brand);
+  elements.brandProfileSummary.innerHTML = "";
+  if (!profile) {
+    elements.brandProfileSummary.innerHTML = `<p class="meta-row">No brand profile found for ${escapeHtml(campaign.brand)}.</p>`;
+    return;
+  }
+
+  const regulatedClass = profile.regulated ? "blocked" : "approved";
+  elements.brandProfileSummary.innerHTML = `
+    <div class="summary-row">
+      <span class="status-pill ${regulatedClass}">${profile.regulated ? "Regulated" : "Standard"}</span>
+      <span class="meta-pill">${escapeHtml(profile.platforms || "Platforms open")}</span>
+    </div>
+    <p><strong>Voice:</strong> ${escapeHtml(profile.voice || "Not set")}</p>
+    <p><strong>Audience:</strong> ${escapeHtml(profile.audience || "Not set")}</p>
+    <p><strong>Offers:</strong> ${escapeHtml(profile.offers || "Not set")}</p>
+    <p><strong>Cinematic perspective:</strong> ${escapeHtml(profile.perspective || "Not set")}</p>
+  `;
+}
+
+function renderCreativeDirectionVersions(campaign) {
+  elements.creativeDirectionVersions.innerHTML = "";
+  const versions = [...(campaign.creativeDirectionVersions || [])].reverse();
+  if (!versions.length) {
+    elements.creativeDirectionVersions.innerHTML = `<p class="meta-row">No creative direction versions yet.</p>`;
+    return;
+  }
+
+  versions.forEach((version) => {
+    const card = document.createElement("article");
+    card.className = "version-card";
+    const active = version.value === campaign.creativeDirection;
+    card.innerHTML = `
+      <header>
+        <strong>${escapeHtml(version.source)}</strong>
+        <small>${new Date(version.createdAt).toLocaleString()}</small>
+      </header>
+      <p>${escapeHtml(version.value)}</p>
+      <div class="scene-actions">
+        <span class="status-pill ${active ? "approved" : "not-started"}">${active ? "Active" : "Archived"}</span>
+        <button class="mini-button" type="button" data-use-direction="${version.id}">Use Version</button>
+      </div>
+    `;
+    elements.creativeDirectionVersions.appendChild(card);
+  });
+}
+
+function renderAgentActivityLog() {
+  if (!elements.agentActivityLog) return;
+  elements.agentActivityLog.innerHTML = "";
+  const activity = [...(state.agentActivity || [])].reverse().slice(0, 12);
+  if (!activity.length) {
+    elements.agentActivityLog.innerHTML = `<p class="meta-row">No agent activity recorded yet.</p>`;
+    return;
+  }
+
+  activity.forEach((item) => {
+    const row = document.createElement("article");
+    row.className = "activity-item";
+    row.innerHTML = `
+      <strong>${escapeHtml(item.type)}</strong>
+      <p>${escapeHtml(item.message)}</p>
+      <small>${new Date(item.createdAt).toLocaleString()}</small>
+    `;
+    elements.agentActivityLog.appendChild(row);
+  });
 }
 
 function getCampaignReviewRequests(campaign) {
@@ -820,6 +1054,7 @@ function renderScenes(campaign) {
         <strong>${escapeHtml(scene.title)}</strong>
         <span class="status-pill ${scene.status || "not-started"}">${formatStatus(scene.status || "not-started")}</span>
       </header>
+      ${scene.script ? `<p><strong>Script:</strong> ${escapeHtml(scene.script)}</p>` : ""}
       <p>${escapeHtml(scene.prompt)}</p>
       ${scene.compliance ? `<p>${escapeHtml(scene.compliance)}</p>` : ""}
       <div class="scene-actions">
@@ -892,6 +1127,7 @@ function autoApproveStage(stage) {
 function getManifest(campaign) {
   return {
     brand: campaign.brand,
+    brandProfile: getBrandProfile(campaign.brand),
     campaign: campaign.name,
     platform: campaign.platform,
     quantity: campaign.quantity,
@@ -902,9 +1138,12 @@ function getManifest(campaign) {
     remotion: campaign.remotion,
     bunny: campaign.assets,
     publishing: campaign.publishing,
+    creativeDirection: campaign.creativeDirection,
+    creativeDirectionVersions: campaign.creativeDirectionVersions,
     scenes: campaign.scenes,
     approvals: campaign.approvals,
     reviewRequests: getCampaignReviewRequests(campaign),
+    agentActivity: (state.agentActivity || []).filter((item) => !item.campaignId || item.campaignId === campaign.id),
     stages: campaign.stages.map((stage, index) => ({
       name: stageTemplates[index].name,
       status: stage.status,
@@ -989,6 +1228,7 @@ function getElevenLabsBrief(campaign) {
     complianceGuardrails: campaign.guardrails,
     scenes: campaign.scenes.map((scene) => ({
       title: scene.title,
+      script: scene.script,
       prompt: scene.prompt,
       compliance: scene.compliance,
       status: scene.status
@@ -1007,6 +1247,7 @@ function getRemotionBrief(campaign) {
     remotionOutputUrl: campaign.remotion.outputUrl || campaign.assets.remotionOutput,
     scenes: campaign.scenes.map((scene) => ({
       title: scene.title,
+      script: scene.script,
       prompt: scene.prompt,
       compliance: scene.compliance,
       status: scene.status
@@ -1046,12 +1287,25 @@ document.querySelector("#openCampaignForm").addEventListener("click", openCampai
 
 document.querySelector("[data-action='new-campaign']").addEventListener("click", openCampaignDialog);
 
+document.querySelector("#openBrandManager").addEventListener("click", () => {
+  openBrandDialog();
+});
+
 document.querySelector("#seedWorkspace").addEventListener("click", () => {
   state = {
+    brandProfiles: cloneDefaultBrandProfiles(),
     campaigns: defaultCampaigns.map(normalizeCampaign),
     selectedCampaignId: "",
     selectedStageIndex: 0,
-    selectedReviewSectionId: reviewSections[0].id
+    selectedReviewSectionId: reviewSections[0].id,
+    agentActivity: [
+      {
+        id: makeId(),
+        type: "System",
+        message: "Demo workspace reset with default brand profiles and production workflow.",
+        createdAt: new Date().toISOString()
+      }
+    ]
   };
   selectedCampaignId = state.campaigns[0]?.id || "";
   selectedStageIndex = 0;
@@ -1129,10 +1383,30 @@ elements.campaignForm.addEventListener("submit", (event) => {
   const data = Object.fromEntries(new FormData(elements.campaignForm));
   data.brand = getCampaignFormBrandName();
   if (!isRegulatedBrand(data.brand)) data.guardrails = "";
+  if (data.brand && !getBrandProfile(data.brand)) {
+    state.brandProfiles.push({
+      id: makeId(),
+      name: data.brand,
+      regulated: false,
+      voice: "",
+      audience: "",
+      offers: "",
+      perspective:
+        "brand-native point of view, cinematic texture, clear emotional stakes, and repeatable visual language",
+      guardrails: "",
+      platforms: data.platform
+    });
+    addAgentActivity("Brand strategy", `Created new brand profile shell for ${data.brand}.`);
+  }
   const campaign = createCampaign(data);
   state.campaigns.unshift(campaign);
   selectedCampaignId = campaign.id;
   selectedStageIndex = 0;
+  addAgentActivity(
+    "Campaign setup",
+    `Created ${campaign.name} for ${campaign.brand} with an agentic creative direction draft.`,
+    campaign.id
+  );
   elements.campaignDialog.close();
   render();
   showToast("Campaign launched");
@@ -1166,6 +1440,78 @@ elements.generateCreativeDirection.addEventListener("click", () => {
   getCampaignFormField("creativeDirection").focus();
 });
 
+elements.brandProfileSelect.addEventListener("change", () => {
+  loadBrandProfileForm();
+});
+
+elements.newBrandProfile.addEventListener("click", () => {
+  elements.brandProfileForm.reset();
+  elements.brandProfileSelect.value = "";
+  getBrandFormField("name").focus();
+});
+
+elements.brandProfileForm.addEventListener("submit", (event) => {
+  if (event.submitter?.value === "cancel") return;
+  event.preventDefault();
+  const data = Object.fromEntries(new FormData(elements.brandProfileForm));
+  const existingId = elements.brandProfileSelect.value;
+  const profile = {
+    id: existingId || makeId(),
+    name: data.name.trim(),
+    regulated: getBrandFormField("regulated").checked,
+    voice: data.voice.trim(),
+    audience: data.audience.trim(),
+    offers: data.offers.trim(),
+    perspective: data.perspective.trim(),
+    guardrails: data.guardrails.trim(),
+    platforms: data.platforms.trim()
+  };
+  if (!profile.name || !profile.perspective) {
+    showToast("Brand name and perspective are required");
+    return;
+  }
+  const existingIndex = state.brandProfiles.findIndex((brand) => brand.id === profile.id);
+  if (existingIndex >= 0) {
+    state.brandProfiles[existingIndex] = profile;
+  } else {
+    state.brandProfiles.push(profile);
+  }
+  addAgentActivity("Brand strategy", `Saved brand profile for ${profile.name}.`);
+  elements.brandDialog.close();
+  render();
+  showToast("Brand profile saved");
+});
+
+elements.editActiveBrand.addEventListener("click", () => {
+  const campaign = getSelectedCampaign();
+  openBrandDialog(campaign?.brand);
+});
+
+elements.regenerateCampaignDirection.addEventListener("click", () => {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const draft = buildCreativeDirectionDraft(campaign);
+  const version = createCreativeDirectionVersion(draft, "Regenerated campaign direction");
+  campaign.creativeDirection = draft;
+  campaign.creativeDirectionVersions.push(version);
+  campaign.stages[0].checks[1].done = true;
+  addAgentActivity("Creative direction", `Regenerated creative direction for ${campaign.name}.`, campaign.id);
+  render();
+  showToast("Creative direction regenerated");
+});
+
+elements.creativeDirectionVersions.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-use-direction]");
+  const campaign = getSelectedCampaign();
+  if (!button || !campaign) return;
+  const version = campaign.creativeDirectionVersions.find((item) => item.id === button.dataset.useDirection);
+  if (!version) return;
+  campaign.creativeDirection = version.value;
+  addAgentActivity("Creative direction", `Activated a previous creative direction for ${campaign.name}.`, campaign.id);
+  render();
+  showToast("Creative direction activated");
+});
+
 elements.sceneForm.addEventListener("submit", (event) => {
   if (event.submitter?.value === "cancel") return;
   event.preventDefault();
@@ -1175,12 +1521,15 @@ elements.sceneForm.addEventListener("submit", (event) => {
   campaign.scenes.push({
     id: makeId(),
     title: data.title.trim(),
+    script: data.script.trim(),
     prompt: data.prompt.trim(),
     compliance: data.compliance.trim(),
     status: "not-started"
   });
   campaign.stages[1].checks[0].done = true;
   campaign.stages[1].checks[1].done = true;
+  campaign.stages[1].checks[3].done = true;
+  addAgentActivity("Scene planning", `Added scripted scene "${data.title.trim()}" to ${campaign.name}.`, campaign.id);
   elements.sceneForm.reset();
   elements.sceneDialog.close();
   render();
@@ -1338,6 +1687,10 @@ document.querySelector("#copyBunnyManifest").addEventListener("click", () => {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
   copyText(JSON.stringify(getManifest(campaign), null, 2), "Bunny manifest");
+});
+
+elements.copyActivityLog.addEventListener("click", () => {
+  copyText(JSON.stringify(state.agentActivity || [], null, 2), "Activity log");
 });
 
 document.querySelector("#copyElevenLabsBrief").addEventListener("click", () => {
