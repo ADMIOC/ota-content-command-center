@@ -23,6 +23,7 @@ Secure API boundaries for future ElevenLabs, Remotion, Bunny, and Blotato servic
 - Creative direction version history
 - Regulated-brand compliance guardrails for CRS and The VFO
 - Scene queue with video scripts, Higgsfield prompts, and compliance notes
+- Live OTA Co-Pilot guidance for each campaign build section
 - Agent activity log
 - ElevenLabs script/audio tracking for the active `agentic@ownthealgo.com` account
 - Codex + Remotion handoff tracking for the output Higgsfield Studio ingests

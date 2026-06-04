@@ -6,6 +6,8 @@ OTA Social Engine is a 24/7/365 agentically engineered social marketing engine f
 
 The Content Command Center is the operational surface for that engine. It should make the work visible, repeatable, measurable, and controllable while agents handle the heavy lift behind the scenes.
 
+The hallmark user experience is live agent-guided assistance in every campaign build section. The creator should never stare at an empty workflow stage; the OTA Co-Pilot should explain the next logical step, make on-brand suggestions, and apply editable drafts while preserving human approval gates.
+
 ## Operating Principles
 
 - Build agentically by default, with human approval gates where brand risk, publishing risk, spending, contracts, or regulated claims are involved.
@@ -14,6 +16,7 @@ The Content Command Center is the operational surface for that engine. It should
 - Keep regulated brands safer by design. CRS and The VFO require compliance guardrails before production work can proceed.
 - Keep secrets server-side. API keys, service credentials, and automation tokens must never live in static client code.
 - Prefer modular agents with clear contracts over one opaque automation blob.
+- Give creators section-aware co-pilot guidance that updates as campaign state changes.
 
 ## Current Production Chain
 

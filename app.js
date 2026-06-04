@@ -272,6 +272,12 @@ const elements = {
   stageOwner: document.querySelector("#stageOwner"),
   stageDue: document.querySelector("#stageDue"),
   stageNotes: document.querySelector("#stageNotes"),
+  coPilotKicker: document.querySelector("#coPilotKicker"),
+  coPilotTitle: document.querySelector("#coPilotTitle"),
+  coPilotStatus: document.querySelector("#coPilotStatus"),
+  coPilotSummary: document.querySelector("#coPilotSummary"),
+  coPilotSuggestions: document.querySelector("#coPilotSuggestions"),
+  coPilotActions: document.querySelector("#coPilotActions"),
   sceneList: document.querySelector("#sceneList"),
   approvalStatus: document.querySelector("#approvalStatus"),
   approvalChecks: document.querySelector("#approvalChecks"),
@@ -782,6 +788,127 @@ function getReadiness(campaign) {
   return Math.round((complete / total) * 100);
 }
 
+function getFirstOpenCheck(stage) {
+  return stage.checks.find((check) => !check.done);
+}
+
+function getBrandTone(profile) {
+  return profile?.voice || profile?.perspective || "brand-native, clear, and useful";
+}
+
+function getCoPilotGuidance(campaign) {
+  const profile = getBrandProfile(campaign.brand);
+  const stage = campaign.stages[selectedStageIndex];
+  const template = stageTemplates[selectedStageIndex];
+  const openCheck = getFirstOpenCheck(stage);
+  const brandTone = getBrandTone(profile);
+  const regulatedNote = profile?.regulated
+    ? " Keep the compliance guardrails visible before generation or publishing."
+    : " Keep the output sharp, useful, and aligned to the brand promise.";
+  const sceneCount = campaign.scenes.length;
+  const approvedScenes = campaign.scenes.filter((scene) => scene.status === "approved").length;
+  const hasScriptedScenes = campaign.scenes.some((scene) => scene.script);
+
+  const base = {
+    kicker: `OTA Co-Pilot - Stage ${String(selectedStageIndex + 1).padStart(2, "0")}`,
+    title: `${template.shortName} Guidance`,
+    status: openCheck ? "Guiding" : "Ready",
+    summary: "",
+    suggestions: [],
+    actions: [
+      { id: "complete-next-check", label: "Complete Next Check" },
+      { id: "apply-stage-note", label: "Add Stage Note" }
+    ]
+  };
+
+  if (selectedStageIndex === 0) {
+    base.summary = `Lock ${campaign.brand}'s strategic setup before production. The creative direction should sound ${brandTone.toLowerCase()}.${regulatedNote}`;
+    base.suggestions = [
+      `Use the current brand profile to keep the campaign anchored in ${campaign.brand}'s voice, audience, offer, and cinematic point of view.`,
+      openCheck ? `Next setup gap: ${openCheck.label}.` : "Setup is ready to hand into scene planning.",
+      "If the campaign feels generic, regenerate creative direction and keep the version that creates the clearest before-and-after story."
+    ];
+    base.actions.push({ id: "regenerate-direction", label: "Regenerate Direction" });
+  } else if (selectedStageIndex === 1) {
+    base.summary = `Scene planning should convert the direction into scripted clips. Build scenes around voiceover rhythm first, then Higgsfield visuals.`;
+    base.suggestions = [
+      sceneCount ? `${sceneCount} scenes exist and ${approvedScenes} are approved.` : "Start with one scripted scene that states the tension, insight, and action.",
+      hasScriptedScenes
+        ? "At least one scene has script language ready for ElevenLabs."
+        : "Add video script text before moving this campaign to ElevenLabs.",
+      `Keep each prompt visually consistent with ${profile?.perspective || "the brand cinematic perspective"}.`
+    ];
+    base.actions.push({ id: "generate-scene-idea", label: "Draft Scene" });
+  } else if (selectedStageIndex === 2) {
+    base.summary = `ElevenLabs should receive approved scripts, voice profile, and pronunciation/compliance notes before audio generation.`;
+    base.suggestions = [
+      campaign.elevenLabs.voiceProfile
+        ? `Voice profile is set to ${campaign.elevenLabs.voiceProfile}.`
+        : "Choose a voice profile that matches the brand profile before generating audio.",
+      campaign.assets.voiceScript || campaign.elevenLabs.scriptUrl
+        ? "Script URL is present for audio production."
+        : "Add the approved script URL or package the scene scripts in the ElevenLabs brief.",
+      profile?.regulated ? "Do not generate regulated-brand audio until compliance guardrails are reviewed." : "Keep the narration energetic, clear, and platform-native."
+    ];
+    base.actions.push({ id: "draft-elevenlabs-notes", label: "Draft Audio Notes" });
+  } else if (selectedStageIndex === 3) {
+    base.summary = `Codex + Remotion should turn the ElevenLabs audio into a timed production input for Higgsfield Studio.`;
+    base.suggestions = [
+      campaign.remotion.sourceAudioUrl ? "Source audio is linked." : "Add ElevenLabs audio as the Remotion source input.",
+      campaign.remotion.outputUrl ? "Remotion output is ready for Higgsfield." : "Render or link the Remotion output before Higgsfield.",
+      "Align captions and visual cuts to the strongest voiceover beats, not arbitrary scene length."
+    ];
+    base.actions.push({ id: "draft-remotion-notes", label: "Draft Remotion Notes" });
+  } else if (selectedStageIndex === 4) {
+    base.summary = `Higgsfield Studio should consume the approved Remotion output and return usable clips, not loose experiments.`;
+    base.suggestions = [
+      campaign.remotion.outputUrl || campaign.assets.remotionOutput
+        ? "Approved Remotion output is available for Higgsfield."
+        : "Add the Remotion output URL before generation.",
+      "Track failed takes openly so the next generation pass learns from them.",
+      `Visuals should preserve ${campaign.brand}'s cinematic perspective from the brand profile.`
+    ];
+  } else if (selectedStageIndex === 5) {
+    base.summary = `QA should verify visual quality, audio quality, compliance fit, captions, and publishing readiness before assembly.`;
+    base.suggestions = [
+      `${campaign.approvals.filter((check) => check.done).length}/${campaign.approvals.length} approval checks are complete.`,
+      profile?.regulated ? "Regulated language needs human review before publishing." : "Check that the final piece still feels unmistakably on brand.",
+      "Use reviewer comments for trackable improvement requests instead of chat-only feedback."
+    ];
+  } else if (selectedStageIndex === 6) {
+    base.summary = `Assembly should package approved clips, audio, captions, thumbnail, and naming into a durable deliverable.`;
+    base.suggestions = [
+      campaign.assets.video ? "Final video URL is present." : "Add or prepare the final render URL.",
+      campaign.assets.thumbnail ? "Thumbnail URL is present." : "Export a thumbnail that matches the story and platform.",
+      "Confirm audio levels before storage and publishing handoff."
+    ];
+  } else if (selectedStageIndex === 7) {
+    base.summary = `The publishing package should make scheduling effortless: caption, hashtags, notes, media, and brand context in one place.`;
+    base.suggestions = [
+      campaign.publishing.caption ? "Caption draft exists." : "Draft a caption that turns the video insight into a clear audience action.",
+      campaign.publishing.hashtags ? "Hashtags are present." : "Add platform-specific hashtags.",
+      "Platform notes should identify any hook, CTA, cutdown, or approval constraint."
+    ];
+    base.actions.push({ id: "draft-publishing-package", label: "Draft Package Copy" });
+  } else if (selectedStageIndex === 8) {
+    base.summary = `Bunny storage should become the clean source of truth between production and publishing.`;
+    base.suggestions = [
+      campaign.assets.bunnyFolder ? `Folder path: ${campaign.assets.bunnyFolder}.` : "Confirm the Bunny folder path.",
+      "Store scripts, audio tracks, Remotion output, final video, thumbnail, captions, and approvals together.",
+      "Copy the manifest when handing work to a teammate or publisher."
+    ];
+  } else {
+    base.summary = `Blotato handoff should only happen once the approved package has media, copy, storage links, and platform notes.`;
+    base.suggestions = [
+      campaign.assets.video ? "Approved media URL is ready." : "Add the approved final video URL.",
+      campaign.publishing.caption ? "Caption is ready." : "Draft the publishing caption before handoff.",
+      "Keep this as a draft until a human approves scheduling or publishing."
+    ];
+  }
+
+  return base;
+}
+
 function getCampaignStatus(campaign) {
   if (campaign.stages.some((stage) => stage.status === "blocked")) return "blocked";
   if (campaign.stages.every((stage) => stage.status === "approved")) return "approved";
@@ -908,6 +1035,32 @@ function renderCampaign() {
   renderHandoff(campaign);
   renderBrandProfileSummary(campaign);
   renderCreativeDirectionVersions(campaign);
+  renderCoPilot(campaign);
+}
+
+function renderCoPilot(campaign) {
+  const guidance = getCoPilotGuidance(campaign);
+  elements.coPilotKicker.textContent = guidance.kicker;
+  elements.coPilotTitle.textContent = guidance.title;
+  elements.coPilotStatus.className = `status-pill ${guidance.status === "Ready" ? "approved" : "in-progress"}`;
+  elements.coPilotStatus.textContent = guidance.status;
+  elements.coPilotSummary.textContent = guidance.summary;
+  elements.coPilotSuggestions.innerHTML = "";
+  guidance.suggestions.forEach((suggestion) => {
+    const item = document.createElement("article");
+    item.className = "copilot-suggestion";
+    item.textContent = suggestion;
+    elements.coPilotSuggestions.appendChild(item);
+  });
+  elements.coPilotActions.innerHTML = "";
+  guidance.actions.forEach((action) => {
+    const button = document.createElement("button");
+    button.className = "mini-button";
+    button.type = "button";
+    button.dataset.copilotAction = action.id;
+    button.textContent = action.label;
+    elements.coPilotActions.appendChild(button);
+  });
 }
 
 function renderBrandProfileSummary(campaign) {
@@ -1122,6 +1275,112 @@ function autoApproveStage(stage) {
   if (stage.checks.every((check) => check.done) && stage.status !== "blocked") {
     stage.status = "approved";
   }
+}
+
+function buildStageNote(campaign) {
+  const profile = getBrandProfile(campaign.brand);
+  const template = stageTemplates[selectedStageIndex];
+  const openCheck = getFirstOpenCheck(campaign.stages[selectedStageIndex]);
+  return [
+    `Co-pilot guidance for ${template.shortName}: keep ${campaign.brand} aligned to ${profile?.perspective || "the active brand profile"}.`,
+    openCheck ? `Next recommended completion: ${openCheck.label}.` : "This stage has no open checklist items.",
+    profile?.regulated ? "Maintain compliance guardrails before downstream generation or publishing." : "Keep the asset useful, specific, and on-brand."
+  ].join("\n");
+}
+
+function buildSuggestedScene(campaign) {
+  const profile = getBrandProfile(campaign.brand);
+  const ordinal = campaign.scenes.length + 1;
+  const tension = profile?.regulated
+    ? "the costly operational risk hiding in a normal day"
+    : "the moment the audience realizes the old workflow is too slow";
+  return {
+    id: makeId(),
+    title: `Co-Pilot Scene ${ordinal}`,
+    script: `Open on ${tension}. Reframe it through ${campaign.brand}'s point of view, then show the clear next action the audience can take.`,
+    prompt: `${profile?.perspective || "Brand-native cinematic perspective"}, scene ${ordinal}, clear before-and-after storytelling, platform-ready composition, clean lighting, high-signal visual detail.`,
+    compliance: profile?.regulated ? buildComplianceGuardrails(campaign.brand).split("\n")[0] || "" : "",
+    status: "not-started"
+  };
+}
+
+function applyCoPilotAction(actionId) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const stage = campaign.stages[selectedStageIndex];
+
+  if (actionId === "complete-next-check") {
+    const index = stage.checks.findIndex((check) => !check.done);
+    if (index === -1) {
+      showToast("No open checks in this stage");
+      return;
+    }
+    stage.checks[index].done = true;
+    autoApproveStage(stage);
+    addAgentActivity("Co-pilot", `Completed checklist item "${stage.checks[index].label}" for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "apply-stage-note") {
+    const note = buildStageNote(campaign);
+    stage.notes = stage.notes ? `${stage.notes}\n\n${note}` : note;
+    addAgentActivity("Co-pilot", `Added stage guidance note for ${stageTemplates[selectedStageIndex].shortName}.`, campaign.id);
+  }
+
+  if (actionId === "regenerate-direction") {
+    const draft = buildCreativeDirectionDraft(campaign);
+    campaign.creativeDirection = draft;
+    campaign.creativeDirectionVersions.push(createCreativeDirectionVersion(draft, "Co-pilot regenerated direction"));
+    stage.checks[1].done = true;
+    addAgentActivity("Co-pilot", `Regenerated on-brand creative direction for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "generate-scene-idea") {
+    const scene = buildSuggestedScene(campaign);
+    campaign.scenes.push(scene);
+    stage.checks[0].done = true;
+    stage.checks[1].done = true;
+    stage.checks[3].done = true;
+    addAgentActivity("Co-pilot", `Drafted scene "${scene.title}" for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "draft-elevenlabs-notes") {
+    const profile = getBrandProfile(campaign.brand);
+    campaign.elevenLabs.voiceProfile = campaign.elevenLabs.voiceProfile || `${campaign.brand} narrator`;
+    campaign.elevenLabs.notes = [
+      `Voice should match ${profile?.voice || "the active brand voice"}.`,
+      "Read with clear pacing, strong hook emphasis, and enough pauses for caption beats.",
+      profile?.regulated ? "Avoid language that implies guarantees or unreviewed regulated claims." : "Keep delivery confident, useful, and platform-native."
+    ].join("\n");
+    addAgentActivity("Co-pilot", `Drafted ElevenLabs audio notes for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "draft-remotion-notes") {
+    campaign.remotion.sourceAudioUrl = campaign.remotion.sourceAudioUrl || campaign.elevenLabs.voiceoverUrl || campaign.assets.voiceover;
+    campaign.remotion.compositionNotes = [
+      "Cut visuals to voiceover beats and preserve hook clarity in the first three seconds.",
+      "Use captions as a storytelling layer, not just a transcript.",
+      "Export a clean production input for Higgsfield Studio with all timing locked."
+    ].join("\n");
+    addAgentActivity("Co-pilot", `Drafted Codex + Remotion composition notes for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "draft-publishing-package") {
+    const profile = getBrandProfile(campaign.brand);
+    campaign.publishing.caption =
+      campaign.publishing.caption ||
+      `${campaign.name} shows how ${campaign.brand} turns a familiar problem into a clearer next move.`;
+    campaign.publishing.hashtags =
+      campaign.publishing.hashtags || "#OTASocialEngine #AIWorkflow #ContentEngine";
+    campaign.publishing.platformNotes = [
+      `Keep tone aligned to ${profile?.voice || "the active brand voice"}.`,
+      "Use the strongest before-and-after moment as the hook.",
+      profile?.regulated ? "Hold as draft until compliance review is complete." : "Ready for human publishing review after asset URLs are attached."
+    ].join("\n");
+    addAgentActivity("Co-pilot", `Drafted publishing package copy for ${campaign.name}.`, campaign.id);
+  }
+
+  render();
+  showToast("Co-pilot update applied");
 }
 
 function getManifest(campaign) {
@@ -1578,6 +1837,12 @@ elements.stageChecklist.addEventListener("change", (event) => {
   stage.checks[index].done = event.target.checked;
   autoApproveStage(stage);
   render();
+});
+
+elements.coPilotActions.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-copilot-action]");
+  if (!button) return;
+  applyCoPilotAction(button.dataset.copilotAction);
 });
 
 document.querySelector("#addScene").addEventListener("click", () => {
