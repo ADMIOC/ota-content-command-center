@@ -6,6 +6,10 @@ Open `index.html` in a browser. The app stores workspace data in `localStorage` 
 
 Any database added during this MVP phase is temporary testing infrastructure only. It is not intended to be the production system of record.
 
+## Operating Model
+
+The long-term system map lives in [docs/ota-social-engine-operating-model.md](docs/ota-social-engine-operating-model.md). It defines OTA Social Engine as a 24/7/365 agentically engineered marketing operation across research, planning, production, publishing, communications, scaling, and monetization.
+
 ## Current MVP
 
 - Campaign launcher
