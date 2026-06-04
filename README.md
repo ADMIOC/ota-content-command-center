@@ -16,6 +16,7 @@ Any database added during this MVP phase is temporary testing infrastructure onl
 - Bunny storage manifest
 - Blotato publishing package
 - Section-specific improvement requests with prefilled GitHub issue drafts
+- Creator day-in-the-life infographic for in-house review
 - Workspace JSON export
 
 ## Next API Wiring
