@@ -256,6 +256,8 @@
 .form-visual,
 .guardrail-visual,
 .scene-visual,
+.elevenlabs-visual,
+.remotion-visual,
 .generation-visual,
 .qa-visual,
 .assembly-visual,
@@ -343,6 +345,57 @@
 
 .generation-visual {
   grid-template-columns: repeat(2, 1fr);
+}
+
+.elevenlabs-visual span {
+  position: relative;
+  display: block;
+  height: 38px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+}
+
+.elevenlabs-visual span::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 15px;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--blue), var(--plum), var(--blue));
+}
+
+.elevenlabs-visual span:nth-child(2) {
+  margin-left: 22px;
+}
+
+.elevenlabs-visual span:nth-child(3) {
+  margin-left: 44px;
+}
+
+.remotion-visual {
+  grid-template-columns: 1.1fr 0.7fr;
+}
+
+.remotion-visual span {
+  min-height: 58px;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(110, 70, 110, 0.2), transparent),
+    #ffffff;
+  border: 1px solid var(--line);
+}
+
+.remotion-visual span:nth-child(1) {
+  grid-row: span 2;
+}
+
+.remotion-visual span:nth-child(4) {
+  grid-column: 1 / -1;
+  min-height: 34px;
+  background: var(--plum-soft);
 }
 
 .generation-visual span {
@@ -487,7 +540,7 @@
 
 .matrix-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 14px;
 }
 

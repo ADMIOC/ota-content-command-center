@@ -1,6 +1,6 @@
 # OTA Content Command Center MVP
 
-Static HTML MVP for launching and executing the OTA video workflow across campaign setup, scene planning, Higgsfield generation, QA, final assembly, Bunny storage, and Blotato publishing handoff.
+Static HTML MVP for launching and executing the OTA video workflow across campaign setup, scene planning, ElevenLabs script/audio generation, Codex + Remotion assembly, Higgsfield Studio generation, QA, final assembly, Bunny storage, and Blotato publishing handoff.
 
 Open `index.html` in a browser. The app stores workspace data in `localStorage` and can export a JSON workspace file from the top bar.
 
@@ -9,9 +9,11 @@ Any database added during this MVP phase is temporary testing infrastructure onl
 ## Current MVP
 
 - Campaign launcher
-- Eight-stage production workflow
+- Ten-stage production workflow
 - Stage owners, due dates, status, notes, and checklists
 - Scene queue with Higgsfield prompt and compliance notes
+- ElevenLabs script/audio tracking for the active `agentic@ownthealgo.com` account
+- Codex + Remotion handoff tracking for the output Higgsfield Studio ingests
 - Human approval gate
 - Bunny storage manifest
 - Blotato publishing package
@@ -22,6 +24,8 @@ Any database added during this MVP phase is temporary testing infrastructure onl
 ## Next API Wiring
 
 - Bunny.net upload and CDN URL creation
+- Server-side ElevenLabs API wiring for script/audio generation without exposing keys in the static client
+- Codex + Remotion automation hooks for creating the Higgsfield Studio input package
 - Blotato publishing draft creation
 - Temporary testing database for team-wide campaign state
 - Authentication and reviewer roles

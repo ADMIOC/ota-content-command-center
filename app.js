@@ -20,14 +20,38 @@ const stageTemplates = [
       "Scene list drafted",
       "Each scene has a Higgsfield prompt",
       "Claims, medical references, and brand language reviewed",
+      "Scene voiceover script drafted",
       "Thumbnail direction captured",
       "Revision path assigned"
     ]
   },
   {
-    name: "Higgsfield video generation",
+    name: "ElevenLabs script and audio tracks",
+    shortName: "ElevenLabs",
+    checklist: [
+      "ElevenLabs account confirmed",
+      "Voice profile selected",
+      "Scene voiceover script approved",
+      "Audio tracks generated",
+      "Audio track URLs ready for Codex + Remotion"
+    ]
+  },
+  {
+    name: "Codex + Remotion assembly pass",
+    shortName: "Remotion",
+    checklist: [
+      "ElevenLabs script and audio tracks imported",
+      "Remotion composition generated",
+      "Timing and captions aligned to audio",
+      "Preview export reviewed",
+      "Remotion output ready for Higgsfield Studio"
+    ]
+  },
+  {
+    name: "Higgsfield Studio generation",
     shortName: "Higgsfield",
     checklist: [
+      "Approved Codex + Remotion output imported",
       "Generation files created",
       "Raw outputs collected",
       "Failed generations marked",
@@ -40,6 +64,7 @@ const stageTemplates = [
     checklist: [
       "Reviewer assigned",
       "Visual quality approved",
+      "Voiceover quality approved",
       "Compliance check completed",
       "Caption accuracy reviewed",
       "Final approval recorded"
@@ -92,6 +117,8 @@ const stageTemplates = [
 const approvalLabels = [
   "Human QA approved",
   "Compliance guardrails satisfied",
+  "ElevenLabs audio approved",
+  "Codex + Remotion output approved",
   "Thumbnail reads as a reduced full infographic cover",
   "Bunny storage links complete",
   "Publishing package ready for Blotato"
@@ -101,6 +128,8 @@ const reviewSections = [
   { id: "campaign-overview", name: "Campaign Overview" },
   { id: "workflow-stage", name: "Workflow Stage" },
   { id: "scene-queue", name: "Scene Queue" },
+  { id: "elevenlabs-audio", name: "ElevenLabs Audio" },
+  { id: "remotion-pass", name: "Codex + Remotion" },
   { id: "approval-gate", name: "Approval Gate" },
   { id: "bunny-storage", name: "Bunny Storage" },
   { id: "publishing-package", name: "Publishing Package" }
@@ -173,9 +202,21 @@ const elements = {
   bunnyFolder: document.querySelector("#bunnyFolder"),
   assetVideo: document.querySelector("#assetVideo"),
   assetThumbnail: document.querySelector("#assetThumbnail"),
+  assetVoiceover: document.querySelector("#assetVoiceover"),
+  assetVoiceScript: document.querySelector("#assetVoiceScript"),
+  assetRemotionOutput: document.querySelector("#assetRemotionOutput"),
   assetCaptionDoc: document.querySelector("#assetCaptionDoc"),
   assetScenes: document.querySelector("#assetScenes"),
   assetApprovalDoc: document.querySelector("#assetApprovalDoc"),
+  elevenLabsAccount: document.querySelector("#elevenLabsAccount"),
+  elevenLabsStatus: document.querySelector("#elevenLabsStatus"),
+  elevenLabsVoice: document.querySelector("#elevenLabsVoice"),
+  elevenLabsScriptUrl: document.querySelector("#elevenLabsScriptUrl"),
+  elevenLabsAudioUrl: document.querySelector("#elevenLabsAudioUrl"),
+  elevenLabsNotes: document.querySelector("#elevenLabsNotes"),
+  remotionSourceAudio: document.querySelector("#remotionSourceAudio"),
+  remotionOutputUrl: document.querySelector("#remotionOutputUrl"),
+  remotionNotes: document.querySelector("#remotionNotes"),
   captionText: document.querySelector("#captionText"),
   hashtags: document.querySelector("#hashtags"),
   platformNotes: document.querySelector("#platformNotes"),
@@ -230,9 +271,25 @@ function createCampaign(input) {
       bunnyFolder: buildBunnyFolder(safeBrand, safeName),
       video: "",
       thumbnail: "",
+      voiceover: "",
+      voiceScript: "",
+      remotionOutput: "",
       captionDoc: "",
       scenes: "",
       approvalDoc: ""
+    },
+    elevenLabs: {
+      accountLogin: "agentic@ownthealgo.com",
+      apiStatus: "active",
+      voiceProfile: "",
+      scriptUrl: "",
+      voiceoverUrl: "",
+      notes: ""
+    },
+    remotion: {
+      sourceAudioUrl: "",
+      outputUrl: "",
+      compositionNotes: ""
     },
     publishing: {
       caption: "",
@@ -260,7 +317,16 @@ function normalizeCampaign(seed) {
   campaign.publishing.hashtags =
     "#MedicaidEligibility #HospitalOperations #RevenueCycle #HealthcareAI";
   campaign.publishing.platformNotes =
-    "Use CRS-approved thumbnail. Confirm no patient-identifying information appears in the final render.";
+    "Use CRS-approved thumbnail. Confirm no patient-identifying information appears in the final render or voiceover.";
+  campaign.elevenLabs.voiceProfile = "OTA narrator voice";
+  campaign.elevenLabs.scriptUrl = campaign.assets.voiceScript;
+  campaign.elevenLabs.voiceoverUrl = campaign.assets.voiceover;
+  campaign.elevenLabs.notes =
+    "Use ElevenLabs for narration after scene scripts and compliance guardrails are locked. Codex + Remotion ingests the audio tracks before Higgsfield Studio.";
+  campaign.remotion.sourceAudioUrl = campaign.elevenLabs.voiceoverUrl;
+  campaign.remotion.outputUrl = campaign.assets.remotionOutput;
+  campaign.remotion.compositionNotes =
+    "Codex + Remotion combines the approved script/audio track with timing, captions, and a preview export for Higgsfield Studio.";
   return campaign;
 }
 
@@ -290,9 +356,96 @@ function normalizeState(workspace) {
   workspace.reviewRequests = workspace.reviewRequests || [];
   workspace.selectedReviewSectionId = workspace.selectedReviewSectionId || reviewSections[0].id;
   workspace.campaigns.forEach((campaign) => {
-    campaign.reviewRequests = campaign.reviewRequests || [];
+    normalizeCampaignShape(campaign);
   });
   return workspace;
+}
+
+function normalizeCampaignShape(campaign) {
+  campaign.reviewRequests = campaign.reviewRequests || [];
+  campaign.stages = migrateStages(campaign.stages || [], campaign);
+  campaign.stages = stageTemplates.map((template, index) => {
+    const existing = campaign.stages[index] || {};
+    return {
+      status: existing.status || "not-started",
+      owner: existing.owner || campaign.owner || "",
+      dueDate: existing.dueDate || "",
+      notes: existing.notes || "",
+      checks: template.checklist.map((label) => {
+        const existingCheck = (existing.checks || []).find((check) => check.label === label);
+        return { label, done: Boolean(existingCheck?.done) };
+      })
+    };
+  });
+  campaign.assets = {
+    bunnyFolder: campaign.assets?.bunnyFolder || buildBunnyFolder(campaign.brand || "Brand", campaign.name || "Campaign"),
+    video: campaign.assets?.video || "",
+    thumbnail: campaign.assets?.thumbnail || "",
+    voiceover: campaign.assets?.voiceover || campaign.elevenLabs?.voiceoverUrl || "",
+    voiceScript: campaign.assets?.voiceScript || campaign.elevenLabs?.scriptUrl || "",
+    remotionOutput: campaign.assets?.remotionOutput || campaign.remotion?.outputUrl || "",
+    captionDoc: campaign.assets?.captionDoc || "",
+    scenes: campaign.assets?.scenes || "",
+    approvalDoc: campaign.assets?.approvalDoc || ""
+  };
+  campaign.elevenLabs = {
+    accountLogin: campaign.elevenLabs?.accountLogin || "agentic@ownthealgo.com",
+    apiStatus: campaign.elevenLabs?.apiStatus || "active",
+    voiceProfile: campaign.elevenLabs?.voiceProfile || "",
+    scriptUrl: campaign.elevenLabs?.scriptUrl || campaign.assets.voiceScript || "",
+    voiceoverUrl: campaign.elevenLabs?.voiceoverUrl || campaign.assets.voiceover || "",
+    notes: campaign.elevenLabs?.notes || ""
+  };
+  campaign.remotion = {
+    sourceAudioUrl:
+      campaign.remotion?.sourceAudioUrl || campaign.elevenLabs.voiceoverUrl || campaign.assets.voiceover || "",
+    outputUrl: campaign.remotion?.outputUrl || campaign.assets.remotionOutput || "",
+    compositionNotes: campaign.remotion?.compositionNotes || ""
+  };
+  campaign.publishing = {
+    caption: campaign.publishing?.caption || "",
+    hashtags: campaign.publishing?.hashtags || "",
+    platformNotes: campaign.publishing?.platformNotes || "",
+    status: campaign.publishing?.status || "not-ready"
+  };
+  campaign.approvals = approvalLabels.map((label) => {
+    const existing = (campaign.approvals || []).find((check) => check.label === label);
+    return { label, done: Boolean(existing?.done) };
+  });
+}
+
+function stageHasCheck(stage, text) {
+  return (stage?.checks || []).some((check) => check.label === text);
+}
+
+function migrateStages(stages, campaign) {
+  const migrated = [...stages];
+  const owner = campaign.owner || "";
+  const dueDate = campaign.dueDate || "";
+  const elevenStage = () => createStage(stageTemplates[2], owner, dueDate);
+  const remotionStage = () => createStage(stageTemplates[3], owner, dueDate);
+
+  if (migrated.length === stageTemplates.length - 2) {
+    migrated.splice(2, 0, elevenStage(), remotionStage());
+    return migrated;
+  }
+
+  if (migrated.length === stageTemplates.length - 1) {
+    if (stageHasCheck(migrated[2], "ElevenLabs account confirmed")) {
+      migrated.splice(3, 0, remotionStage());
+      return migrated;
+    }
+
+    if (stageHasCheck(migrated[3], "ElevenLabs account confirmed")) {
+      const [legacyElevenLabs] = migrated.splice(3, 1);
+      migrated.splice(2, 0, legacyElevenLabs, remotionStage());
+      return migrated;
+    }
+
+    migrated.splice(2, 0, elevenStage());
+  }
+
+  return migrated;
 }
 
 function saveState() {
@@ -558,9 +711,21 @@ function renderHandoff(campaign) {
   elements.bunnyFolder.value = campaign.assets.bunnyFolder || "";
   elements.assetVideo.value = campaign.assets.video || "";
   elements.assetThumbnail.value = campaign.assets.thumbnail || "";
+  elements.assetVoiceover.value = campaign.assets.voiceover || "";
+  elements.assetVoiceScript.value = campaign.assets.voiceScript || "";
+  elements.assetRemotionOutput.value = campaign.assets.remotionOutput || "";
   elements.assetCaptionDoc.value = campaign.assets.captionDoc || "";
   elements.assetScenes.value = campaign.assets.scenes || "";
   elements.assetApprovalDoc.value = campaign.assets.approvalDoc || "";
+  elements.elevenLabsAccount.value = campaign.elevenLabs.accountLogin || "";
+  elements.elevenLabsStatus.value = campaign.elevenLabs.apiStatus || "active";
+  elements.elevenLabsVoice.value = campaign.elevenLabs.voiceProfile || "";
+  elements.elevenLabsScriptUrl.value = campaign.elevenLabs.scriptUrl || "";
+  elements.elevenLabsAudioUrl.value = campaign.elevenLabs.voiceoverUrl || "";
+  elements.elevenLabsNotes.value = campaign.elevenLabs.notes || "";
+  elements.remotionSourceAudio.value = campaign.remotion.sourceAudioUrl || "";
+  elements.remotionOutputUrl.value = campaign.remotion.outputUrl || "";
+  elements.remotionNotes.value = campaign.remotion.compositionNotes || "";
   elements.captionText.value = campaign.publishing.caption || "";
   elements.hashtags.value = campaign.publishing.hashtags || "";
   elements.platformNotes.value = campaign.publishing.platformNotes || "";
@@ -589,6 +754,8 @@ function getManifest(campaign) {
     dueDate: campaign.dueDate,
     owner: campaign.owner,
     readiness: getReadiness(campaign),
+    elevenLabs: campaign.elevenLabs,
+    remotion: campaign.remotion,
     bunny: campaign.assets,
     publishing: campaign.publishing,
     scenes: campaign.scenes,
@@ -656,10 +823,51 @@ function getPublishingPackage(campaign) {
     campaign: campaign.name,
     approvedMediaUrl: campaign.assets.video,
     thumbnailUrl: campaign.assets.thumbnail,
+    voiceoverUrl: campaign.assets.voiceover || campaign.elevenLabs.voiceoverUrl,
+    voiceProfile: campaign.elevenLabs.voiceProfile,
+    remotionOutputUrl: campaign.assets.remotionOutput || campaign.remotion.outputUrl,
     caption: campaign.publishing.caption,
     hashtags: campaign.publishing.hashtags,
     platformNotes: campaign.publishing.platformNotes,
     bunnyFolder: campaign.assets.bunnyFolder
+  };
+}
+
+function getElevenLabsBrief(campaign) {
+  return {
+    campaign: campaign.name,
+    brand: campaign.brand,
+    accountLogin: campaign.elevenLabs.accountLogin,
+    apiStatus: campaign.elevenLabs.apiStatus,
+    voiceProfile: campaign.elevenLabs.voiceProfile,
+    scriptUrl: campaign.elevenLabs.scriptUrl || campaign.assets.voiceScript,
+    voiceoverUrl: campaign.elevenLabs.voiceoverUrl || campaign.assets.voiceover,
+    complianceGuardrails: campaign.guardrails,
+    scenes: campaign.scenes.map((scene) => ({
+      title: scene.title,
+      prompt: scene.prompt,
+      compliance: scene.compliance,
+      status: scene.status
+    })),
+    notes: campaign.elevenLabs.notes
+  };
+}
+
+function getRemotionBrief(campaign) {
+  return {
+    campaign: campaign.name,
+    brand: campaign.brand,
+    sourceScriptUrl: campaign.elevenLabs.scriptUrl || campaign.assets.voiceScript,
+    sourceAudioUrl:
+      campaign.remotion.sourceAudioUrl || campaign.elevenLabs.voiceoverUrl || campaign.assets.voiceover,
+    remotionOutputUrl: campaign.remotion.outputUrl || campaign.assets.remotionOutput,
+    scenes: campaign.scenes.map((scene) => ({
+      title: scene.title,
+      prompt: scene.prompt,
+      compliance: scene.compliance,
+      status: scene.status
+    })),
+    notes: campaign.remotion.compositionNotes
   };
 }
 
@@ -702,10 +910,12 @@ document.querySelector("#seedWorkspace").addEventListener("click", () => {
   state = {
     campaigns: defaultCampaigns.map(normalizeCampaign),
     selectedCampaignId: "",
-    selectedStageIndex: 0
+    selectedStageIndex: 0,
+    selectedReviewSectionId: reviewSections[0].id
   };
   selectedCampaignId = state.campaigns[0]?.id || "";
   selectedStageIndex = 0;
+  selectedReviewSectionId = reviewSections[0].id;
   render();
   showToast("Demo workspace reset");
 });
@@ -886,6 +1096,9 @@ elements.approvalChecks.addEventListener("change", (event) => {
   ["bunnyFolder", "bunnyFolder"],
   ["assetVideo", "video"],
   ["assetThumbnail", "thumbnail"],
+  ["assetVoiceover", "voiceover"],
+  ["assetVoiceScript", "voiceScript"],
+  ["assetRemotionOutput", "remotionOutput"],
   ["assetCaptionDoc", "captionDoc"],
   ["assetScenes", "scenes"],
   ["assetApprovalDoc", "approvalDoc"]
@@ -894,6 +1107,47 @@ elements.approvalChecks.addEventListener("change", (event) => {
     const campaign = getSelectedCampaign();
     if (!campaign) return;
     campaign.assets[assetKey] = event.target.value;
+    if (assetKey === "voiceScript") campaign.elevenLabs.scriptUrl = event.target.value;
+    if (assetKey === "voiceover") {
+      campaign.elevenLabs.voiceoverUrl = event.target.value;
+      campaign.remotion.sourceAudioUrl = event.target.value;
+    }
+    if (assetKey === "remotionOutput") campaign.remotion.outputUrl = event.target.value;
+    render();
+  });
+});
+
+[
+  ["elevenLabsAccount", "accountLogin"],
+  ["elevenLabsStatus", "apiStatus"],
+  ["elevenLabsVoice", "voiceProfile"],
+  ["elevenLabsScriptUrl", "scriptUrl"],
+  ["elevenLabsAudioUrl", "voiceoverUrl"],
+  ["elevenLabsNotes", "notes"]
+].forEach(([elementKey, elevenLabsKey]) => {
+  elements[elementKey].addEventListener("input", (event) => {
+    const campaign = getSelectedCampaign();
+    if (!campaign) return;
+    campaign.elevenLabs[elevenLabsKey] = event.target.value;
+    if (elevenLabsKey === "scriptUrl") campaign.assets.voiceScript = event.target.value;
+    if (elevenLabsKey === "voiceoverUrl") {
+      campaign.assets.voiceover = event.target.value;
+      campaign.remotion.sourceAudioUrl = event.target.value;
+    }
+    render();
+  });
+});
+
+[
+  ["remotionSourceAudio", "sourceAudioUrl"],
+  ["remotionOutputUrl", "outputUrl"],
+  ["remotionNotes", "compositionNotes"]
+].forEach(([elementKey, remotionKey]) => {
+  elements[elementKey].addEventListener("input", (event) => {
+    const campaign = getSelectedCampaign();
+    if (!campaign) return;
+    campaign.remotion[remotionKey] = event.target.value;
+    if (remotionKey === "outputUrl") campaign.assets.remotionOutput = event.target.value;
     render();
   });
 });
@@ -915,6 +1169,18 @@ document.querySelector("#copyBunnyManifest").addEventListener("click", () => {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
   copyText(JSON.stringify(getManifest(campaign), null, 2), "Bunny manifest");
+});
+
+document.querySelector("#copyElevenLabsBrief").addEventListener("click", () => {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  copyText(JSON.stringify(getElevenLabsBrief(campaign), null, 2), "ElevenLabs brief");
+});
+
+document.querySelector("#copyRemotionBrief").addEventListener("click", () => {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  copyText(JSON.stringify(getRemotionBrief(campaign), null, 2), "Remotion brief");
 });
 
 document.querySelector("#copyPublishingPackage").addEventListener("click", () => {

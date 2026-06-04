@@ -123,26 +123,34 @@
               </button>
               <button class="stage-tab" type="button" data-stage-index="2">
                 <span>03</span>
-                Higgsfield
+                ElevenLabs
               </button>
               <button class="stage-tab" type="button" data-stage-index="3">
                 <span>04</span>
-                QA
+                Remotion
               </button>
               <button class="stage-tab" type="button" data-stage-index="4">
                 <span>05</span>
-                Assembly
+                Higgsfield
               </button>
               <button class="stage-tab" type="button" data-stage-index="5">
                 <span>06</span>
-                Package
+                QA
               </button>
               <button class="stage-tab" type="button" data-stage-index="6">
                 <span>07</span>
-                Bunny
+                Assembly
               </button>
               <button class="stage-tab" type="button" data-stage-index="7">
                 <span>08</span>
+                Package
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="8">
+                <span>09</span>
+                Bunny
+              </button>
+              <button class="stage-tab" type="button" data-stage-index="9">
+                <span>10</span>
                 Blotato
               </button>
             </section>
@@ -218,6 +226,82 @@
             <section class="handoff-grid">
               <article class="panel">
                 <div class="panel-heading tight">
+                  <div>
+                    <h3>ElevenLabs Script + Audio</h3>
+                    <p class="panel-note">Video script and audio tracks are approved here before Codex + Remotion begins.</p>
+                  </div>
+                  <div class="panel-actions">
+                    <button class="mini-button review-jump" type="button" data-review-section="elevenlabs-audio">
+                      Comment
+                    </button>
+                    <button id="copyElevenLabsBrief" class="ghost-button" type="button">Copy Brief</button>
+                  </div>
+                </div>
+                <div class="storage-layout">
+                  <label class="field">
+                    <span>Account Login</span>
+                    <input id="elevenLabsAccount" type="email" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>API Status</span>
+                    <select id="elevenLabsStatus">
+                      <option value="active">Active</option>
+                      <option value="needs-key">Needs Key</option>
+                      <option value="blocked">Blocked</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Voice Profile</span>
+                    <input id="elevenLabsVoice" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Video Script URL</span>
+                    <input id="elevenLabsScriptUrl" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field full-width">
+                    <span>Audio Tracks URL</span>
+                    <input id="elevenLabsAudioUrl" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field full-width">
+                    <span>Notes</span>
+                    <textarea id="elevenLabsNotes" rows="4"></textarea>
+                  </label>
+                </div>
+              </article>
+
+              <article class="panel">
+                <div class="panel-heading tight">
+                  <div>
+                    <h3>Codex + Remotion</h3>
+                    <p class="panel-note">Remotion ingests the ElevenLabs script/audio package and exports the production input for Higgsfield Studio.</p>
+                  </div>
+                  <div class="panel-actions">
+                    <button class="mini-button review-jump" type="button" data-review-section="remotion-pass">
+                      Comment
+                    </button>
+                    <button id="copyRemotionBrief" class="ghost-button" type="button">Copy Brief</button>
+                  </div>
+                </div>
+                <div class="storage-layout">
+                  <label class="field">
+                    <span>Source Audio URL</span>
+                    <input id="remotionSourceAudio" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Remotion Output URL</span>
+                    <input id="remotionOutputUrl" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field full-width">
+                    <span>Composition Notes</span>
+                    <textarea id="remotionNotes" rows="5"></textarea>
+                  </label>
+                </div>
+              </article>
+            </section>
+
+            <section class="handoff-grid">
+              <article class="panel">
+                <div class="panel-heading tight">
                   <h3>Bunny Storage</h3>
                   <div class="panel-actions">
                     <button class="mini-button review-jump" type="button" data-review-section="bunny-storage">
@@ -238,6 +322,18 @@
                   <label class="field">
                     <span>Thumbnail URL</span>
                     <input id="assetThumbnail" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Video Script URL</span>
+                    <input id="assetVoiceScript" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>ElevenLabs Audio URL</span>
+                    <input id="assetVoiceover" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Remotion Output URL</span>
+                    <input id="assetRemotionOutput" type="url" autocomplete="off" />
                   </label>
                   <label class="field">
                     <span>Caption Doc URL</span>
