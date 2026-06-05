@@ -2312,9 +2312,65 @@ document.querySelector("#copyPublishingPackage").addEventListener("click", () =>
   copyText(JSON.stringify(getPublishingPackage(campaign), null, 2), "Publishing package");
 });
 
+function highlightCommandCenterTarget(selector) {
+  const target = document.querySelector(selector);
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  target.classList.remove("deep-link-highlight");
+  requestAnimationFrame(() => {
+    target.classList.add("deep-link-highlight");
+  });
+}
+
+function handleCommandCenterHash() {
+  const hash = window.location.hash;
+  const targetMap = {
+    "#command-topbar": { selector: "#command-topbar" },
+    "#campaign-queue": { selector: "#campaign-queue" },
+    "#campaign-overview": { selector: "#campaign-overview" },
+    "#active-brand-profile": { selector: "#active-brand-profile" },
+    "#brand-profile-manager": { open: () => openBrandDialog(getSelectedCampaign()?.brand), selector: "#brandDialog" },
+    "#launch-workstream": { open: openCampaignDialog, selector: "#campaignDialog" },
+    "#creative-direction": { selector: "#creative-direction" },
+    "#ota-copilot": { selector: "#ota-copilot" },
+    "#review-lane": { selector: "#reviewPanel" },
+    "#reviewPanel": { selector: "#reviewPanel" },
+    "#workflow-stage-rail": { selector: "#workflow-stage-rail" },
+    "#scene-queue-section": { selector: "#scene-queue-section" },
+    "#add-scene-workflow": {
+      open: () => {
+        elements.sceneForm.reset();
+        renderSceneDialogCoPilot();
+        elements.sceneDialog.showModal();
+      },
+      selector: "#sceneDialog"
+    },
+    "#elevenlabs-audio-section": { selector: "#elevenlabs-audio-section" },
+    "#remotion-pass-section": { selector: "#remotion-pass-section" },
+    "#stage-higgsfield": { stageIndex: 4, selector: "#workflow-stage-panel" },
+    "#approval-gate-section": { selector: "#approval-gate-section" },
+    "#bunny-storage-section": { selector: "#bunny-storage-section" },
+    "#publishing-package-section": { selector: "#publishing-package-section" },
+    "#activity-log-section": { selector: "#activity-log-section" }
+  };
+  const target = targetMap[hash];
+  if (!target) return;
+  if (Number.isInteger(target.stageIndex)) {
+    selectedStageIndex = target.stageIndex;
+    render();
+  }
+  if (target.open) {
+    target.open();
+    return;
+  }
+  highlightCommandCenterTarget(target.selector);
+}
+
 if (!selectedCampaignId && state.campaigns[0]) {
   selectedCampaignId = state.campaigns[0].id;
 }
 
 renderBrandOptions();
 render();
+handleCommandCenterHash();
+window.addEventListener("hashchange", handleCommandCenterHash);

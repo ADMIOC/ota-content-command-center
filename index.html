@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
+      <header id="command-topbar" class="topbar">
         <div>
           <p class="eyebrow">OTA Social Engine</p>
           <h1>Content Command Center</h1>
@@ -24,7 +24,7 @@
       </header>
 
       <main class="workspace">
-        <aside class="sidebar" aria-label="Campaign queue">
+        <aside id="campaign-queue" class="sidebar" aria-label="Campaign queue">
           <section class="metric-strip" aria-label="Workflow summary">
             <div>
               <strong id="metricActive">0</strong>
@@ -62,7 +62,7 @@
           </section>
 
           <section id="campaignView" class="campaign-view">
-            <div class="campaign-header">
+            <div id="campaign-overview" class="campaign-header">
               <div>
                 <p id="campaignBrand" class="eyebrow"></p>
                 <h2 id="campaignTitle"></h2>
@@ -80,7 +80,7 @@
             </div>
 
             <section class="handoff-grid">
-              <article class="panel">
+              <article id="active-brand-profile" class="panel">
                 <div class="panel-heading tight">
                   <div>
                     <p class="eyebrow">Brand intelligence</p>
@@ -91,7 +91,7 @@
                 <div id="brandProfileSummary" class="profile-summary"></div>
               </article>
 
-              <article class="panel">
+              <article id="creative-direction" class="panel">
                 <div class="panel-heading tight">
                   <div>
                     <p class="eyebrow">Agentic direction</p>
@@ -138,7 +138,7 @@
               <div id="reviewRequestList" class="review-request-list"></div>
             </section>
 
-            <section class="stage-rail" aria-label="Workflow stages">
+            <section id="workflow-stage-rail" class="stage-rail" aria-label="Workflow stages">
               <button class="stage-tab" type="button" data-stage-index="0">
                 <span>01</span>
                 Setup
@@ -182,7 +182,7 @@
             </section>
 
             <div class="main-grid">
-              <section class="panel stage-panel">
+              <section id="workflow-stage-panel" class="panel stage-panel">
                 <div class="panel-heading">
                   <div>
                     <p id="stageKicker" class="eyebrow"></p>
@@ -221,7 +221,7 @@
               </section>
 
               <aside class="side-stack">
-                <section class="panel copilot-panel" aria-label="OTA co-pilot">
+                <section id="ota-copilot" class="panel copilot-panel" aria-label="OTA co-pilot">
                   <div class="panel-heading tight">
                     <div>
                       <p id="coPilotKicker" class="eyebrow">OTA Co-Pilot</p>
@@ -234,7 +234,7 @@
                   <div id="coPilotActions" class="copilot-actions"></div>
                 </section>
 
-                <section class="panel">
+                <section id="scene-queue-section" class="panel">
                   <div class="panel-heading tight">
                     <h3>Scene Queue</h3>
                     <div class="panel-actions">
@@ -247,7 +247,7 @@
                   <div id="sceneList" class="scene-list"></div>
                 </section>
 
-                <section class="panel">
+                <section id="approval-gate-section" class="panel">
                   <div class="panel-heading tight">
                     <h3>Approval Gate</h3>
                     <div class="panel-actions">
@@ -263,7 +263,7 @@
             </div>
 
             <section class="handoff-grid">
-              <article class="panel">
+              <article id="elevenlabs-audio-section" class="panel">
                 <div class="panel-heading tight">
                   <div>
                     <h3>ElevenLabs Script + Audio</h3>
@@ -308,7 +308,7 @@
                 </div>
               </article>
 
-              <article class="panel">
+              <article id="remotion-pass-section" class="panel">
                 <div class="panel-heading tight">
                   <div>
                     <h3>Codex + Remotion</h3>
@@ -339,7 +339,7 @@
             </section>
 
             <section class="handoff-grid">
-              <article class="panel">
+              <article id="bunny-storage-section" class="panel">
                 <div class="panel-heading tight">
                   <h3>Bunny Storage</h3>
                   <div class="panel-actions">
@@ -389,7 +389,7 @@
                 </div>
               </article>
 
-              <article class="panel">
+              <article id="publishing-package-section" class="panel">
                 <div class="panel-heading tight">
                   <h3>Publishing Package</h3>
                   <div class="panel-actions">
@@ -414,7 +414,7 @@
               </article>
             </section>
 
-            <section class="panel">
+            <section id="activity-log-section" class="panel">
               <div class="panel-heading tight">
                 <div>
                   <p class="eyebrow">Agent operations</p>

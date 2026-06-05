@@ -363,5 +363,44 @@
         </div>
       </section>
     </main>
+    <script>
+      const tutorialTargets = [
+        ["./index.html#command-topbar", "01 Top bar", "topbar"],
+        ["./index.html#campaign-queue", "02 Campaign queue", "sidebar"],
+        ["./index.html#campaign-overview", "03 Campaign overview", "overview"],
+        ["./index.html#active-brand-profile", "04 Brand profile", "brand"],
+        ["./index.html#launch-workstream", "05 Launch workstream", "dialog"],
+        ["./index.html#creative-direction", "06 Creative direction", "direction"],
+        ["./index.html#ota-copilot", "07 OTA co-pilot", "copilot"],
+        ["./index.html#reviewPanel", "08 Review lane", "review"],
+        ["./index.html#workflow-stage-rail", "09 Stage rail", "stages"],
+        ["./index.html#scene-queue-section", "10 Scene queue", "scene"],
+        ["./index.html#elevenlabs-audio-section", "11 ElevenLabs", "audio"],
+        ["./index.html#remotion-pass-section", "12 Remotion", "remotion"],
+        ["./index.html#stage-higgsfield", "13 Higgsfield", "higgsfield"],
+        ["./index.html#approval-gate-section", "14 Approval gate", "approval"],
+        ["./index.html#bunny-storage-section", "15 Bunny storage", "storage"],
+        ["./index.html#publishing-package-section", "16 Publishing package", "publishing"],
+        ["./index.html#activity-log-section", "17 Activity log", "activity"]
+      ];
+
+      document.querySelectorAll(".tutorial-card").forEach((card, index) => {
+        const target = tutorialTargets[index];
+        if (!target) return;
+        const [href, label, type] = target;
+        const thumb = document.createElement("a");
+        thumb.className = `tutorial-command-thumb thumb-${type}`;
+        thumb.href = href;
+        thumb.setAttribute("aria-label", `Open Command Center section: ${label}`);
+        thumb.innerHTML = `
+          <span class="thumb-kicker">Open section</span>
+          <strong>${label}</strong>
+          <span class="thumb-shell" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </span>
+        `;
+        card.appendChild(thumb);
+      });
+    </script>
   </body>
 </html>
