@@ -246,6 +246,7 @@ let selectedCampaignId = state.selectedCampaignId || state.campaigns[0]?.id || "
 let selectedStageIndex = state.selectedStageIndex || 0;
 let selectedReviewSectionId = state.selectedReviewSectionId || reviewSections[0].id;
 let creativeDirectionTouched = false;
+let brandCoPilotReply = "";
 
 const elements = {
   metricActive: document.querySelector("#metricActive"),
@@ -525,19 +526,93 @@ function renderSceneDialogCoPilot() {
 function renderBrandDialogCoPilot() {
   const name = getBrandFormField("name")?.value.trim() || "this brand";
   const regulated = Boolean(getBrandFormField("regulated")?.checked);
+  const voiceValue = getBrandFormField("voice")?.value.trim() || "";
+  const audienceValue = getBrandFormField("audience")?.value.trim() || "";
+  const offersValue = getBrandFormField("offers")?.value.trim() || "";
+  const perspectiveValue = getBrandFormField("perspective")?.value.trim() || "";
+  const existingPrompt = document.querySelector("#brandCoPilotPrompt")?.value || "";
+  const missingFields = [
+    ["brand voice", voiceValue],
+    ["audience", audienceValue],
+    ["offers / monetization", offersValue],
+    ["cinematic perspective", perspectiveValue]
+  ]
+    .filter(([, value]) => !value || containsHelpIntent(value))
+    .map(([label]) => label);
+  const activeFieldPrompt = getBrandActiveFieldPrompt();
   renderDialogCoPilot(elements.brandDialogCoPilot, {
     title: "Brand Profile Guidance",
     summary: `I am guiding ${name}'s brand profile so every campaign, script, scene, caption, and monetization path inherits the same operating DNA.`,
     suggestions: [
+      activeFieldPrompt,
       "Brand voice should describe how the brand sounds under pressure, not just adjectives.",
       "Audience should name the buyer or viewer and the moment they care most.",
       "Offers / Monetization should connect content to revenue, leads, sponsorship, services, or authority.",
+      missingFields.length ? `I can draft or tighten: ${missingFields.join(", ")}.` : "The core brand fields are filled and ready to refine.",
       regulated
         ? "Because this is regulated, compliance guardrails should be explicit and conservative."
         : "If this becomes regulated later, turn on the regulated flag before launching campaigns."
-    ],
-    actions: [{ id: "brand-draft-profile", label: "Draft Missing Profile" }]
+    ].filter(Boolean),
+    actions: [
+      { id: "brand-draft-voice", label: "Draft Brand Voice" },
+      { id: "brand-draft-profile", label: "Draft Missing Profile" }
+    ]
   });
+  elements.brandDialogCoPilot.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div class="dialog-copilot-interaction" aria-label="Brand co-pilot interaction">
+        <div class="dialog-copilot-reply" id="brandCoPilotReply">${escapeHtml(
+          brandCoPilotReply ||
+            "Tell me what you need help with, or type directly into a field and I will guide the next draft."
+        )}</div>
+        <div class="dialog-copilot-prompt">
+          <input id="brandCoPilotPrompt" type="text" value="${escapeHtml(existingPrompt)}" placeholder="Ask: Help me create the brand voice" autocomplete="off" />
+          <button class="mini-button" type="button" data-dialog-copilot-action="brand-answer-prompt">Ask Co-Pilot</button>
+        </div>
+      </div>
+    `
+  );
+}
+
+function containsHelpIntent(value) {
+  return /\b(help|create|draft|write|suggest|build|generate|make)\b/i.test(value || "");
+}
+
+function getBrandActiveFieldPrompt() {
+  if (containsHelpIntent(getBrandFormField("voice")?.value)) {
+    return "I see the brand voice field is asking for help. Use Draft Brand Voice and I will replace that request with an on-brand voice draft.";
+  }
+  if (containsHelpIntent(getBrandFormField("audience")?.value)) {
+    return "I see the audience field is asking for help. Use Draft Missing Profile and I will shape the audience around the brand context.";
+  }
+  if (containsHelpIntent(getBrandFormField("offers")?.value)) {
+    return "I see the offers field is asking for help. Use Draft Missing Profile and I will connect content to monetization paths.";
+  }
+  if (containsHelpIntent(getBrandFormField("perspective")?.value)) {
+    return "I see the cinematic perspective field is asking for help. Use Draft Missing Profile and I will create a repeatable storytelling lens.";
+  }
+  return "";
+}
+
+function buildBrandVoiceDraft(name, regulated) {
+  return regulated
+    ? `${name} should sound measured, precise, trust-first, and calm under scrutiny. The voice should explain risk clearly, avoid overpromising, and make complex decisions feel easier to review.`
+    : `${name} should sound clear, confident, useful, and operator-led. The voice should feel like a smart builder showing the audience what works, why it matters, and what to do next.`;
+}
+
+function buildBrandAudienceDraft(name) {
+  return `${name}'s audience is made of creators, operators, founders, buyers, and decision-makers who need a clearer path from attention to action. They care most when the content names a real bottleneck and shows a practical next move.`;
+}
+
+function buildBrandOffersDraft(name) {
+  return `${name} can monetize through content-led authority, lead capture, productized services, consulting, templates, education, partnerships, sponsorships, and repeatable offers tied to measurable audience demand.`;
+}
+
+function buildBrandPerspectiveDraft(regulated) {
+  return regulated
+    ? "clean executive documentary perspective, grounded visuals, measured pacing, proof-led storytelling, and conservative composition choices"
+    : "brand-native point of view, cinematic texture, clear emotional stakes, energetic pacing, and repeatable visual language";
 }
 
 function syncCampaignSetupFields({ forceCreative = false } = {}) {
@@ -1414,21 +1489,17 @@ function draftBrandProfileFields() {
   const name = getBrandFormField("name").value.trim() || "New OTA Brand";
   const regulated = getBrandFormField("regulated").checked;
   if (!getBrandFormField("name").value.trim()) getBrandFormField("name").value = name;
-  if (!getBrandFormField("voice").value.trim()) {
-    getBrandFormField("voice").value = regulated
-      ? "Measured, precise, trust-first, and careful with claims."
-      : "Clear, confident, useful, energetic, and operator-led.";
+  if (!getBrandFormField("voice").value.trim() || containsHelpIntent(getBrandFormField("voice").value)) {
+    getBrandFormField("voice").value = buildBrandVoiceDraft(name, regulated);
   }
-  if (!getBrandFormField("audience").value.trim()) {
-    getBrandFormField("audience").value = "Creators, operators, buyers, or decision-makers who need a clearer next move.";
+  if (!getBrandFormField("audience").value.trim() || containsHelpIntent(getBrandFormField("audience").value)) {
+    getBrandFormField("audience").value = buildBrandAudienceDraft(name);
   }
-  if (!getBrandFormField("offers").value.trim()) {
-    getBrandFormField("offers").value = "Content-led authority, lead capture, services, offers, partnerships, and monetization experiments.";
+  if (!getBrandFormField("offers").value.trim() || containsHelpIntent(getBrandFormField("offers").value)) {
+    getBrandFormField("offers").value = buildBrandOffersDraft(name);
   }
-  if (!getBrandFormField("perspective").value.trim()) {
-    getBrandFormField("perspective").value = regulated
-      ? "clean executive documentary perspective, grounded visuals, measured pacing, and conservative proof-led storytelling"
-      : "brand-native cinematic perspective, energetic motion, clear emotional stakes, and repeatable visual language";
+  if (!getBrandFormField("perspective").value.trim() || containsHelpIntent(getBrandFormField("perspective").value)) {
+    getBrandFormField("perspective").value = buildBrandPerspectiveDraft(regulated);
   }
   if (regulated && !getBrandFormField("guardrails").value.trim()) {
     getBrandFormField("guardrails").value =
@@ -1439,6 +1510,39 @@ function draftBrandProfileFields() {
   }
   renderBrandDialogCoPilot();
   showToast("Brand profile draft applied");
+}
+
+function draftBrandVoiceField() {
+  const name = getBrandFormField("name").value.trim() || "New OTA Brand";
+  const regulated = getBrandFormField("regulated").checked;
+  getBrandFormField("voice").value = buildBrandVoiceDraft(name, regulated);
+  brandCoPilotReply = `I drafted a brand voice for ${name}. Review the wording, then adjust anything that should sound more specific to the brand.`;
+  renderBrandDialogCoPilot();
+  showToast("Brand voice drafted");
+}
+
+function answerBrandCoPilotPrompt() {
+  const prompt = document.querySelector("#brandCoPilotPrompt")?.value.trim() || "";
+  const name = getBrandFormField("name").value.trim() || "this brand";
+  if (!prompt) {
+    brandCoPilotReply = "Ask me for the specific field you want help with: brand voice, audience, offers, cinematic perspective, or compliance guardrails.";
+    renderBrandDialogCoPilot();
+    return;
+  }
+  if (/voice|tone|sound/i.test(prompt)) {
+    brandCoPilotReply = `For ${name}, start with voice. I recommend using Draft Brand Voice, then making it more specific with any phrases, values, or examples the brand must always sound like.`;
+  } else if (/audience|viewer|buyer|customer/i.test(prompt)) {
+    brandCoPilotReply = `For ${name}, define the audience by the moment they care most. I can draft this from the brand context, then you can narrow it to the highest-value buyer or viewer.`;
+  } else if (/offer|monet|revenue|sell/i.test(prompt)) {
+    brandCoPilotReply = `For ${name}, offers should connect attention to a next business action: leads, services, education, sponsorships, partnerships, or productized assets.`;
+  } else if (/visual|cinematic|perspective|scene|story/i.test(prompt)) {
+    brandCoPilotReply = `For ${name}, cinematic perspective should become a repeatable lens for scripts and scenes: point of view, pacing, camera feel, emotional stakes, and proof style.`;
+  } else if (/compliance|regulated|guardrail|claim/i.test(prompt)) {
+    brandCoPilotReply = `For ${name}, compliance guardrails should be active only when the regulated flag is on. CRS and The VFO require explicit conservative guardrails before production.`;
+  } else {
+    brandCoPilotReply = `I can help shape ${name}'s voice, audience, offers, cinematic perspective, and guardrails. Tell me which field you want to build first, or use Draft Missing Profile.`;
+  }
+  renderBrandDialogCoPilot();
 }
 
 function draftSceneFields() {
@@ -1486,6 +1590,16 @@ function applyDialogCoPilotAction(actionId) {
 
   if (actionId === "scene-draft-fields") {
     draftSceneFields();
+    return;
+  }
+
+  if (actionId === "brand-draft-voice") {
+    draftBrandVoiceField();
+    return;
+  }
+
+  if (actionId === "brand-answer-prompt") {
+    answerBrandCoPilotPrompt();
     return;
   }
 
@@ -2057,6 +2171,12 @@ document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-dialog-copilot-action]");
   if (!button) return;
   applyDialogCoPilotAction(button.dataset.dialogCopilotAction);
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" || event.target?.id !== "brandCoPilotPrompt") return;
+  event.preventDefault();
+  answerBrandCoPilotPrompt();
 });
 
 document.querySelector("#addScene").addEventListener("click", () => {

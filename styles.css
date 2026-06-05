@@ -614,6 +614,32 @@ textarea {
   line-height: 1.45;
 }
 
+.dialog-copilot-interaction {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(46, 110, 158, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.dialog-copilot-reply {
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.dialog-copilot-prompt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.dialog-copilot-prompt input {
+  min-height: 34px;
+}
+
 .copilot-actions {
   display: flex;
   flex-wrap: wrap;
@@ -886,7 +912,8 @@ textarea {
   .stage-fields,
   .storage-layout,
   .dialog-grid,
-  .review-form {
+  .review-form,
+  .dialog-copilot-prompt {
     grid-template-columns: 1fr;
   }
 
