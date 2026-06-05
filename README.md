@@ -12,6 +12,8 @@ The long-term system map lives in [docs/ota-social-engine-operating-model.md](do
 
 Secure API boundaries for future ElevenLabs, Remotion, Bunny, and Blotato services live in [docs/backend-integration-boundaries.md](docs/backend-integration-boundaries.md).
 
+The official internal creator tutorial lives in [command-center-tutorial.html](command-center-tutorial.html). It explains the strategy and tactical use of every Content Command Center section for team adoption.
+
 ## Current MVP
 
 - Campaign launcher
@@ -31,6 +33,7 @@ Secure API boundaries for future ElevenLabs, Remotion, Bunny, and Blotato servic
 - Bunny storage manifest
 - Blotato publishing package
 - Section-specific improvement requests with prefilled GitHub issue drafts
+- Official section-by-section creator tutorial for internal adoption
 - Creator day-in-the-life infographic for in-house review
 - Workspace JSON export
 
