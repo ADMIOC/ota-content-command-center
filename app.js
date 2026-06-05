@@ -304,15 +304,18 @@ const elements = {
   platformNotes: document.querySelector("#platformNotes"),
   campaignDialog: document.querySelector("#campaignDialog"),
   campaignForm: document.querySelector("#campaignForm"),
+  campaignDialogCoPilot: document.querySelector("#campaignDialogCoPilot"),
   campaignBrandSelect: document.querySelector("#campaignBrandSelect"),
   customBrandField: document.querySelector("#customBrandField"),
   customBrandName: document.querySelector("#customBrandName"),
   generateCreativeDirection: document.querySelector("#generateCreativeDirection"),
   brandDialog: document.querySelector("#brandDialog"),
+  brandDialogCoPilot: document.querySelector("#brandDialogCoPilot"),
   brandProfileForm: document.querySelector("#brandProfileForm"),
   brandProfileSelect: document.querySelector("#brandProfileSelect"),
   newBrandProfile: document.querySelector("#newBrandProfile"),
   sceneDialog: document.querySelector("#sceneDialog"),
+  sceneDialogCoPilot: document.querySelector("#sceneDialogCoPilot"),
   sceneForm: document.querySelector("#sceneForm"),
   reviewPanel: document.querySelector("#reviewPanel"),
   reviewCount: document.querySelector("#reviewCount"),
@@ -437,7 +440,104 @@ function openBrandDialog(profileName = "") {
   if (!getBrandFormField("name").value && getBrandProfiles()[0]) {
     loadBrandProfileForm(getBrandProfiles()[0].id);
   }
+  renderBrandDialogCoPilot();
   elements.brandDialog.showModal();
+}
+
+function renderDialogCoPilot(container, guidance) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="dialog-copilot-heading">
+      <div>
+        <p class="eyebrow">Official OTA Brand Build Co-Pilot</p>
+        <h3>${escapeHtml(guidance.title)}</h3>
+      </div>
+      <span class="status-pill in-progress">Live Guide</span>
+    </div>
+    <p>${escapeHtml(guidance.summary)}</p>
+    <div class="copilot-list">
+      ${guidance.suggestions.map((item) => `<article class="copilot-suggestion">${escapeHtml(item)}</article>`).join("")}
+    </div>
+    <div class="copilot-actions">
+      ${guidance.actions
+        .map((action) => `<button class="mini-button" type="button" data-dialog-copilot-action="${action.id}">${escapeHtml(action.label)}</button>`)
+        .join("")}
+    </div>
+  `;
+}
+
+function getMissingCampaignFields() {
+  return [
+    ["Campaign name", getCampaignFormField("name")?.value.trim()],
+    ["Due date", getCampaignFormField("dueDate")?.value],
+    ["Owner", getCampaignFormField("owner")?.value.trim()],
+    ["Creative direction", getCampaignFormField("creativeDirection")?.value.trim()]
+  ]
+    .filter(([, value]) => !value)
+    .map(([label]) => label);
+}
+
+function renderCampaignDialogCoPilot() {
+  const brandName = getCampaignFormBrandName() || "the selected brand";
+  const profile = getBrandProfile(brandName);
+  const campaignName = getCampaignFormField("name")?.value.trim() || "this campaign";
+  const missing = getMissingCampaignFields();
+  renderDialogCoPilot(elements.campaignDialogCoPilot, {
+    title: "Launch Workstream Guidance",
+    summary: `I am guiding this workstream around ${brandName}. The setup should lock brand, story direction, owner, due date, and compliance posture before scenes begin.`,
+    suggestions: [
+      profile
+        ? `Brand voice: ${profile.voice || profile.perspective}`
+        : "This is a new brand. I will create a reusable brand shell when you launch.",
+      missing.length ? `Still needed: ${missing.join(", ")}.` : "Required setup fields are ready.",
+      profile?.regulated
+        ? "This is a regulated brand. Guardrails must stay active before scripts, audio, and publishing."
+        : "This brand is not marked regulated, so guardrails stay inactive unless the brand profile changes.",
+      `Creative direction should make "${campaignName}" feel cinematic, specific, and useful before any production handoff.`
+    ],
+    actions: [
+      { id: "campaign-refresh-direction", label: "Refresh Direction" },
+      { id: "campaign-apply-guardrails", label: "Apply Guardrails" }
+    ]
+  });
+}
+
+function renderSceneDialogCoPilot() {
+  const campaign = getSelectedCampaign();
+  const profile = campaign ? getBrandProfile(campaign.brand) : null;
+  renderDialogCoPilot(elements.sceneDialogCoPilot, {
+    title: "Scene Build Guidance",
+    summary: campaign
+      ? `I am helping convert ${campaign.brand}'s creative direction into a script-first scene for ElevenLabs, Remotion, and Higgsfield.`
+      : "I am helping create a script-first scene that can travel through the OTA production chain.",
+    suggestions: [
+      "Write the video script first. The prompt should serve the voiceover, not the other way around.",
+      `Visual language should follow: ${profile?.perspective || "the active brand cinematic perspective"}.`,
+      profile?.regulated
+        ? "Include a compliance note before generation because this brand is regulated."
+        : "Keep the compliance note focused on brand fit or leave it empty if no risk applies.",
+      "A strong scene has tension, insight, and one clear action or visual payoff."
+    ],
+    actions: [{ id: "scene-draft-fields", label: "Draft Scene Fields" }]
+  });
+}
+
+function renderBrandDialogCoPilot() {
+  const name = getBrandFormField("name")?.value.trim() || "this brand";
+  const regulated = Boolean(getBrandFormField("regulated")?.checked);
+  renderDialogCoPilot(elements.brandDialogCoPilot, {
+    title: "Brand Profile Guidance",
+    summary: `I am guiding ${name}'s brand profile so every campaign, script, scene, caption, and monetization path inherits the same operating DNA.`,
+    suggestions: [
+      "Brand voice should describe how the brand sounds under pressure, not just adjectives.",
+      "Audience should name the buyer or viewer and the moment they care most.",
+      "Offers / Monetization should connect content to revenue, leads, sponsorship, services, or authority.",
+      regulated
+        ? "Because this is regulated, compliance guardrails should be explicit and conservative."
+        : "If this becomes regulated later, turn on the regulated flag before launching campaigns."
+    ],
+    actions: [{ id: "brand-draft-profile", label: "Draft Missing Profile" }]
+  });
 }
 
 function syncCampaignSetupFields({ forceCreative = false } = {}) {
@@ -455,7 +555,10 @@ function syncCampaignSetupFields({ forceCreative = false } = {}) {
 
   const guardrails = getCampaignFormField("guardrails");
   const regulated = isRegulatedBrand(brandName);
-  if (!guardrails) return;
+  if (!guardrails) {
+    renderCampaignDialogCoPilot();
+    return;
+  }
 
   guardrails.disabled = !regulated;
   guardrails.required = regulated;
@@ -463,6 +566,7 @@ function syncCampaignSetupFields({ forceCreative = false } = {}) {
     guardrails.value = "";
     guardrails.placeholder = "Only enabled for regulated brands.";
     guardrails.dataset.generated = "";
+    renderCampaignDialogCoPilot();
     return;
   }
 
@@ -471,6 +575,7 @@ function syncCampaignSetupFields({ forceCreative = false } = {}) {
     guardrails.value = buildComplianceGuardrails(brandName);
     guardrails.dataset.generated = "true";
   }
+  renderCampaignDialogCoPilot();
 }
 
 function resetCampaignSetupState() {
@@ -483,6 +588,7 @@ function resetCampaignSetupState() {
 
 function openCampaignDialog() {
   resetCampaignSetupState();
+  renderCampaignDialogCoPilot();
   elements.campaignDialog.showModal();
 }
 
@@ -1304,6 +1410,90 @@ function buildSuggestedScene(campaign) {
   };
 }
 
+function draftBrandProfileFields() {
+  const name = getBrandFormField("name").value.trim() || "New OTA Brand";
+  const regulated = getBrandFormField("regulated").checked;
+  if (!getBrandFormField("name").value.trim()) getBrandFormField("name").value = name;
+  if (!getBrandFormField("voice").value.trim()) {
+    getBrandFormField("voice").value = regulated
+      ? "Measured, precise, trust-first, and careful with claims."
+      : "Clear, confident, useful, energetic, and operator-led.";
+  }
+  if (!getBrandFormField("audience").value.trim()) {
+    getBrandFormField("audience").value = "Creators, operators, buyers, or decision-makers who need a clearer next move.";
+  }
+  if (!getBrandFormField("offers").value.trim()) {
+    getBrandFormField("offers").value = "Content-led authority, lead capture, services, offers, partnerships, and monetization experiments.";
+  }
+  if (!getBrandFormField("perspective").value.trim()) {
+    getBrandFormField("perspective").value = regulated
+      ? "clean executive documentary perspective, grounded visuals, measured pacing, and conservative proof-led storytelling"
+      : "brand-native cinematic perspective, energetic motion, clear emotional stakes, and repeatable visual language";
+  }
+  if (regulated && !getBrandFormField("guardrails").value.trim()) {
+    getBrandFormField("guardrails").value =
+      "Avoid guarantees, sensitive claims, unsupported outcomes, and personalized advice. Route final copy through human review before publishing.";
+  }
+  if (!getBrandFormField("platforms").value.trim()) {
+    getBrandFormField("platforms").value = "TikTok, Instagram Reels, YouTube Shorts, LinkedIn";
+  }
+  renderBrandDialogCoPilot();
+  showToast("Brand profile draft applied");
+}
+
+function draftSceneFields() {
+  const campaign = getSelectedCampaign();
+  const scene = campaign
+    ? buildSuggestedScene(campaign)
+    : {
+        title: "Co-Pilot Scene",
+        script: "Open with the audience's familiar tension, reframe it with the brand insight, and close with a clear next action.",
+        prompt:
+          "Brand-native cinematic scene, clear before-and-after storytelling, clean lighting, platform-ready composition.",
+        compliance: ""
+      };
+  if (!elements.sceneForm.elements.title.value.trim()) elements.sceneForm.elements.title.value = scene.title;
+  if (!elements.sceneForm.elements.script.value.trim()) elements.sceneForm.elements.script.value = scene.script;
+  if (!elements.sceneForm.elements.prompt.value.trim()) elements.sceneForm.elements.prompt.value = scene.prompt;
+  if (!elements.sceneForm.elements.compliance.value.trim()) elements.sceneForm.elements.compliance.value = scene.compliance;
+  renderSceneDialogCoPilot();
+  showToast("Scene draft applied");
+}
+
+function applyDialogCoPilotAction(actionId) {
+  if (actionId === "campaign-refresh-direction") {
+    syncCampaignSetupFields({ forceCreative: true });
+    getCampaignFormField("creativeDirection").focus();
+    showToast("Direction refreshed");
+    return;
+  }
+
+  if (actionId === "campaign-apply-guardrails") {
+    const brandName = getCampaignFormBrandName();
+    const guardrails = getCampaignFormField("guardrails");
+    const value = buildComplianceGuardrails(brandName);
+    if (!value) {
+      showToast("No regulated guardrails for this brand");
+      return;
+    }
+    guardrails.disabled = false;
+    guardrails.value = value;
+    guardrails.dataset.generated = "true";
+    renderCampaignDialogCoPilot();
+    showToast("Guardrails applied");
+    return;
+  }
+
+  if (actionId === "scene-draft-fields") {
+    draftSceneFields();
+    return;
+  }
+
+  if (actionId === "brand-draft-profile") {
+    draftBrandProfileFields();
+  }
+}
+
 function applyCoPilotAction(actionId) {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
@@ -1688,10 +1878,18 @@ elements.customBrandName.addEventListener("input", () => {
 
 getCampaignFormField("creativeDirection").addEventListener("input", () => {
   creativeDirectionTouched = true;
+  renderCampaignDialogCoPilot();
 });
 
 getCampaignFormField("guardrails").addEventListener("input", () => {
   getCampaignFormField("guardrails").dataset.generated = "false";
+  renderCampaignDialogCoPilot();
+});
+
+["dueDate", "owner"].forEach((fieldName) => {
+  getCampaignFormField(fieldName).addEventListener("input", () => {
+    renderCampaignDialogCoPilot();
+  });
 });
 
 elements.generateCreativeDirection.addEventListener("click", () => {
@@ -1701,12 +1899,18 @@ elements.generateCreativeDirection.addEventListener("click", () => {
 
 elements.brandProfileSelect.addEventListener("change", () => {
   loadBrandProfileForm();
+  renderBrandDialogCoPilot();
 });
 
 elements.newBrandProfile.addEventListener("click", () => {
   elements.brandProfileForm.reset();
   elements.brandProfileSelect.value = "";
+  renderBrandDialogCoPilot();
   getBrandFormField("name").focus();
+});
+
+elements.brandProfileForm.addEventListener("input", () => {
+  renderBrandDialogCoPilot();
 });
 
 elements.brandProfileForm.addEventListener("submit", (event) => {
@@ -1795,6 +1999,10 @@ elements.sceneForm.addEventListener("submit", (event) => {
   showToast("Scene added");
 });
 
+elements.sceneForm.addEventListener("input", () => {
+  renderSceneDialogCoPilot();
+});
+
 elements.campaignSearch.addEventListener("input", renderCampaignList);
 elements.stageFilter.addEventListener("change", renderCampaignList);
 
@@ -1845,7 +2053,15 @@ elements.coPilotActions.addEventListener("click", (event) => {
   applyCoPilotAction(button.dataset.copilotAction);
 });
 
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-dialog-copilot-action]");
+  if (!button) return;
+  applyDialogCoPilotAction(button.dataset.dialogCopilotAction);
+});
+
 document.querySelector("#addScene").addEventListener("click", () => {
+  elements.sceneForm.reset();
+  renderSceneDialogCoPilot();
   elements.sceneDialog.showModal();
 });
 

@@ -587,6 +587,33 @@ textarea {
   background: linear-gradient(180deg, #ffffff, var(--sky));
 }
 
+.dialog-copilot {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid rgba(46, 110, 158, 0.32);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff, var(--sky));
+}
+
+.dialog-copilot-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dialog-copilot h3,
+.dialog-copilot p {
+  margin: 0;
+}
+
+.dialog-copilot p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .copilot-actions {
   display: flex;
   flex-wrap: wrap;
@@ -821,7 +848,8 @@ textarea {
   .topbar,
   .campaign-header,
   .panel-heading,
-  .dialog-heading {
+  .dialog-heading,
+  .dialog-copilot-heading {
     align-items: stretch;
     flex-direction: column;
   }
