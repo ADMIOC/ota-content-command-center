@@ -104,6 +104,56 @@ Outputs:
 Required approvals:
 - explicit human approval before publishing or scheduling
 
+### Descript Editorial Service
+
+Purpose: Hand off approved video/audio assets for stitching, transcript-aware editing, audio cleanup, avatar/video enhancement, and rapid polish using Descript's on-platform agents.
+
+Inputs:
+- campaign id
+- source media URLs
+- transcript or script references
+- brand profile
+- edit instructions
+- caption and platform requirements
+- approval state
+
+Outputs:
+- Descript project reference
+- enhanced video URL
+- enhanced audio URL
+- transcript or edit notes
+- repurpose candidate timestamps
+- activity log event
+
+Required approvals:
+- human approval before enhanced assets enter publishing
+- regulated-brand review before public claims are preserved or amplified
+
+### Restream Live Broadcast Service
+
+Purpose: Prepare live broadcast metadata, track live session references, capture real-time viral clip candidates, and route public-response signals back into the repurpose loop.
+
+Inputs:
+- campaign id
+- live broadcast title and description
+- approved media or run-of-show references
+- platform targets
+- host notes
+- caption/clip instructions
+- approval state
+
+Outputs:
+- Restream event or session reference
+- live broadcast status
+- real-time clip references
+- live engagement notes
+- repurpose candidate list
+- activity log event
+
+Required approvals:
+- explicit human approval before going live
+- regulated-brand review before live talking points or clipped claims are approved for reuse
+
 ## Future API Shape
 
 ```http
@@ -111,6 +161,9 @@ POST /api/elevenlabs/generate-audio
 POST /api/remotion/render
 POST /api/bunny/upload-manifest
 POST /api/blotato/create-draft
+POST /api/descript/create-edit
+POST /api/restream/create-broadcast
+POST /api/restream/ingest-live-signals
 POST /api/activity-log
 GET /api/campaigns/:id/manifest
 ```

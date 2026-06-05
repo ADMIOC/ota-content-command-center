@@ -27,9 +27,12 @@ The hallmark user experience is live agent-guided assistance in every campaign b
 5. Higgsfield Studio generation
 6. Human QA
 7. Final assembly
-8. Publishing package
-9. Bunny storage
-10. Blotato handoff
+8. Descript stitching, enhancement, avatar, and audio polish
+9. Publishing package
+10. Bunny storage
+11. Blotato handoff
+12. Restream live broadcast and real-time viral clip capture
+13. Public-response monitoring and repurpose loop
 
 ## Agent Roles
 
@@ -73,17 +76,29 @@ Prepares Higgsfield Studio inputs, tracks generated outputs, marks failed takes,
 
 Checks visual quality, audio quality, compliance fit, caption accuracy, thumbnail direction, asset completeness, storage readiness, and publishing readiness.
 
+### Descript Editorial Agent
+
+Coordinates Descript-based stitching, audio cleanup, transcript-aware edits, avatar/video enhancement, and rapid polish passes using Descript's on-platform agents before publishing or repurposing.
+
 ### Storage Agent
 
 Organizes Bunny folders, final media URLs, thumbnails, scripts, audio tracks, Remotion output, caption docs, scene files, and approval documents.
 
 ### Publishing Agent
 
-Prepares Blotato-ready packages with approved media, captions, hashtags, platform notes, storage references, and scheduling status.
+Prepares Blotato-ready packages with approved media, captions, hashtags, platform notes, storage references, Descript-enhanced assets, live-broadcast notes, and scheduling status.
+
+### Live Broadcast Agent
+
+Coordinates Restream live broadcasts, monitors live engagement signals, captures real-time viral clip candidates, and routes live-response moments into repurposing workflows.
 
 ### Analytics Agent
 
-Ingests performance data from publishing platforms and converts results into insights, next experiments, content repurposing ideas, and monetization recommendations.
+Ingests performance data from publishing platforms, Restream live response, clip performance, comments, and audience velocity signals, then converts results into insights, next experiments, content repurposing ideas, and monetization recommendations.
+
+### Repurposing Agent
+
+Turns high-performing posts, live moments, long-form recordings, Descript edits, Restream clips, comments, and audience questions into follow-up videos, shorts, captions, email/social derivatives, offer angles, and new campaign briefs.
 
 ### Communications Agent
 
@@ -108,6 +123,7 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - ElevenLabs for script/audio track generation
 - Codex + Remotion for audio-led composition
 - Higgsfield Studio for video generation
+- Descript for stitching, transcript-aware editing, audio/video enhancement, avatar content, and rapid polish using on-platform agents
 - Human review for approvals
 
 ### Storage Layer
@@ -119,6 +135,7 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 ### Publishing Layer
 
 - Blotato for social publishing handoff
+- Restream for live broadcast distribution and real-time viral clip creation
 - Platform-specific captions, hashtags, and notes
 - Future scheduling, retry, and publishing-state automation
 
@@ -127,6 +144,8 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - GitHub issues for improvement requests
 - QA checklists
 - Performance analytics
+- Restream live chat, engagement velocity, and clip-response signals
+- Descript-derived transcript insights and reusable edit moments
 - Content experiment history
 
 ### Monetization Layer
@@ -161,12 +180,15 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - Regulated-brand compliance gating
 - ElevenLabs and Remotion handoff tracking
 - Bunny and Blotato package tracking
+- Descript and Restream strategic handoff tracking
 - GitHub review request lane
 
 ### Phase 2: Server-Side Automation
 
 - Secure API proxy for ElevenLabs
 - Secure Bunny upload service
+- Secure Descript handoff service for enhanced video/audio asset references
+- Secure Restream handoff service for live broadcast metadata and clip references
 - Remotion render job runner
 - Asset manifest generator
 - Persistent production database
@@ -179,12 +201,16 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - Script-to-audio automation
 - Audio-to-Remotion automation
 - Remotion-to-Higgsfield package automation
+- Final-asset-to-Descript enhancement routing
 - QA summary generation
 - Publishing package generation
+- Restream live broadcast package generation
 
 ### Phase 4: Always-On Growth Engine
 
 - Performance analytics ingestion
+- Restream live response and viral clip monitoring
+- Descript-to-repurpose asset mining
 - Winning-content repurposing
 - Automated experiment suggestions
 - Monetization recommendations
