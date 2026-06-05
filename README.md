@@ -26,6 +26,7 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Regulated-brand compliance guardrails for CRS and The VFO
 - Scene queue with video scripts, Higgsfield prompts, and compliance notes
 - Live OTA Co-Pilot guidance for each campaign build section and dialog surface
+- Agent Operations Layer with task queue, performance intelligence, repurpose candidates, Restream live ops, Descript enhancement, and approval console
 - Agent activity log
 - ElevenLabs script/audio tracking for the active `agentic@ownthealgo.com` account
 - Codex + Remotion handoff tracking for the output Higgsfield Studio ingests

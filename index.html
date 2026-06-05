@@ -424,6 +424,93 @@
               </div>
               <div id="agentActivityLog" class="activity-list"></div>
             </section>
+
+            <section id="agent-operations-layer" class="panel agent-ops-layer">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Agent Operations Layer</p>
+                  <h3>Real-Time OTA Social Engine Flywheel</h3>
+                  <p class="panel-note">
+                    Live operating layer for agent tasks, performance intelligence, Restream clips, Descript enhancements, repurpose candidates, and human approval controls.
+                  </p>
+                </div>
+                <div class="panel-actions">
+                  <button class="mini-button" type="button" data-agent-action="run-signal-sweep">Run Signal Sweep</button>
+                  <button class="mini-button" type="button" data-agent-action="queue-repurpose-plan">Queue Repurpose Plan</button>
+                  <button class="mini-button" type="button" data-agent-action="request-human-approval">Request Approval</button>
+                </div>
+              </div>
+
+              <div id="agentOpsMetrics" class="agent-ops-metrics"></div>
+
+              <div class="agent-ops-grid">
+                <article class="agent-ops-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Execution</p>
+                      <h4>Agent Task Queue</h4>
+                    </div>
+                    <button class="mini-button" type="button" data-agent-action="advance-agent-task">Advance Task</button>
+                  </div>
+                  <div id="agentTaskQueue" class="agent-ops-list"></div>
+                </article>
+
+                <article class="agent-ops-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Public response</p>
+                      <h4>Performance Intelligence</h4>
+                    </div>
+                    <span id="viralLiftScore" class="status-pill in-progress">0 lift</span>
+                  </div>
+                  <div id="performanceIntelligence" class="agent-ops-list"></div>
+                </article>
+
+                <article class="agent-ops-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Repurpose</p>
+                      <h4>Repurpose Candidates</h4>
+                    </div>
+                    <button class="mini-button" type="button" data-agent-action="promote-repurpose-candidate">Promote Candidate</button>
+                  </div>
+                  <div id="repurposeCandidates" class="agent-ops-list"></div>
+                </article>
+
+                <article class="agent-ops-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Restream</p>
+                      <h4>Live Broadcast Ops</h4>
+                    </div>
+                    <button class="mini-button" type="button" data-agent-action="capture-live-clip">Capture Clip</button>
+                  </div>
+                  <div id="restreamOps" class="agent-ops-list"></div>
+                </article>
+
+                <article class="agent-ops-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Descript</p>
+                      <h4>Enhancement Pipeline</h4>
+                    </div>
+                    <button class="mini-button" type="button" data-agent-action="draft-descript-plan">Draft Edit Plan</button>
+                  </div>
+                  <div id="descriptOps" class="agent-ops-list"></div>
+                </article>
+
+                <article class="agent-ops-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Control</p>
+                      <h4>Human Approval Console</h4>
+                    </div>
+                    <button class="mini-button" type="button" data-agent-action="approve-next-agent-action">Approve Next</button>
+                  </div>
+                  <div id="agentApprovalConsole" class="agent-ops-list"></div>
+                </article>
+              </div>
+            </section>
           </section>
         </section>
       </main>

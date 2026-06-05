@@ -326,6 +326,14 @@ const elements = {
   reviewComment: document.querySelector("#reviewComment"),
   reviewRequestList: document.querySelector("#reviewRequestList"),
   agentActivityLog: document.querySelector("#agentActivityLog"),
+  agentOpsMetrics: document.querySelector("#agentOpsMetrics"),
+  agentTaskQueue: document.querySelector("#agentTaskQueue"),
+  performanceIntelligence: document.querySelector("#performanceIntelligence"),
+  repurposeCandidates: document.querySelector("#repurposeCandidates"),
+  restreamOps: document.querySelector("#restreamOps"),
+  descriptOps: document.querySelector("#descriptOps"),
+  agentApprovalConsole: document.querySelector("#agentApprovalConsole"),
+  viralLiftScore: document.querySelector("#viralLiftScore"),
   copyActivityLog: document.querySelector("#copyActivityLog"),
   toast: document.querySelector("#toast")
 };
@@ -690,6 +698,63 @@ function createCreativeDirectionVersion(value, source = "Agentic draft") {
   };
 }
 
+function createAgentTask(agent, action, status = "pending") {
+  return {
+    id: makeId(),
+    agent,
+    action,
+    status,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function createAgentOps(seed = {}) {
+  const campaignName = seed.name || "this campaign";
+  return {
+    tasks: [
+      createAgentTask("Research + Signal Agent", `Monitor public response and trend signals for ${campaignName}.`, "running"),
+      createAgentTask("Performance Intelligence Agent", "Score viral lift, repurpose value, and audience demand.", "pending"),
+      createAgentTask("Repurposing Agent", "Prepare follow-up hooks, clips, captions, and campaign derivatives.", "pending")
+    ],
+    performanceSignals: [
+      {
+        id: makeId(),
+        source: "Baseline",
+        signal: "Awaiting publish/live response data.",
+        score: 28,
+        createdAt: new Date().toISOString()
+      }
+    ],
+    repurposeCandidates: [],
+    restream: {
+      status: "not-scheduled",
+      broadcastTitle: `${campaignName} Live Signal Session`,
+      clipCandidates: [],
+      liveNotes: "Restream will capture live engagement, chat themes, and clip-worthy moments after approval."
+    },
+    descript: {
+      status: "not-started",
+      projectRef: "",
+      enhancedAssetUrl: "",
+      editPlan: "Use Descript for transcript-aware edits, audio cleanup, stitched segments, avatar polish, and rapid derivative exports."
+    },
+    approvals: [
+      {
+        id: makeId(),
+        label: "Approve agent publishing or live broadcast actions",
+        status: "required",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: makeId(),
+        label: "Approve regulated claims before clipping or repurposing",
+        status: "required",
+        createdAt: new Date().toISOString()
+      }
+    ]
+  };
+}
+
 function createCampaign(input) {
   const safeBrand = (input.brand || "").trim() || "Brand";
   const safeName = input.name.trim() || "Untitled Campaign";
@@ -743,6 +808,7 @@ function createCampaign(input) {
       platformNotes: "",
       status: "not-ready"
     },
+    agentOps: createAgentOps({ ...input, name: safeName, brand: safeBrand }),
     reviewRequests: []
   };
 }
@@ -898,6 +964,25 @@ function normalizeCampaignShape(campaign) {
     hashtags: campaign.publishing?.hashtags || "",
     platformNotes: campaign.publishing?.platformNotes || "",
     status: campaign.publishing?.status || "not-ready"
+  };
+  const defaultOps = createAgentOps(campaign);
+  campaign.agentOps = {
+    tasks: Array.isArray(campaign.agentOps?.tasks) ? campaign.agentOps.tasks : defaultOps.tasks,
+    performanceSignals: Array.isArray(campaign.agentOps?.performanceSignals)
+      ? campaign.agentOps.performanceSignals
+      : defaultOps.performanceSignals,
+    repurposeCandidates: Array.isArray(campaign.agentOps?.repurposeCandidates)
+      ? campaign.agentOps.repurposeCandidates
+      : defaultOps.repurposeCandidates,
+    restream: {
+      ...defaultOps.restream,
+      ...(campaign.agentOps?.restream || {})
+    },
+    descript: {
+      ...defaultOps.descript,
+      ...(campaign.agentOps?.descript || {})
+    },
+    approvals: Array.isArray(campaign.agentOps?.approvals) ? campaign.agentOps.approvals : defaultOps.approvals
   };
   campaign.approvals = approvalLabels.map((label) => {
     const existing = (campaign.approvals || []).find((check) => check.label === label);
@@ -1217,6 +1302,7 @@ function renderCampaign() {
   renderBrandProfileSummary(campaign);
   renderCreativeDirectionVersions(campaign);
   renderCoPilot(campaign);
+  renderAgentOperations(campaign);
 }
 
 function renderCoPilot(campaign) {
@@ -1311,6 +1397,170 @@ function renderAgentActivityLog() {
     `;
     elements.agentActivityLog.appendChild(row);
   });
+}
+
+function getViralLiftScore(campaign) {
+  const signals = campaign.agentOps?.performanceSignals || [];
+  if (!signals.length) return 0;
+  const score = Math.round(signals.reduce((sum, signal) => sum + Number(signal.score || 0), 0) / signals.length);
+  return Math.max(0, Math.min(score, 100));
+}
+
+function getSignalStatus(score) {
+  if (score >= 75) return "approved";
+  if (score >= 50) return "in-progress";
+  if (score >= 35) return "needs-review";
+  return "not-started";
+}
+
+function renderAgentOperations(campaign) {
+  if (!elements.agentOpsMetrics) return;
+  const ops = campaign.agentOps || createAgentOps(campaign);
+  const viralLift = getViralLiftScore(campaign);
+  const openTasks = ops.tasks.filter((task) => task.status !== "completed").length;
+  const repurposeCount = ops.repurposeCandidates.length;
+  const clipCount = ops.restream.clipCandidates.length;
+  const approvalCount = ops.approvals.filter((approval) => approval.status !== "approved").length;
+
+  elements.viralLiftScore.className = `status-pill ${getSignalStatus(viralLift)}`;
+  elements.viralLiftScore.textContent = `${viralLift} lift`;
+  elements.agentOpsMetrics.innerHTML = `
+    <article>
+      <strong>${openTasks}</strong>
+      <span>open agent tasks</span>
+    </article>
+    <article>
+      <strong>${viralLift}</strong>
+      <span>viral lift score</span>
+    </article>
+    <article>
+      <strong>${repurposeCount}</strong>
+      <span>repurpose candidates</span>
+    </article>
+    <article>
+      <strong>${clipCount}</strong>
+      <span>Restream clips</span>
+    </article>
+    <article>
+      <strong>${approvalCount}</strong>
+      <span>approval holds</span>
+    </article>
+  `;
+
+  renderAgentTaskQueue(ops.tasks);
+  renderPerformanceIntelligence(ops.performanceSignals);
+  renderRepurposeCandidates(ops.repurposeCandidates);
+  renderRestreamOps(ops.restream);
+  renderDescriptOps(ops.descript);
+  renderAgentApprovalConsole(ops.approvals);
+}
+
+function renderAgentTaskQueue(tasks) {
+  renderAgentOpsList(elements.agentTaskQueue, tasks, (task) => `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(task.agent)}</strong>
+        <span class="status-pill ${task.status === "completed" ? "approved" : task.status === "running" ? "in-progress" : "not-started"}">${escapeHtml(formatStatus(task.status))}</span>
+      </header>
+      <p>${escapeHtml(task.action)}</p>
+      <small>${new Date(task.createdAt).toLocaleString()}</small>
+    </article>
+  `);
+}
+
+function renderPerformanceIntelligence(signals) {
+  renderAgentOpsList(elements.performanceIntelligence, signals, (signal) => `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(signal.source)}</strong>
+        <span class="status-pill ${getSignalStatus(signal.score)}">${Number(signal.score || 0)} score</span>
+      </header>
+      <p>${escapeHtml(signal.signal)}</p>
+      <small>${new Date(signal.createdAt).toLocaleString()}</small>
+    </article>
+  `);
+}
+
+function renderRepurposeCandidates(candidates) {
+  renderAgentOpsList(elements.repurposeCandidates, candidates, (candidate) => `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(candidate.format)}</strong>
+        <span class="status-pill ${candidate.status === "promoted" ? "approved" : "needs-review"}">${escapeHtml(formatStatus(candidate.status))}</span>
+      </header>
+      <p>${escapeHtml(candidate.idea)}</p>
+      <small>${escapeHtml(candidate.source)} - ${new Date(candidate.createdAt).toLocaleString()}</small>
+    </article>
+  `);
+}
+
+function renderRestreamOps(restream) {
+  const items = [
+    {
+      title: "Broadcast status",
+      body: `${formatStatus(restream.status)} - ${restream.broadcastTitle}`,
+      meta: restream.liveNotes
+    },
+    ...restream.clipCandidates.map((clip) => ({
+      title: clip.title,
+      body: clip.reason,
+      meta: `${clip.status} - ${new Date(clip.createdAt).toLocaleString()}`
+    }))
+  ];
+  renderAgentOpsList(elements.restreamOps, items, (item) => `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(item.title)}</strong>
+      </header>
+      <p>${escapeHtml(item.body)}</p>
+      <small>${escapeHtml(item.meta)}</small>
+    </article>
+  `);
+}
+
+function renderDescriptOps(descript) {
+  const items = [
+    {
+      title: "Descript status",
+      body: formatStatus(descript.status),
+      meta: descript.projectRef || "No Descript project reference yet."
+    },
+    {
+      title: "Edit plan",
+      body: descript.editPlan,
+      meta: descript.enhancedAssetUrl || "Enhanced asset URL pending."
+    }
+  ];
+  renderAgentOpsList(elements.descriptOps, items, (item) => `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(item.title)}</strong>
+      </header>
+      <p>${escapeHtml(item.body)}</p>
+      <small>${escapeHtml(item.meta)}</small>
+    </article>
+  `);
+}
+
+function renderAgentApprovalConsole(approvals) {
+  renderAgentOpsList(elements.agentApprovalConsole, approvals, (approval) => `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(approval.label)}</strong>
+        <span class="status-pill ${approval.status === "approved" ? "approved" : "blocked"}">${escapeHtml(formatStatus(approval.status))}</span>
+      </header>
+      <small>${new Date(approval.createdAt).toLocaleString()}</small>
+    </article>
+  `);
+}
+
+function renderAgentOpsList(container, items, template) {
+  container.innerHTML = "";
+  if (!items.length) {
+    container.innerHTML = `<p class="meta-row">No records yet.</p>`;
+    return;
+  }
+  container.innerHTML = items.map(template).join("");
 }
 
 function getCampaignReviewRequests(campaign) {
@@ -1687,6 +1937,121 @@ function applyCoPilotAction(actionId) {
   showToast("Co-pilot update applied");
 }
 
+function getAgentOps(campaign) {
+  if (!campaign.agentOps) campaign.agentOps = createAgentOps(campaign);
+  return campaign.agentOps;
+}
+
+function applyAgentAction(actionId) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const ops = getAgentOps(campaign);
+  const now = new Date().toISOString();
+
+  if (actionId === "run-signal-sweep") {
+    const score = Math.min(96, 46 + ops.performanceSignals.length * 9 + campaign.scenes.length * 4);
+    ops.performanceSignals.unshift({
+      id: makeId(),
+      source: "Performance Intelligence Agent",
+      signal:
+        "Signal sweep found audience questions, retention hooks, comment themes, and live-response moments to monitor after publish.",
+      score,
+      createdAt: now
+    });
+    ops.tasks.unshift(createAgentTask("Performance Intelligence Agent", "Analyze public response and score viral lift potential.", "running"));
+    addAgentActivity("Performance Intelligence", `Ran signal sweep for ${campaign.name}; viral lift score moved to ${score}.`, campaign.id);
+  }
+
+  if (actionId === "queue-repurpose-plan") {
+    const profile = getBrandProfile(campaign.brand);
+    ops.repurposeCandidates.unshift({
+      id: makeId(),
+      format: "Short-form derivative pack",
+      idea: `Create 5 follow-up shorts from ${campaign.brand}'s strongest before-and-after moment, using ${profile?.perspective || "the brand cinematic perspective"}.`,
+      source: "Repurposing Agent",
+      status: "candidate",
+      createdAt: now
+    });
+    ops.tasks.unshift(createAgentTask("Repurposing Agent", "Draft hooks, captions, and clip instructions for top-performing moments.", "pending"));
+    addAgentActivity("Repurposing", `Queued derivative content plan for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "capture-live-clip") {
+    ops.restream.status = ops.restream.status === "not-scheduled" ? "clip-monitoring" : ops.restream.status;
+    ops.restream.clipCandidates.unshift({
+      id: makeId(),
+      title: `Live clip candidate ${ops.restream.clipCandidates.length + 1}`,
+      reason: "Restream live-response monitor flagged this as a potential viral clip moment for rapid repurpose.",
+      status: "needs-review",
+      createdAt: now
+    });
+    ops.performanceSignals.unshift({
+      id: makeId(),
+      source: "Restream Live Broadcast Agent",
+      signal: "Live clip candidate captured and routed into the repurpose queue.",
+      score: 72,
+      createdAt: now
+    });
+    addAgentActivity("Restream", `Captured live clip candidate for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "draft-descript-plan") {
+    ops.descript.status = "ready-for-edit";
+    ops.descript.projectRef = ops.descript.projectRef || `Descript/${campaign.brand}/${campaign.name}`;
+    ops.descript.editPlan = [
+      "Use Descript to stitch approved clips and clean audio.",
+      "Mine transcript moments for short-form derivatives, quote clips, avatar reads, and follow-up hooks.",
+      "Export enhanced video/audio references back into Bunny and the publishing package."
+    ].join(" ");
+    ops.tasks.unshift(createAgentTask("Descript Editorial Agent", "Prepare transcript-aware edit plan and enhanced asset handoff.", "running"));
+    addAgentActivity("Descript", `Drafted Descript enhancement plan for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "request-human-approval") {
+    ops.approvals.unshift({
+      id: makeId(),
+      label: "Approve next automated publish, live, or repurpose action",
+      status: "required",
+      createdAt: now
+    });
+    addAgentActivity("Approval", `Requested human approval for next agentic action on ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "advance-agent-task") {
+    const task = ops.tasks.find((item) => item.status !== "completed");
+    if (!task) {
+      showToast("No open agent tasks");
+      return;
+    }
+    task.status = task.status === "pending" ? "running" : "completed";
+    addAgentActivity("Agent task", `${task.agent} advanced: ${task.action}`, campaign.id);
+  }
+
+  if (actionId === "promote-repurpose-candidate") {
+    const candidate = ops.repurposeCandidates.find((item) => item.status !== "promoted");
+    if (!candidate) {
+      showToast("No repurpose candidate to promote");
+      return;
+    }
+    candidate.status = "promoted";
+    ops.tasks.unshift(createAgentTask("Publishing Agent", `Package promoted repurpose asset: ${candidate.format}.`, "pending"));
+    addAgentActivity("Repurposing", `Promoted repurpose candidate for ${campaign.name}.`, campaign.id);
+  }
+
+  if (actionId === "approve-next-agent-action") {
+    const approval = ops.approvals.find((item) => item.status !== "approved");
+    if (!approval) {
+      showToast("No approval holds");
+      return;
+    }
+    approval.status = "approved";
+    addAgentActivity("Approval", `Approved control gate: ${approval.label}.`, campaign.id);
+  }
+
+  render();
+  showToast("Agent operation applied");
+}
+
 function getManifest(campaign) {
   return {
     brand: campaign.brand,
@@ -1705,6 +2070,7 @@ function getManifest(campaign) {
     creativeDirectionVersions: campaign.creativeDirectionVersions,
     scenes: campaign.scenes,
     approvals: campaign.approvals,
+    agentOps: campaign.agentOps,
     reviewRequests: getCampaignReviewRequests(campaign),
     agentActivity: (state.agentActivity || []).filter((item) => !item.campaignId || item.campaignId === campaign.id),
     stages: campaign.stages.map((stage, index) => ({
@@ -2173,6 +2539,12 @@ document.addEventListener("click", (event) => {
   applyDialogCoPilotAction(button.dataset.dialogCopilotAction);
 });
 
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-agent-action]");
+  if (!button) return;
+  applyAgentAction(button.dataset.agentAction);
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" || event.target?.id !== "brandCoPilotPrompt") return;
   event.preventDefault();
@@ -2376,7 +2748,8 @@ function handleCommandCenterHash() {
     "#approval-gate-section": { selector: "#approval-gate-section" },
     "#bunny-storage-section": { selector: "#bunny-storage-section" },
     "#publishing-package-section": { selector: "#publishing-package-section" },
-    "#activity-log-section": { selector: "#activity-log-section" }
+    "#activity-log-section": { selector: "#activity-log-section" },
+    "#agent-operations-layer": { selector: "#agent-operations-layer" }
   };
   const target = targetMap[hash];
   if (!target) return;

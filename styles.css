@@ -92,13 +92,15 @@ textarea:focus-visible {
 h1,
 h2,
 h3,
+h4,
 p {
   margin-top: 0;
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4 {
   margin-bottom: 0;
   letter-spacing: 0;
   line-height: 1.08;
@@ -114,6 +116,10 @@ h2 {
 
 h3 {
   font-size: 1rem;
+}
+
+h4 {
+  font-size: 0.95rem;
 }
 
 .top-actions,
@@ -789,6 +795,93 @@ textarea {
   align-items: start;
 }
 
+.agent-ops-layer {
+  border-color: rgba(116, 31, 43, 0.28);
+  background: linear-gradient(180deg, #ffffff, var(--cabernet-soft));
+}
+
+.agent-ops-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.agent-ops-metrics article {
+  min-height: 82px;
+  padding: 12px;
+  border: 1px solid rgba(116, 31, 43, 0.18);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.agent-ops-metrics strong,
+.agent-ops-metrics span {
+  display: block;
+}
+
+.agent-ops-metrics strong {
+  color: var(--cabernet);
+  font-size: 1.45rem;
+}
+
+.agent-ops-metrics span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.agent-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.agent-ops-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 260px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.agent-ops-list {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-ops-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.agent-ops-item header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.agent-ops-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.agent-ops-item small {
+  color: var(--subtle);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
 .approval-grid {
   display: grid;
   gap: 2px;
@@ -908,8 +1001,13 @@ textarea {
 @media (max-width: 1100px) {
   .workspace,
   .main-grid,
-  .handoff-grid {
+  .handoff-grid,
+  .agent-ops-grid {
     grid-template-columns: 1fr;
+  }
+
+  .agent-ops-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sidebar {
@@ -976,5 +1074,9 @@ textarea {
 
   .metric-strip {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .agent-ops-metrics {
+    grid-template-columns: 1fr;
   }
 }
