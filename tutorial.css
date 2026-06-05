@@ -180,6 +180,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
+  scroll-margin-top: 22px;
 }
 
 .tutorial-card:nth-child(4n + 1) .tutorial-card-index {
@@ -225,9 +226,37 @@
 
 .tutorial-command-thumb:hover,
 .tutorial-command-thumb:focus-visible {
-  border-color: rgba(46, 110, 158, 0.5);
-  box-shadow: 0 14px 30px rgba(23, 33, 43, 0.12);
+  border-color: rgba(116, 31, 43, 0.68);
+  box-shadow:
+    0 0 0 4px rgba(116, 31, 43, 0.12),
+    0 14px 30px rgba(116, 31, 43, 0.16);
   transform: translateY(-1px);
+}
+
+.tutorial-card.tutorial-return-highlight {
+  animation: tutorialReturnPulse 3s ease-out 1;
+  outline: 4px solid rgba(116, 31, 43, 0.72);
+  outline-offset: 4px;
+}
+
+@keyframes tutorialReturnPulse {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(116, 31, 43, 0.3),
+      0 0 28px rgba(116, 31, 43, 0.36);
+  }
+
+  74% {
+    box-shadow:
+      0 0 0 6px rgba(116, 31, 43, 0.14),
+      0 0 28px rgba(116, 31, 43, 0.36);
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 18px rgba(116, 31, 43, 0),
+      0 0 28px rgba(116, 31, 43, 0);
+  }
 }
 
 .thumb-kicker {

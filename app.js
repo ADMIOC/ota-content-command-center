@@ -2320,6 +2320,31 @@ function highlightCommandCenterTarget(selector) {
   requestAnimationFrame(() => {
     target.classList.add("deep-link-highlight");
   });
+  window.setTimeout(() => {
+    target.classList.remove("deep-link-highlight");
+  }, 3000);
+}
+
+function showTutorialReturnLink() {
+  const params = new URLSearchParams(window.location.search);
+  const returnTarget = params.get("tutorialReturn");
+  if (!returnTarget) return;
+  const safeTarget = returnTarget.replace(/[^a-zA-Z0-9_-]/g, "");
+  if (!safeTarget) return;
+  const returnHref = `./command-center-tutorial.html#${safeTarget}`;
+  const tutorialNavLink = document.querySelector('a[href="./command-center-tutorial.html"]');
+  if (tutorialNavLink) {
+    tutorialNavLink.href = returnHref;
+    tutorialNavLink.title = "Return to the tutorial section you opened from";
+  }
+  const existingLink = document.querySelector("#tutorialReturnLink");
+  if (existingLink) existingLink.remove();
+  const link = document.createElement("a");
+  link.id = "tutorialReturnLink";
+  link.className = "tutorial-return-link";
+  link.href = returnHref;
+  link.textContent = "Back to tutorial section";
+  document.body.appendChild(link);
 }
 
 function handleCommandCenterHash() {
@@ -2361,6 +2386,7 @@ function handleCommandCenterHash() {
   }
   if (target.open) {
     target.open();
+    window.setTimeout(() => highlightCommandCenterTarget(target.selector), 80);
     return;
   }
   highlightCommandCenterTarget(target.selector);
@@ -2372,5 +2398,6 @@ if (!selectedCampaignId && state.campaigns[0]) {
 
 renderBrandOptions();
 render();
+showTutorialReturnLink();
 handleCommandCenterHash();
 window.addEventListener("hashchange", handleCommandCenterHash);
