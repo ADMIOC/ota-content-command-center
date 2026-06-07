@@ -184,6 +184,61 @@
               <div id="reviewRequestList" class="review-request-list"></div>
             </section>
 
+            <section id="team-collaboration-section" class="panel collaboration-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Team collaboration</p>
+                  <h3>Section Threads & Mentions</h3>
+                  <p class="panel-note">Capture internal notes, reviewer status, @mentions, and decisions before they become GitHub issues or production changes.</p>
+                </div>
+                <span id="collaborationNotificationSummary" class="status-pill not-started">0 open</span>
+              </div>
+
+              <div id="collaborationMetrics" class="collaboration-metrics" aria-label="Collaboration status"></div>
+
+              <div class="collaboration-form">
+                <label class="field">
+                  <span>Name</span>
+                  <input id="collaboratorName" type="text" autocomplete="name" />
+                </label>
+                <label class="field">
+                  <span>Role</span>
+                  <select id="collaboratorRole">
+                    <option>Creator</option>
+                    <option>Reviewer</option>
+                    <option>Approver</option>
+                    <option>Publisher</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Section</span>
+                  <select id="collaborationSection"></select>
+                </label>
+                <label class="field">
+                  <span>Status</span>
+                  <select id="collaborationStatus">
+                    <option value="open">Open</option>
+                    <option value="waiting">Waiting</option>
+                    <option value="resolved">Resolved</option>
+                  </select>
+                </label>
+                <label class="field full-width">
+                  <span>Mentions</span>
+                  <input id="collaborationMentions" type="text" placeholder="@owner @reviewer" autocomplete="off" />
+                </label>
+                <label class="field full-width">
+                  <span>Thread Note</span>
+                  <textarea id="collaborationNote" rows="4"></textarea>
+                </label>
+                <div class="collaboration-actions full-width">
+                  <button id="resolveNextCollaborationThread" class="ghost-button" type="button">Resolve Next</button>
+                  <button id="addCollaborationThread" class="primary-button" type="button">Add Thread</button>
+                </div>
+              </div>
+
+              <div id="collaborationThreadList" class="collaboration-thread-list"></div>
+            </section>
+
             <section id="workflow-stage-rail" class="stage-rail" aria-label="Workflow stages">
               <button class="stage-tab" type="button" data-stage-index="0">
                 <span>01</span>

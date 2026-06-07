@@ -228,6 +228,7 @@ const commandSections = [
   { label: "Direction", target: "#creative-direction", cue: "active creative version" },
   { label: "Preview", target: "#creator-preview-studio", cue: "script and media view" },
   { label: "Reviews", target: "#reviewPanel", cue: "improvement requests" },
+  { label: "Team", target: "#team-collaboration-section", cue: "threads and mentions" },
   { label: "Current Stage", target: "#workflow-stage-panel", cue: "checklist and owner" },
   { label: "Scenes", target: "#scene-queue-section", cue: "scripts and prompts" },
   { label: "Approvals", target: "#approval-gate-section", cue: "human gate" },
@@ -379,6 +380,15 @@ const elements = {
   reviewPriority: document.querySelector("#reviewPriority"),
   reviewComment: document.querySelector("#reviewComment"),
   reviewRequestList: document.querySelector("#reviewRequestList"),
+  collaborationNotificationSummary: document.querySelector("#collaborationNotificationSummary"),
+  collaborationMetrics: document.querySelector("#collaborationMetrics"),
+  collaboratorName: document.querySelector("#collaboratorName"),
+  collaboratorRole: document.querySelector("#collaboratorRole"),
+  collaborationSection: document.querySelector("#collaborationSection"),
+  collaborationStatus: document.querySelector("#collaborationStatus"),
+  collaborationMentions: document.querySelector("#collaborationMentions"),
+  collaborationNote: document.querySelector("#collaborationNote"),
+  collaborationThreadList: document.querySelector("#collaborationThreadList"),
   agentActivityLog: document.querySelector("#agentActivityLog"),
   agentOpsMetrics: document.querySelector("#agentOpsMetrics"),
   agentTaskQueue: document.querySelector("#agentTaskQueue"),
@@ -864,6 +874,7 @@ function createCampaign(input) {
       schedule: []
     },
     agentOps: createAgentOps({ ...input, name: safeName, brand: safeBrand }),
+    collaborationThreads: [],
     reviewRequests: []
   };
 }
@@ -886,6 +897,24 @@ function normalizeCampaign(seed) {
   campaign.publishing.platformNotes =
     "Use CRS-approved thumbnail. Confirm no patient-identifying information appears in the final render or voiceover.";
   campaign.publishing.schedule = createSuggestedPublishingSchedule(campaign);
+  campaign.collaborationThreads = [
+    createCollaborationThread({
+      sectionId: "scene-queue",
+      author: "Myah",
+      role: "Reviewer",
+      mentions: "@Jeff",
+      status: "open",
+      note: "Confirm the CRS scene scripts keep the operational urgency without implying guaranteed eligibility outcomes."
+    }),
+    createCollaborationThread({
+      sectionId: "publishing-calendar",
+      author: "Jey",
+      role: "Publisher",
+      mentions: "@Jeff @Myah",
+      status: "waiting",
+      note: "Calendar slots are drafted. Hold Blotato scheduling until final media and compliance approval are attached."
+    })
+  ];
   campaign.elevenLabs.voiceProfile = "OTA narrator voice";
   campaign.elevenLabs.scriptUrl = campaign.assets.voiceScript;
   campaign.elevenLabs.voiceoverUrl = campaign.assets.voiceover;
@@ -962,6 +991,21 @@ function normalizeBrandProfiles(profiles) {
 
 function normalizeCampaignShape(campaign) {
   campaign.reviewRequests = campaign.reviewRequests || [];
+  campaign.collaborationThreads = Array.isArray(campaign.collaborationThreads)
+    ? campaign.collaborationThreads.map((thread) =>
+        createCollaborationThread({
+          id: thread.id,
+          sectionId: thread.sectionId,
+          author: thread.author,
+          role: thread.role,
+          mentions: thread.mentions,
+          status: thread.status,
+          note: thread.note,
+          createdAt: thread.createdAt,
+          resolvedAt: thread.resolvedAt
+        })
+      )
+    : [];
   campaign.brandProfileId = campaign.brandProfileId || getBrandProfile(campaign.brand)?.id || "";
   campaign.creativeDirectionVersions = Array.isArray(campaign.creativeDirectionVersions)
     ? campaign.creativeDirectionVersions
@@ -1319,6 +1363,31 @@ function getScheduleStatusClass(status) {
   return "not-started";
 }
 
+function createCollaborationThread(input = {}) {
+  const section = reviewSections.find((item) => item.id === input.sectionId) || reviewSections[0];
+  return {
+    id: input.id || makeId(),
+    sectionId: section.id,
+    sectionName: section.name,
+    author: input.author || "Creator",
+    role: input.role || "Creator",
+    mentions: input.mentions || "",
+    status: input.status || "open",
+    note: input.note || "",
+    createdAt: input.createdAt || new Date().toISOString(),
+    resolvedAt: input.resolvedAt || ""
+  };
+}
+
+function getCollaborationMetrics(campaign) {
+  const threads = campaign.collaborationThreads || [];
+  const open = threads.filter((thread) => thread.status === "open").length;
+  const waiting = threads.filter((thread) => thread.status === "waiting").length;
+  const resolved = threads.filter((thread) => thread.status === "resolved").length;
+  const mentions = threads.filter((thread) => /@\w+/i.test(thread.mentions || thread.note || "")).length;
+  return { open, waiting, resolved, mentions, total: threads.length };
+}
+
 function getBrandTone(profile) {
   return profile?.voice || profile?.perspective || "brand-native, clear, and useful";
 }
@@ -1578,6 +1647,7 @@ function renderCampaign() {
   renderApprovals(campaign);
   renderHandoff(campaign);
   renderPublishingCalendar(campaign);
+  renderCollaborationHub(campaign);
   renderBrandProfileSummary(campaign);
   renderCreativeDirectionVersions(campaign);
   renderPreviewStudio(campaign);
@@ -2046,6 +2116,75 @@ function renderReviewPanel() {
   });
 }
 
+function renderCollaborationHub(campaign) {
+  const metrics = getCollaborationMetrics(campaign);
+  elements.collaborationNotificationSummary.className = `status-pill ${metrics.open || metrics.waiting ? "needs-review" : "approved"}`;
+  const activeThreads = metrics.open + metrics.waiting;
+  elements.collaborationNotificationSummary.textContent =
+    activeThreads === 1 ? "1 active thread" : `${activeThreads} active threads`;
+
+  elements.collaborationMetrics.innerHTML = [
+    { label: "Open threads", value: metrics.open },
+    { label: "Waiting", value: metrics.waiting },
+    { label: "Mentions", value: metrics.mentions },
+    { label: "Resolved", value: metrics.resolved }
+  ]
+    .map(
+      (item) => `
+        <article>
+          <strong>${item.value}</strong>
+          <span>${escapeHtml(item.label)}</span>
+        </article>
+      `
+    )
+    .join("");
+
+  const activeValue = elements.collaborationSection.value || selectedReviewSectionId;
+  elements.collaborationSection.innerHTML = reviewSections
+    .map((section) => `<option value="${escapeHtml(section.id)}">${escapeHtml(section.name)}</option>`)
+    .join("");
+  elements.collaborationSection.value = reviewSections.some((section) => section.id === activeValue)
+    ? activeValue
+    : selectedReviewSectionId;
+
+  if (!elements.collaboratorName.value.trim()) elements.collaboratorName.value = campaign.owner || "";
+
+  const threads = (campaign.collaborationThreads || [])
+    .slice()
+    .sort((a, b) => {
+      if (a.status === "resolved" && b.status !== "resolved") return 1;
+      if (a.status !== "resolved" && b.status === "resolved") return -1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+  if (!threads.length) {
+    elements.collaborationThreadList.innerHTML = `<p class="meta-row">No internal collaboration threads yet.</p>`;
+    return;
+  }
+
+  elements.collaborationThreadList.innerHTML = threads
+    .map(
+      (thread) => `
+        <article class="collaboration-thread-card ${thread.status}" data-collaboration-thread="${escapeHtml(thread.id)}">
+          <header>
+            <div>
+              <strong>${escapeHtml(thread.sectionName)}</strong>
+              <small>${escapeHtml(thread.author)} - ${escapeHtml(thread.role)} - ${new Date(thread.createdAt).toLocaleString()}</small>
+            </div>
+            <span class="status-pill ${thread.status === "resolved" ? "approved" : thread.status === "waiting" ? "needs-review" : "in-progress"}">${escapeHtml(formatStatus(thread.status))}</span>
+          </header>
+          <p>${escapeHtml(thread.note)}</p>
+          ${thread.mentions ? `<em>${escapeHtml(thread.mentions)}</em>` : ""}
+          <div class="collaboration-thread-actions">
+            <button class="mini-button" type="button" data-thread-focus="${escapeHtml(thread.id)}">Focus</button>
+            <button class="mini-button" type="button" data-thread-toggle="${escapeHtml(thread.id)}">${thread.status === "resolved" ? "Reopen" : "Resolve"}</button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
 function renderScenes(campaign) {
   elements.sceneList.innerHTML = "";
   if (!campaign.scenes.length) {
@@ -2509,6 +2648,75 @@ function focusPublishingSlot(slotId) {
   if (card) highlightCommandCenterTarget(`[data-slot-card="${CSS.escape(slotId)}"]`);
 }
 
+function addCollaborationThread() {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const note = elements.collaborationNote.value.trim();
+  if (!note) {
+    showToast("Add a thread note first");
+    elements.collaborationNote.focus();
+    return;
+  }
+  const thread = createCollaborationThread({
+    sectionId: elements.collaborationSection.value,
+    author: elements.collaboratorName.value.trim() || campaign.owner || "Creator",
+    role: elements.collaboratorRole.value,
+    mentions: elements.collaborationMentions.value.trim(),
+    status: elements.collaborationStatus.value,
+    note
+  });
+  campaign.collaborationThreads.unshift(thread);
+  addAgentActivity(
+    "Team collaboration",
+    `${thread.author} added a ${formatStatus(thread.status).toLowerCase()} thread for ${thread.sectionName}.`,
+    campaign.id
+  );
+  elements.collaborationNote.value = "";
+  elements.collaborationMentions.value = "";
+  elements.collaborationStatus.value = "open";
+  render();
+  showToast("Collaboration thread added");
+}
+
+function setCollaborationThreadStatus(threadId, status) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const thread = (campaign.collaborationThreads || []).find((item) => item.id === threadId);
+  if (!thread) return;
+  thread.status = status;
+  thread.resolvedAt = status === "resolved" ? new Date().toISOString() : "";
+  addAgentActivity(
+    "Team collaboration",
+    `${thread.sectionName} thread marked ${formatStatus(status).toLowerCase()}.`,
+    campaign.id
+  );
+  render();
+  showToast(status === "resolved" ? "Thread resolved" : "Thread reopened");
+}
+
+function resolveNextCollaborationThread() {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const thread = (campaign.collaborationThreads || []).find((item) => item.status !== "resolved");
+  if (!thread) {
+    showToast("No active collaboration threads");
+    return;
+  }
+  setCollaborationThreadStatus(thread.id, "resolved");
+}
+
+function focusCollaborationThread(threadId) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const thread = (campaign.collaborationThreads || []).find((item) => item.id === threadId);
+  if (!thread) return;
+  selectedReviewSectionId = thread.sectionId;
+  elements.collaborationSection.value = thread.sectionId;
+  render();
+  elements.reviewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.reviewComment.focus();
+}
+
 function getAgentOps(campaign) {
   if (!campaign.agentOps) campaign.agentOps = createAgentOps(campaign);
   return campaign.agentOps;
@@ -2643,6 +2851,7 @@ function getManifest(campaign) {
     scenes: campaign.scenes,
     approvals: campaign.approvals,
     agentOps: campaign.agentOps,
+    collaborationThreads: campaign.collaborationThreads || [],
     reviewRequests: getCampaignReviewRequests(campaign),
     agentActivity: (state.agentActivity || []).filter((item) => !item.campaignId || item.campaignId === campaign.id),
     stages: campaign.stages.map((stage, index) => ({
@@ -3238,6 +3447,8 @@ elements.approvalChecks.addEventListener("change", (event) => {
 
 document.querySelector("#seedPublishingSchedule").addEventListener("click", seedPublishingSchedule);
 document.querySelector("#addPublishingSlot").addEventListener("click", addPublishingSlot);
+document.querySelector("#addCollaborationThread").addEventListener("click", addCollaborationThread);
+document.querySelector("#resolveNextCollaborationThread").addEventListener("click", resolveNextCollaborationThread);
 
 elements.publishingCalendarGrid.addEventListener("click", (event) => {
   const button = event.target.closest("[data-focus-slot]");
@@ -3254,6 +3465,22 @@ elements.publishingScheduleList.addEventListener("click", (event) => {
   }
   if (deleteButton) {
     deletePublishingSlot(deleteButton.dataset.deleteScheduleSlot);
+  }
+});
+
+elements.collaborationThreadList.addEventListener("click", (event) => {
+  const focusButton = event.target.closest("[data-thread-focus]");
+  const toggleButton = event.target.closest("[data-thread-toggle]");
+  if (focusButton) {
+    focusCollaborationThread(focusButton.dataset.threadFocus);
+    return;
+  }
+  if (toggleButton) {
+    const threadId = toggleButton.dataset.threadToggle;
+    const campaign = getSelectedCampaign();
+    const thread = campaign?.collaborationThreads?.find((item) => item.id === threadId);
+    if (!thread) return;
+    setCollaborationThreadStatus(threadId, thread.status === "resolved" ? "open" : "resolved");
   }
 });
 
@@ -3334,6 +3561,7 @@ function handleCommandCenterHash() {
     "#ota-copilot": { selector: "#ota-copilot" },
     "#review-lane": { selector: "#reviewPanel" },
     "#reviewPanel": { selector: "#reviewPanel" },
+    "#team-collaboration-section": { selector: "#team-collaboration-section" },
     "#workflow-stage-rail": { selector: "#workflow-stage-rail" },
     "#scene-queue-section": { selector: "#scene-queue-section" },
     "#add-scene-workflow": {
