@@ -239,7 +239,6 @@ const commandSections = [
   { label: "Brand", target: "#active-brand-profile", cue: "voice and guardrails" },
   { label: "Direction", target: "#creative-direction", cue: "active creative version" },
   { label: "Preview", target: "#creator-preview-studio", cue: "script and media view" },
-  { label: "Ideas", target: "#enhancement-idea-section", cue: "enhancement intake" },
   { label: "Team", target: "#team-collaboration-section", cue: "threads and mentions" },
   { label: "Current Stage", target: "#workflow-stage-panel", cue: "checklist and owner" },
   { label: "Scenes", target: "#scene-queue-section", cue: "scripts and prompts" },
@@ -385,7 +384,7 @@ const elements = {
   sceneDialog: document.querySelector("#sceneDialog"),
   sceneDialogCoPilot: document.querySelector("#sceneDialogCoPilot"),
   sceneForm: document.querySelector("#sceneForm"),
-  reviewPanel: document.querySelector("#enhancement-idea-section"),
+  reviewPanel: null,
   reviewCount: document.querySelector("#reviewCount"),
   reviewSectionButtons: document.querySelector("#reviewSectionButtons"),
   reviewerName: document.querySelector("#reviewerName"),
@@ -2098,22 +2097,7 @@ function renderReviewPanel() {
   const activeSection = getActiveReviewSection();
   const activeRequests = allRequests.filter((request) => request.sectionId === activeSection.id);
 
-  if (elements.openEnhancementIdeas) {
-    elements.openEnhancementIdeas.href = getEnhancementIdeaUrl(activeSection.id);
-  }
-
-  if (!elements.reviewSectionButtons) {
-    elements.reviewCount.className = `status-pill ${allRequests.length ? "needs-review" : "not-started"}`;
-    elements.reviewCount.textContent = `${allRequests.length} ${allRequests.length === 1 ? "idea" : "ideas"}`;
-    elements.reviewRequestList.innerHTML = "";
-    const summary = document.createElement("p");
-    summary.className = "meta-row";
-    summary.textContent = allRequests.length
-      ? `${allRequests.length} enhancement ${allRequests.length === 1 ? "idea has" : "ideas have"} been captured for this campaign.`
-      : "No enhancement ideas captured for this campaign yet.";
-    elements.reviewRequestList.appendChild(summary);
-    return;
-  }
+  if (!elements.reviewSectionButtons || !elements.reviewCount || !elements.reviewRequestList) return;
 
   elements.reviewSectionButtons.innerHTML = "";
   reviewSections.forEach((section) => {
@@ -3595,9 +3579,9 @@ function handleCommandCenterHash() {
     "#creative-direction": { selector: "#creative-direction" },
     "#creator-preview-studio": { selector: "#creator-preview-studio" },
     "#ota-copilot": { selector: "#ota-copilot" },
-    "#review-lane": { selector: "#enhancement-idea-section" },
-    "#reviewPanel": { selector: "#enhancement-idea-section" },
-    "#enhancement-idea-section": { selector: "#enhancement-idea-section" },
+    "#review-lane": { open: () => window.location.assign(getEnhancementIdeaUrl()), selector: "#command-topbar" },
+    "#reviewPanel": { open: () => window.location.assign(getEnhancementIdeaUrl()), selector: "#command-topbar" },
+    "#enhancement-idea-section": { open: () => window.location.assign(getEnhancementIdeaUrl()), selector: "#command-topbar" },
     "#team-collaboration-section": { selector: "#team-collaboration-section" },
     "#workflow-stage-rail": { selector: "#workflow-stage-rail" },
     "#scene-queue-section": { selector: "#scene-queue-section" },

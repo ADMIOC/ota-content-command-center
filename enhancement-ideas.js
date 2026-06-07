@@ -204,7 +204,7 @@ function render() {
     .map((item) => `<article><strong>${item.value}</strong><span>${escapeHtml(item.label)}</span></article>`)
     .join("");
 
-  const targetHash = reviewSectionTargets[selectedSectionId] || "#enhancement-idea-section";
+  const targetHash = reviewSectionTargets[selectedSectionId] || "#campaign-overview";
   elements.backToCommandCenter.href = `./index.html${targetHash}`;
 
   if (!requests.length) {
