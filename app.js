@@ -222,12 +222,24 @@ const reviewSections = [
   { id: "publishing-calendar", name: "Publishing Calendar" }
 ];
 
+const reviewSectionTargets = {
+  "campaign-overview": "#campaign-overview",
+  "workflow-stage": "#workflow-stage-panel",
+  "scene-queue": "#scene-queue-section",
+  "elevenlabs-audio": "#elevenlabs-audio-section",
+  "remotion-pass": "#remotion-pass-section",
+  "approval-gate": "#approval-gate-section",
+  "bunny-storage": "#bunny-storage-section",
+  "publishing-package": "#publishing-package-section",
+  "publishing-calendar": "#publishing-calendar-section"
+};
+
 const commandSections = [
   { label: "Overview", target: "#campaign-overview", cue: "brand, owner, readiness" },
   { label: "Brand", target: "#active-brand-profile", cue: "voice and guardrails" },
   { label: "Direction", target: "#creative-direction", cue: "active creative version" },
   { label: "Preview", target: "#creator-preview-studio", cue: "script and media view" },
-  { label: "Reviews", target: "#reviewPanel", cue: "improvement requests" },
+  { label: "Ideas", target: "#enhancement-idea-section", cue: "enhancement intake" },
   { label: "Team", target: "#team-collaboration-section", cue: "threads and mentions" },
   { label: "Current Stage", target: "#workflow-stage-panel", cue: "checklist and owner" },
   { label: "Scenes", target: "#scene-queue-section", cue: "scripts and prompts" },
@@ -373,13 +385,14 @@ const elements = {
   sceneDialog: document.querySelector("#sceneDialog"),
   sceneDialogCoPilot: document.querySelector("#sceneDialogCoPilot"),
   sceneForm: document.querySelector("#sceneForm"),
-  reviewPanel: document.querySelector("#reviewPanel"),
+  reviewPanel: document.querySelector("#enhancement-idea-section"),
   reviewCount: document.querySelector("#reviewCount"),
   reviewSectionButtons: document.querySelector("#reviewSectionButtons"),
   reviewerName: document.querySelector("#reviewerName"),
   reviewPriority: document.querySelector("#reviewPriority"),
   reviewComment: document.querySelector("#reviewComment"),
   reviewRequestList: document.querySelector("#reviewRequestList"),
+  openEnhancementIdeas: document.querySelector("#openEnhancementIdeas"),
   collaborationNotificationSummary: document.querySelector("#collaborationNotificationSummary"),
   collaborationMetrics: document.querySelector("#collaborationMetrics"),
   collaboratorName: document.querySelector("#collaboratorName"),
@@ -2071,12 +2084,36 @@ function getActiveReviewSection() {
   return reviewSections.find((section) => section.id === selectedReviewSectionId) || reviewSections[0];
 }
 
+function getEnhancementIdeaUrl(sectionId = selectedReviewSectionId) {
+  const params = new URLSearchParams();
+  params.set("section", sectionId || reviewSections[0].id);
+  if (selectedCampaignId) params.set("campaign", selectedCampaignId);
+  return `./enhancement-ideas.html?${params.toString()}`;
+}
+
 function renderReviewPanel() {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
   const allRequests = getCampaignReviewRequests(campaign);
   const activeSection = getActiveReviewSection();
   const activeRequests = allRequests.filter((request) => request.sectionId === activeSection.id);
+
+  if (elements.openEnhancementIdeas) {
+    elements.openEnhancementIdeas.href = getEnhancementIdeaUrl(activeSection.id);
+  }
+
+  if (!elements.reviewSectionButtons) {
+    elements.reviewCount.className = `status-pill ${allRequests.length ? "needs-review" : "not-started"}`;
+    elements.reviewCount.textContent = `${allRequests.length} ${allRequests.length === 1 ? "idea" : "ideas"}`;
+    elements.reviewRequestList.innerHTML = "";
+    const summary = document.createElement("p");
+    summary.className = "meta-row";
+    summary.textContent = allRequests.length
+      ? `${allRequests.length} enhancement ${allRequests.length === 1 ? "idea has" : "ideas have"} been captured for this campaign.`
+      : "No enhancement ideas captured for this campaign yet.";
+    elements.reviewRequestList.appendChild(summary);
+    return;
+  }
 
   elements.reviewSectionButtons.innerHTML = "";
   reviewSections.forEach((section) => {
@@ -2713,8 +2750,7 @@ function focusCollaborationThread(threadId) {
   selectedReviewSectionId = thread.sectionId;
   elements.collaborationSection.value = thread.sectionId;
   render();
-  elements.reviewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  elements.reviewComment.focus();
+  highlightCommandCenterTarget(reviewSectionTargets[thread.sectionId] || "#campaign-overview");
 }
 
 function getAgentOps(campaign) {
@@ -3036,20 +3072,20 @@ document.querySelector("#exportWorkspace").addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
-elements.reviewSectionButtons.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-review-section]");
-  if (!button) return;
-  selectedReviewSectionId = button.dataset.reviewSection;
-  render();
-});
+if (elements.reviewSectionButtons) {
+  elements.reviewSectionButtons.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-review-section]");
+    if (!button) return;
+    selectedReviewSectionId = button.dataset.reviewSection;
+    render();
+  });
+}
 
 document.addEventListener("click", (event) => {
   const button = event.target.closest(".review-jump");
   if (!button) return;
   selectedReviewSectionId = button.dataset.reviewSection || reviewSections[0].id;
-  render();
-  elements.reviewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  elements.reviewComment.focus();
+  window.location.href = getEnhancementIdeaUrl(selectedReviewSectionId);
 });
 
 elements.commandSectionNav.addEventListener("click", (event) => {
@@ -3058,7 +3094,7 @@ elements.commandSectionNav.addEventListener("click", (event) => {
   highlightCommandCenterTarget(button.dataset.jumpTarget);
 });
 
-document.querySelector("#copyReviewRequest").addEventListener("click", () => {
+document.querySelector("#copyReviewRequest")?.addEventListener("click", () => {
   const request = buildReviewPayload();
   if (!request) {
     showToast("Add an improvement request first");
@@ -3081,7 +3117,7 @@ document.querySelector("#copyReviewRequest").addEventListener("click", () => {
   );
 });
 
-document.querySelector("#openGithubIssue").addEventListener("click", () => {
+document.querySelector("#openGithubIssue")?.addEventListener("click", () => {
   const campaign = getSelectedCampaign();
   const request = buildReviewPayload();
   if (!campaign || !request) {
@@ -3559,8 +3595,9 @@ function handleCommandCenterHash() {
     "#creative-direction": { selector: "#creative-direction" },
     "#creator-preview-studio": { selector: "#creator-preview-studio" },
     "#ota-copilot": { selector: "#ota-copilot" },
-    "#review-lane": { selector: "#reviewPanel" },
-    "#reviewPanel": { selector: "#reviewPanel" },
+    "#review-lane": { selector: "#enhancement-idea-section" },
+    "#reviewPanel": { selector: "#enhancement-idea-section" },
+    "#enhancement-idea-section": { selector: "#enhancement-idea-section" },
     "#team-collaboration-section": { selector: "#team-collaboration-section" },
     "#workflow-stage-rail": { selector: "#workflow-stage-rail" },
     "#scene-queue-section": { selector: "#scene-queue-section" },

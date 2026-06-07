@@ -40,7 +40,7 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Blotato publishing package
 - Publishing Calendar for platform-specific schedule slots and status control
 - Restream live broadcast and real-time viral clip strategy
-- Section-specific improvement requests with prefilled GitHub issue drafts
+- Dedicated "Got an Enhancement Idea?" intake page with section-specific GitHub issue drafts
 - Team Collaboration Hub with section threads, reviewer roles, @mentions, focus jumps, and status controls
 - Official section-by-section creator tutorial for internal adoption
 - Creator day-in-the-life infographic for in-house review
@@ -60,4 +60,4 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 
 ## Review Flow
 
-Use any section's Comment button to target feedback to Campaign Overview, Workflow Stage, Scene Queue, Approval Gate, Bunny Storage, or Publishing Package. Use the Team Collaboration Hub for internal section threads, @mentions, reviewer status, and focus jumps before an improvement needs public GitHub tracking. The Open GitHub Issue action creates a prefilled issue draft in `ADMIOC/ota-content-command-center` so review comments can be tracked publicly.
+Use any section's idea button or the top-bar "Got an Enhancement Idea?" link when a creator spots product improvement work. The dedicated enhancement page captures campaign, section, reviewer, priority, and request context before opening a prefilled GitHub issue draft in `ADMIOC/ota-content-command-center`. Use the Team Collaboration Hub for internal section threads, @mentions, reviewer status, and focus jumps before an idea needs public GitHub tracking.

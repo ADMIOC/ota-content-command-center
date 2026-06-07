@@ -14,10 +14,11 @@
         <p class="eyebrow">Official creator tutorial</p>
         <h1>Content Command Center: Strategy and Tactical Use</h1>
       </div>
-      <div class="tutorial-top-actions">
-        <a class="ghost-button top-link" href="./creator-journey.html">Creator Journey</a>
-        <a class="primary-button top-link" href="./index.html">Open Command Center</a>
-      </div>
+        <div class="tutorial-top-actions">
+          <a class="ghost-button top-link" href="./creator-journey.html">Creator Journey</a>
+          <a class="ghost-button top-link" href="./enhancement-ideas.html">Got an Enhancement Idea?</a>
+          <a class="primary-button top-link" href="./index.html">Open Command Center</a>
+        </div>
     </header>
 
     <main class="tutorial-page">
@@ -212,12 +213,12 @@
           <article class="tutorial-card">
             <div class="tutorial-card-index">09</div>
             <div>
-              <p class="eyebrow">Review lane</p>
-              <h3>Section Improvement Requests</h3>
-              <p><strong>Purpose:</strong> Turn feedback into targeted, trackable improvement work.</p>
-              <p><strong>Strategy:</strong> Feedback should attach to the exact section it improves, with priority and reviewer context.</p>
-              <p><strong>Tactical use:</strong> Pick the section, enter reviewer name, set priority, write the improvement request, then copy it or open the GitHub issue draft.</p>
-              <p><strong>Done when:</strong> The improvement has a section, priority, context, and a path into GitHub tracking.</p>
+              <p class="eyebrow">Enhancement intake</p>
+              <h3>Got an Enhancement Idea?</h3>
+              <p><strong>Purpose:</strong> Move product improvement ideas out of the daily production surface and into a dedicated GitHub-ready intake page.</p>
+              <p><strong>Strategy:</strong> Creators should stay focused while building campaigns. Enhancement ideas need campaign, section, priority, reviewer, and outcome context before they become GitHub work.</p>
+              <p><strong>Tactical use:</strong> Use the Got an Enhancement Idea link or any section idea button, confirm the campaign and section, write the improvement, then save, copy, or open the GitHub issue draft.</p>
+              <p><strong>Done when:</strong> The idea is captured on the enhancement page with enough context to evaluate, prioritize, and implement later.</p>
             </div>
           </article>
 
@@ -457,7 +458,7 @@
         ["#creative-direction", "06 Creative direction", "direction"],
         ["#creator-preview-studio", "07 Preview studio", "preview"],
         ["#ota-copilot", "08 OTA co-pilot", "copilot"],
-        ["#reviewPanel", "09 Review lane", "review"],
+        ["./enhancement-ideas.html?section=campaign-overview", "09 Enhancement idea", "review"],
         ["#team-collaboration-section", "10 Team collaboration", "collaboration"],
         ["#workflow-stage-rail", "11 Stage rail", "stages"],
         ["#scene-queue-section", "12 Scene queue", "scene"],
@@ -480,7 +481,12 @@
         card.id = cardId;
         const thumb = document.createElement("a");
         thumb.className = `tutorial-command-thumb thumb-${type}`;
-        thumb.href = `./index.html?tutorialReturn=${encodeURIComponent(cardId)}${hash}`;
+        if (hash.startsWith("./")) {
+          const separator = hash.includes("?") ? "&" : "?";
+          thumb.href = `${hash}${separator}tutorialReturn=${encodeURIComponent(cardId)}`;
+        } else {
+          thumb.href = `./index.html?tutorialReturn=${encodeURIComponent(cardId)}${hash}`;
+        }
         thumb.setAttribute("aria-label", `Open Command Center section: ${label}`);
         thumb.innerHTML = `
           <span class="thumb-kicker">Open section</span>

@@ -1020,6 +1020,99 @@ textarea {
   font-weight: 850;
 }
 
+.enhancement-cta-panel,
+.enhancement-intake-panel {
+  display: grid;
+  gap: 16px;
+  border-color: rgba(46, 110, 158, 0.24);
+  background: linear-gradient(180deg, #ffffff, var(--sky));
+}
+
+.enhancement-cta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.enhancement-cta-grid article {
+  min-height: 118px;
+  padding: 14px;
+  border: 1px solid rgba(46, 110, 158, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.enhancement-cta-grid strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.enhancement-cta-grid p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.enhancement-cta-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.enhancement-page {
+  display: grid;
+  gap: 18px;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.enhancement-hero {
+  display: grid;
+  gap: 14px;
+  border-color: rgba(46, 110, 158, 0.24);
+  background: linear-gradient(180deg, #ffffff, var(--sky));
+}
+
+.enhancement-hero p {
+  max-width: 860px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.enhancement-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.enhancement-summary-grid article {
+  min-height: 88px;
+  padding: 12px;
+  border: 1px solid rgba(46, 110, 158, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.enhancement-summary-grid strong {
+  display: block;
+  color: var(--blue);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.enhancement-summary-grid span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.enhancement-page .review-form {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.28fr);
+}
+
 .collaboration-panel {
   display: grid;
   gap: 16px;
@@ -1594,6 +1687,8 @@ textarea {
 
   .preview-signal-strip,
   .collaboration-metrics,
+  .enhancement-cta-grid,
+  .enhancement-summary-grid,
   .agent-ops-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1633,12 +1728,14 @@ textarea {
   }
 
   .top-actions,
-  .dialog-actions {
+  .dialog-actions,
+  .review-actions {
     align-items: stretch;
   }
 
   .top-actions button,
-  .dialog-actions button {
+  .dialog-actions button,
+  .review-actions button {
     width: 100%;
   }
 
@@ -1659,7 +1756,10 @@ textarea {
   .storage-layout,
   .dialog-grid,
   .review-form,
+  .enhancement-page .review-form,
   .collaboration-form,
+  .enhancement-cta-grid,
+  .enhancement-summary-grid,
   .dialog-copilot-prompt {
     grid-template-columns: 1fr;
   }

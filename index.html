@@ -16,6 +16,7 @@
         <div class="top-actions">
           <a class="ghost-button top-link" href="./command-center-tutorial.html">Tutorial</a>
           <a class="ghost-button top-link" href="./creator-journey.html">Creator Journey</a>
+          <a class="ghost-button top-link" href="./enhancement-ideas.html">Got an Enhancement Idea?</a>
           <button id="openBrandManager" class="ghost-button" type="button">Brands</button>
           <button id="exportWorkspace" class="icon-button" type="button" title="Export workspace">Export</button>
           <button id="seedWorkspace" class="ghost-button" type="button">Reset Demo</button>
@@ -71,9 +72,7 @@
                 <p id="nextActionCue" class="next-action-cue"></p>
               </div>
               <div class="header-actions">
-                <button class="ghost-button review-jump" type="button" data-review-section="campaign-overview">
-                  Comment
-                </button>
+                <button class="ghost-button review-jump" type="button" data-review-section="campaign-overview">Idea</button>
                 <div class="readiness-card">
                   <span id="readinessScore">0%</span>
                   <small>ready</small>
@@ -149,37 +148,31 @@
               </article>
             </section>
 
-            <section id="reviewPanel" class="panel review-panel">
-              <div class="panel-heading tight">
+            <section id="enhancement-idea-section" class="panel enhancement-cta-panel">
+              <div class="panel-heading">
                 <div>
-                  <p class="eyebrow">GitHub review</p>
-                  <h3>Section Improvement Requests</h3>
-                  <p class="panel-note">Testing data only. Any database used during this MVP phase is temporary and not the production system of record.</p>
+                  <p class="eyebrow">Enhancement intake</p>
+                  <h3>Got an Enhancement Idea?</h3>
+                  <p class="panel-note">Keep the Command Center focused on production. Route improvement ideas, feature requests, and GitHub issue drafts through the dedicated enhancement page.</p>
                 </div>
                 <span id="reviewCount" class="status-pill not-started">0 requests</span>
               </div>
-              <div id="reviewSectionButtons" class="review-section-grid"></div>
-              <div class="review-form">
-                <label class="field">
-                  <span>Reviewer</span>
-                  <input id="reviewerName" type="text" autocomplete="name" />
-                </label>
-                <label class="field">
-                  <span>Priority</span>
-                  <select id="reviewPriority">
-                    <option>Nice to have</option>
-                    <option>Important</option>
-                    <option>Blocking</option>
-                  </select>
-                </label>
-                <label class="field full-width">
-                  <span>Improvement Request</span>
-                  <textarea id="reviewComment" rows="4"></textarea>
-                </label>
-                <div class="review-actions full-width">
-                  <button id="copyReviewRequest" class="ghost-button" type="button">Copy Request</button>
-                  <button id="openGithubIssue" class="primary-button" type="button">Open GitHub Issue</button>
-                </div>
+              <div class="enhancement-cta-grid">
+                <article>
+                  <strong>Creators stay in flow.</strong>
+                  <p>Use the production sections for campaign work and Team Collaboration for internal decisions.</p>
+                </article>
+                <article>
+                  <strong>Ideas get tracked cleanly.</strong>
+                  <p>Enhancement requests collect the campaign, section, priority, reviewer, and GitHub issue draft context.</p>
+                </article>
+                <article>
+                  <strong>GitHub stays intentional.</strong>
+                  <p>Open the intake page only when the idea should become product improvement work.</p>
+                </article>
+              </div>
+              <div class="enhancement-cta-actions">
+                <a id="openEnhancementIdeas" class="primary-button top-link" href="./enhancement-ideas.html">Got an Enhancement Idea?</a>
               </div>
               <div id="reviewRequestList" class="review-request-list"></div>
             </section>
@@ -290,9 +283,7 @@
                     <h3 id="stageTitle"></h3>
                   </div>
                   <div class="panel-actions">
-                    <button class="mini-button review-jump" type="button" data-review-section="workflow-stage">
-                      Comment
-                    </button>
+                    <button class="mini-button review-jump" type="button" data-review-section="workflow-stage">Idea</button>
                     <select id="stageStatus" aria-label="Stage status">
                       <option value="not-started">Not Started</option>
                       <option value="in-progress">In Progress</option>
@@ -339,9 +330,7 @@
                   <div class="panel-heading tight">
                     <h3>Scene Queue</h3>
                     <div class="panel-actions">
-                      <button class="mini-button review-jump" type="button" data-review-section="scene-queue">
-                        Comment
-                      </button>
+                      <button class="mini-button review-jump" type="button" data-review-section="scene-queue">Idea</button>
                       <button id="addScene" class="ghost-button" type="button">Add Scene</button>
                     </div>
                   </div>
@@ -352,9 +341,7 @@
                   <div class="panel-heading tight">
                     <h3>Approval Gate</h3>
                     <div class="panel-actions">
-                      <button class="mini-button review-jump" type="button" data-review-section="approval-gate">
-                        Comment
-                      </button>
+                      <button class="mini-button review-jump" type="button" data-review-section="approval-gate">Idea</button>
                       <span id="approvalStatus" class="status-pill"></span>
                     </div>
                   </div>
@@ -371,9 +358,7 @@
                     <p class="panel-note">Video script and audio tracks are approved here before Codex + Remotion begins.</p>
                   </div>
                   <div class="panel-actions">
-                    <button class="mini-button review-jump" type="button" data-review-section="elevenlabs-audio">
-                      Comment
-                    </button>
+                    <button class="mini-button review-jump" type="button" data-review-section="elevenlabs-audio">Idea</button>
                     <button id="copyElevenLabsBrief" class="ghost-button" type="button">Copy Brief</button>
                   </div>
                 </div>
@@ -416,9 +401,7 @@
                     <p class="panel-note">Remotion ingests the ElevenLabs script/audio package and exports the production input for Higgsfield Studio.</p>
                   </div>
                   <div class="panel-actions">
-                    <button class="mini-button review-jump" type="button" data-review-section="remotion-pass">
-                      Comment
-                    </button>
+                    <button class="mini-button review-jump" type="button" data-review-section="remotion-pass">Idea</button>
                     <button id="copyRemotionBrief" class="ghost-button" type="button">Copy Brief</button>
                   </div>
                 </div>
@@ -444,9 +427,7 @@
                 <div class="panel-heading tight">
                   <h3>Bunny Storage</h3>
                   <div class="panel-actions">
-                    <button class="mini-button review-jump" type="button" data-review-section="bunny-storage">
-                      Comment
-                    </button>
+                    <button class="mini-button review-jump" type="button" data-review-section="bunny-storage">Idea</button>
                     <button id="copyBunnyManifest" class="ghost-button" type="button">Copy Manifest</button>
                   </div>
                 </div>
@@ -494,9 +475,7 @@
                 <div class="panel-heading tight">
                   <h3>Publishing Package</h3>
                   <div class="panel-actions">
-                    <button class="mini-button review-jump" type="button" data-review-section="publishing-package">
-                      Comment
-                    </button>
+                    <button class="mini-button review-jump" type="button" data-review-section="publishing-package">Idea</button>
                     <button id="copyPublishingPackage" class="ghost-button" type="button">Copy Package</button>
                   </div>
                 </div>
@@ -523,9 +502,7 @@
                   <p class="panel-note">Plan platform slots for Blotato handoff, live support, and repurpose timing before assets leave the Command Center.</p>
                 </div>
                 <div class="panel-actions">
-                  <button class="mini-button review-jump" type="button" data-review-section="publishing-calendar">
-                    Comment
-                  </button>
+                  <button class="mini-button review-jump" type="button" data-review-section="publishing-calendar">Idea</button>
                   <span id="scheduleStatusSummary" class="status-pill not-started">0 scheduled</span>
                 </div>
               </div>
