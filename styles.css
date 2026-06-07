@@ -1541,6 +1541,9 @@ textarea {
 }
 
 .mini-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 30px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1549,6 +1552,7 @@ textarea {
   padding: 5px 8px;
   font-size: 0.78rem;
   font-weight: 800;
+  text-decoration: none;
 }
 
 .status-pill.not-started {
