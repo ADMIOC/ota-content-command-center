@@ -460,6 +460,58 @@
               </article>
             </section>
 
+            <section id="publishing-calendar-section" class="panel publishing-calendar-section">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Publishing control</p>
+                  <h3>Publishing Calendar</h3>
+                  <p class="panel-note">Plan platform slots for Blotato handoff, live support, and repurpose timing before assets leave the Command Center.</p>
+                </div>
+                <div class="panel-actions">
+                  <button class="mini-button review-jump" type="button" data-review-section="publishing-calendar">
+                    Comment
+                  </button>
+                  <span id="scheduleStatusSummary" class="status-pill not-started">0 scheduled</span>
+                </div>
+              </div>
+
+              <div class="schedule-control-grid">
+                <label class="field">
+                  <span>Platform</span>
+                  <select id="schedulePlatform"></select>
+                </label>
+                <label class="field">
+                  <span>Date</span>
+                  <input id="scheduleDate" type="date" />
+                </label>
+                <label class="field">
+                  <span>Time</span>
+                  <input id="scheduleTime" type="time" />
+                </label>
+                <label class="field">
+                  <span>Status</span>
+                  <select id="scheduleStatus">
+                    <option value="draft">Draft</option>
+                    <option value="ready">Ready</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="published">Published</option>
+                    <option value="blocked">Blocked</option>
+                  </select>
+                </label>
+                <label class="field full-width">
+                  <span>Slot Notes</span>
+                  <input id="scheduleNotes" type="text" autocomplete="off" />
+                </label>
+                <div class="schedule-actions full-width">
+                  <button id="seedPublishingSchedule" class="ghost-button" type="button">Suggest Slots</button>
+                  <button id="addPublishingSlot" class="primary-button" type="button">Add Slot</button>
+                </div>
+              </div>
+
+              <div id="publishingCalendarGrid" class="publishing-calendar-grid" aria-label="Seven day publishing calendar"></div>
+              <div id="publishingScheduleList" class="publishing-schedule-list"></div>
+            </section>
+
             <section id="activity-log-section" class="panel">
               <div class="panel-heading tight">
                 <div>

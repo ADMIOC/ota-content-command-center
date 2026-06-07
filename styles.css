@@ -438,7 +438,7 @@ textarea {
   top: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(12, minmax(118px, 1fr));
+  grid-template-columns: repeat(13, minmax(118px, 1fr));
   gap: 8px;
   overflow-x: auto;
   padding: 10px;
@@ -768,6 +768,144 @@ textarea {
 
 .platform-preview-copy em {
   font-style: normal;
+}
+
+.publishing-calendar-section {
+  display: grid;
+  gap: 16px;
+  border-color: rgba(147, 101, 31, 0.26);
+  background: linear-gradient(180deg, #ffffff, #fffaf0);
+}
+
+.schedule-control-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.8fr 0.7fr 0.8fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.schedule-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.publishing-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(132px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.calendar-day {
+  min-height: 180px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.calendar-day.has-slots {
+  border-color: rgba(147, 101, 31, 0.4);
+  background: var(--gold-soft);
+}
+
+.calendar-day header,
+.calendar-slot,
+.schedule-slot-card {
+  display: flex;
+  gap: 8px;
+}
+
+.calendar-day header {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calendar-day header span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.calendar-day-slots {
+  display: grid;
+  gap: 8px;
+}
+
+.calendar-day-slots p {
+  margin: 0;
+  color: var(--subtle);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.calendar-slot {
+  min-height: 56px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  padding: 8px;
+  text-align: left;
+}
+
+.calendar-slot.approved {
+  border-color: rgba(37, 111, 76, 0.34);
+  background: var(--green-soft);
+}
+
+.calendar-slot.blocked {
+  border-color: rgba(163, 58, 58, 0.34);
+  background: var(--red-soft);
+}
+
+.calendar-slot span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.publishing-schedule-list {
+  display: grid;
+  gap: 10px;
+}
+
+.schedule-slot-card {
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.schedule-slot-card p,
+.schedule-slot-card small {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.34;
+}
+
+.schedule-slot-card small {
+  display: block;
+  color: var(--subtle);
+}
+
+.schedule-slot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .main-grid {
@@ -1331,6 +1469,7 @@ textarea {
   .main-grid,
   .handoff-grid,
   .preview-grid,
+  .schedule-control-grid,
   .agent-ops-grid {
     grid-template-columns: 1fr;
   }
@@ -1341,7 +1480,7 @@ textarea {
   }
 
   .command-section-nav {
-    grid-template-columns: repeat(12, minmax(132px, 1fr));
+    grid-template-columns: repeat(13, minmax(132px, 1fr));
   }
 
   .sidebar {
@@ -1425,14 +1564,25 @@ textarea {
   }
 
   .command-section-nav {
-    grid-template-columns: repeat(12, minmax(138px, 1fr));
+    grid-template-columns: repeat(13, minmax(138px, 1fr));
   }
 
   .stage-rail {
     grid-template-columns: repeat(10, minmax(138px, 1fr));
   }
 
+  .publishing-calendar-grid {
+    grid-template-columns: repeat(7, minmax(150px, 1fr));
+  }
+
   .platform-preview-card {
     grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .schedule-actions,
+  .schedule-slot-card,
+  .schedule-slot-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

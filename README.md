@@ -38,6 +38,7 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Human approval gate
 - Bunny storage manifest
 - Blotato publishing package
+- Publishing Calendar for platform-specific schedule slots and status control
 - Restream live broadcast and real-time viral clip strategy
 - Section-specific improvement requests with prefilled GitHub issue drafts
 - Official section-by-section creator tutorial for internal adoption

@@ -408,6 +408,25 @@
   background: var(--gold-soft);
 }
 
+.thumb-calendar .thumb-shell {
+  grid-template-columns: repeat(4, 1fr);
+  border-color: rgba(147, 101, 31, 0.36);
+  background: #fffaf0;
+}
+
+.thumb-calendar .thumb-shell span {
+  min-height: 28px;
+  border-top: 6px solid var(--gold);
+  background: #ffffff;
+}
+
+.thumb-calendar .thumb-shell span:first-child {
+  grid-column: 1 / -1;
+  min-height: 16px;
+  border-top: 0;
+  background: var(--gold-soft);
+}
+
 .thumb-activity .thumb-shell span {
   background: var(--paper);
   border-left: 6px solid var(--blue);

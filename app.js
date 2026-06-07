@@ -218,7 +218,8 @@ const reviewSections = [
   { id: "remotion-pass", name: "Codex + Remotion" },
   { id: "approval-gate", name: "Approval Gate" },
   { id: "bunny-storage", name: "Bunny Storage" },
-  { id: "publishing-package", name: "Publishing Package" }
+  { id: "publishing-package", name: "Publishing Package" },
+  { id: "publishing-calendar", name: "Publishing Calendar" }
 ];
 
 const commandSections = [
@@ -233,6 +234,7 @@ const commandSections = [
   { label: "Production", target: "#elevenlabs-audio-section", cue: "audio and video" },
   { label: "Storage", target: "#bunny-storage-section", cue: "asset source of truth" },
   { label: "Publishing", target: "#publishing-package-section", cue: "caption package" },
+  { label: "Calendar", target: "#publishing-calendar-section", cue: "schedule slots" },
   { label: "Agent Ops", target: "#agent-operations-layer", cue: "live execution" }
 ];
 
@@ -347,6 +349,14 @@ const elements = {
   captionText: document.querySelector("#captionText"),
   hashtags: document.querySelector("#hashtags"),
   platformNotes: document.querySelector("#platformNotes"),
+  scheduleStatusSummary: document.querySelector("#scheduleStatusSummary"),
+  schedulePlatform: document.querySelector("#schedulePlatform"),
+  scheduleDate: document.querySelector("#scheduleDate"),
+  scheduleTime: document.querySelector("#scheduleTime"),
+  scheduleStatus: document.querySelector("#scheduleStatus"),
+  scheduleNotes: document.querySelector("#scheduleNotes"),
+  publishingCalendarGrid: document.querySelector("#publishingCalendarGrid"),
+  publishingScheduleList: document.querySelector("#publishingScheduleList"),
   campaignDialog: document.querySelector("#campaignDialog"),
   campaignForm: document.querySelector("#campaignForm"),
   campaignDialogCoPilot: document.querySelector("#campaignDialogCoPilot"),
@@ -850,7 +860,8 @@ function createCampaign(input) {
       caption: "",
       hashtags: "",
       platformNotes: "",
-      status: "not-ready"
+      status: "not-ready",
+      schedule: []
     },
     agentOps: createAgentOps({ ...input, name: safeName, brand: safeBrand }),
     reviewRequests: []
@@ -874,6 +885,7 @@ function normalizeCampaign(seed) {
     "#MedicaidEligibility #HospitalOperations #RevenueCycle #HealthcareAI";
   campaign.publishing.platformNotes =
     "Use CRS-approved thumbnail. Confirm no patient-identifying information appears in the final render or voiceover.";
+  campaign.publishing.schedule = createSuggestedPublishingSchedule(campaign);
   campaign.elevenLabs.voiceProfile = "OTA narrator voice";
   campaign.elevenLabs.scriptUrl = campaign.assets.voiceScript;
   campaign.elevenLabs.voiceoverUrl = campaign.assets.voiceover;
@@ -1007,7 +1019,17 @@ function normalizeCampaignShape(campaign) {
     caption: campaign.publishing?.caption || "",
     hashtags: campaign.publishing?.hashtags || "",
     platformNotes: campaign.publishing?.platformNotes || "",
-    status: campaign.publishing?.status || "not-ready"
+    status: campaign.publishing?.status || "not-ready",
+    schedule: Array.isArray(campaign.publishing?.schedule)
+      ? campaign.publishing.schedule.map((slot) => ({
+          id: slot.id || makeId(),
+          platform: slot.platform || getCampaignPlatforms(campaign)[0] || "Multi-platform",
+          date: slot.date || toDateInputValue(getScheduleBaseDate(campaign)),
+          time: slot.time || "09:00",
+          status: slot.status || "draft",
+          notes: slot.notes || ""
+        }))
+      : []
   };
   const defaultOps = createAgentOps(campaign);
   campaign.agentOps = {
@@ -1221,6 +1243,82 @@ function getPlatformPreviewProfiles(campaign) {
   return [profiles[platform] || { name: platform, className: "vertical", frame: "Platform preview", note: "Confirm format, caption, thumbnail, and CTA before publishing." }];
 }
 
+function toDateInputValue(date) {
+  const local = new Date(date);
+  if (Number.isNaN(local.getTime())) return "";
+  const year = local.getFullYear();
+  const month = String(local.getMonth() + 1).padStart(2, "0");
+  const day = String(local.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function getCampaignPlatforms(campaign) {
+  if (campaign.platform && campaign.platform !== "Multi-platform") return [campaign.platform];
+  const profile = getBrandProfile(campaign.brand);
+  const fromProfile = (profile?.platforms || "")
+    .split(",")
+    .map((platform) => platform.trim())
+    .filter(Boolean);
+  return fromProfile.length ? fromProfile : ["TikTok", "Instagram Reels", "YouTube Shorts", "LinkedIn"];
+}
+
+function getScheduleBaseDate(campaign) {
+  const due = campaign.dueDate ? new Date(`${campaign.dueDate}T09:00:00`) : null;
+  if (due && !Number.isNaN(due.getTime())) return due;
+  const today = new Date();
+  today.setHours(9, 0, 0, 0);
+  return today;
+}
+
+function createPublishingSlot(campaign, input = {}) {
+  const baseDate = input.date || toDateInputValue(getScheduleBaseDate(campaign));
+  return {
+    id: makeId(),
+    platform: input.platform || getCampaignPlatforms(campaign)[0] || "Multi-platform",
+    date: baseDate,
+    time: input.time || "09:00",
+    status: input.status || "draft",
+    notes: input.notes || "Ready for Blotato draft once media and caption are approved."
+  };
+}
+
+function createSuggestedPublishingSchedule(campaign) {
+  const platforms = getCampaignPlatforms(campaign);
+  const base = getScheduleBaseDate(campaign);
+  const times = ["09:00", "12:30", "15:30", "18:00"];
+  const count = Math.max(1, Number(campaign.quantity) || platforms.length || 1);
+  return Array.from({ length: count }, (_, index) =>
+    createPublishingSlot(campaign, {
+      platform: platforms[index % platforms.length],
+      date: toDateInputValue(addDays(base, Math.floor(index / Math.max(1, platforms.length)))),
+      time: times[index % times.length],
+      status: index === 0 ? "ready" : "draft",
+      notes: index === 0 ? "Primary launch slot. Confirm final media before Blotato scheduling." : "Follow-up slot for platform-native variation."
+    })
+  );
+}
+
+function getScheduleWindow(campaign) {
+  const scheduledDates = (campaign.publishing.schedule || [])
+    .map((slot) => new Date(`${slot.date || ""}T00:00:00`))
+    .filter((date) => !Number.isNaN(date.getTime()));
+  const start = scheduledDates.length ? new Date(Math.min(...scheduledDates)) : getScheduleBaseDate(campaign);
+  start.setHours(0, 0, 0, 0);
+  return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+}
+
+function getScheduleStatusClass(status) {
+  if (status === "published" || status === "scheduled" || status === "ready") return "approved";
+  if (status === "blocked") return "blocked";
+  return "not-started";
+}
+
 function getBrandTone(profile) {
   return profile?.voice || profile?.perspective || "brand-native, clear, and useful";
 }
@@ -1316,6 +1414,9 @@ function getCoPilotGuidance(campaign) {
     base.suggestions = [
       campaign.publishing.caption ? "Caption draft exists." : "Draft a caption that turns the video insight into a clear audience action.",
       campaign.publishing.hashtags ? "Hashtags are present." : "Add platform-specific hashtags.",
+      campaign.publishing.schedule?.length
+        ? `${campaign.publishing.schedule.length} publishing slots are drafted in the calendar.`
+        : "Draft platform slots in the Publishing Calendar before Blotato handoff.",
       "Platform notes should identify any hook, CTA, cutdown, or approval constraint."
     ];
     base.actions.push({ id: "draft-publishing-package", label: "Draft Package Copy" });
@@ -1331,6 +1432,9 @@ function getCoPilotGuidance(campaign) {
     base.suggestions = [
       campaign.assets.video ? "Approved media URL is ready." : "Add the approved final video URL.",
       campaign.publishing.caption ? "Caption is ready." : "Draft the publishing caption before handoff.",
+      campaign.publishing.schedule?.some((slot) => ["ready", "scheduled"].includes(slot.status))
+        ? "At least one calendar slot is ready or scheduled for Blotato control."
+        : "Use the Publishing Calendar to move at least one slot to Ready before handoff.",
       "Keep this as a draft until a human approves scheduling or publishing."
     ];
   }
@@ -1473,6 +1577,7 @@ function renderCampaign() {
   renderScenes(campaign);
   renderApprovals(campaign);
   renderHandoff(campaign);
+  renderPublishingCalendar(campaign);
   renderBrandProfileSummary(campaign);
   renderCreativeDirectionVersions(campaign);
   renderPreviewStudio(campaign);
@@ -2015,6 +2120,85 @@ function renderHandoff(campaign) {
   elements.platformNotes.value = campaign.publishing.platformNotes || "";
 }
 
+function renderPublishingCalendar(campaign) {
+  const platforms = getCampaignPlatforms(campaign);
+  elements.schedulePlatform.innerHTML = platforms
+    .map((platform) => `<option value="${escapeHtml(platform)}">${escapeHtml(platform)}</option>`)
+    .join("");
+  const nextSlot = campaign.publishing.schedule.find((slot) => slot.status !== "published") || campaign.publishing.schedule[0];
+  elements.schedulePlatform.value = nextSlot?.platform || platforms[0] || "";
+  elements.scheduleDate.value = nextSlot?.date || toDateInputValue(getScheduleBaseDate(campaign));
+  elements.scheduleTime.value = nextSlot?.time || "09:00";
+  elements.scheduleStatus.value = nextSlot?.status || "draft";
+  elements.scheduleNotes.value = "";
+
+  const controlledCount = campaign.publishing.schedule.filter((slot) =>
+    ["ready", "scheduled", "published"].includes(slot.status)
+  ).length;
+  elements.scheduleStatusSummary.className = `status-pill ${controlledCount ? "approved" : "not-started"}`;
+  elements.scheduleStatusSummary.textContent = `${controlledCount}/${campaign.publishing.schedule.length || 0} controlled slots`;
+
+  const windowDays = getScheduleWindow(campaign);
+  elements.publishingCalendarGrid.innerHTML = windowDays
+    .map((day) => {
+      const dateValue = toDateInputValue(day);
+      const slots = campaign.publishing.schedule
+        .filter((slot) => slot.date === dateValue)
+        .sort((a, b) => `${a.time || ""}`.localeCompare(`${b.time || ""}`));
+      return `
+        <article class="calendar-day ${slots.length ? "has-slots" : ""}">
+          <header>
+            <strong>${day.toLocaleDateString(undefined, { weekday: "short" })}</strong>
+            <span>${day.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+          </header>
+          <div class="calendar-day-slots">
+            ${
+              slots.length
+                ? slots
+                    .map(
+                      (slot) => `
+                        <button class="calendar-slot ${getScheduleStatusClass(slot.status)}" type="button" data-focus-slot="${escapeHtml(slot.id)}">
+                          <strong>${escapeHtml(slot.time || "Open")}</strong>
+                          <span>${escapeHtml(slot.platform)}</span>
+                        </button>
+                      `
+                    )
+                    .join("")
+                : `<p>No slots</p>`
+            }
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  if (!campaign.publishing.schedule.length) {
+    elements.publishingScheduleList.innerHTML = `<p class="meta-row">No publishing slots yet. Use Suggest Slots or add a platform slot manually.</p>`;
+    return;
+  }
+
+  elements.publishingScheduleList.innerHTML = campaign.publishing.schedule
+    .slice()
+    .sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`))
+    .map(
+      (slot) => `
+        <article class="schedule-slot-card" data-slot-card="${escapeHtml(slot.id)}">
+          <div>
+            <strong>${escapeHtml(slot.platform)}</strong>
+            <p>${escapeHtml(slot.date || "Date open")} at ${escapeHtml(slot.time || "time open")}</p>
+            ${slot.notes ? `<small>${escapeHtml(slot.notes)}</small>` : ""}
+          </div>
+          <div class="schedule-slot-actions">
+            <span class="status-pill ${getScheduleStatusClass(slot.status)}">${escapeHtml(formatStatus(slot.status))}</span>
+            <button class="mini-button" type="button" data-cycle-schedule-status="${escapeHtml(slot.id)}">Advance</button>
+            <button class="mini-button" type="button" data-delete-schedule-slot="${escapeHtml(slot.id)}">Remove</button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
 function updateStageField(field, value) {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
@@ -2251,11 +2435,78 @@ function applyCoPilotAction(actionId) {
       "Use the strongest before-and-after moment as the hook.",
       profile?.regulated ? "Hold as draft until compliance review is complete." : "Ready for human publishing review after asset URLs are attached."
     ].join("\n");
+    if (!campaign.publishing.schedule.length) {
+      campaign.publishing.schedule = createSuggestedPublishingSchedule(campaign);
+      campaign.publishing.status = "calendar-drafted";
+    }
     addAgentActivity("Co-pilot", `Drafted publishing package copy for ${campaign.name}.`, campaign.id);
   }
 
   render();
   showToast("Co-pilot update applied");
+}
+
+function seedPublishingSchedule() {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  campaign.publishing.schedule = createSuggestedPublishingSchedule(campaign);
+  campaign.publishing.status = "calendar-drafted";
+  addAgentActivity("Publishing control", `Suggested ${campaign.publishing.schedule.length} publishing slots for ${campaign.name}.`, campaign.id);
+  render();
+  showToast("Publishing slots suggested");
+}
+
+function addPublishingSlot() {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const slot = createPublishingSlot(campaign, {
+    platform: elements.schedulePlatform.value,
+    date: elements.scheduleDate.value,
+    time: elements.scheduleTime.value,
+    status: elements.scheduleStatus.value,
+    notes: elements.scheduleNotes.value.trim() || "Manual publishing slot."
+  });
+  campaign.publishing.schedule.push(slot);
+  campaign.publishing.status = "calendar-drafted";
+  addAgentActivity("Publishing control", `Added ${slot.platform} publishing slot for ${campaign.name}.`, campaign.id);
+  render();
+  showToast("Publishing slot added");
+}
+
+function cyclePublishingSlotStatus(slotId) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const slot = campaign.publishing.schedule.find((item) => item.id === slotId);
+  if (!slot) return;
+  const statuses = ["draft", "ready", "scheduled", "published"];
+  const nextIndex = (statuses.indexOf(slot.status) + 1) % statuses.length;
+  slot.status = statuses[nextIndex] || "draft";
+  campaign.publishing.status = slot.status === "published" ? "published" : "calendar-drafted";
+  addAgentActivity("Publishing control", `Moved ${slot.platform} slot to ${formatStatus(slot.status)}.`, campaign.id);
+  render();
+}
+
+function deletePublishingSlot(slotId) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  campaign.publishing.schedule = campaign.publishing.schedule.filter((slot) => slot.id !== slotId);
+  addAgentActivity("Publishing control", `Removed a publishing slot from ${campaign.name}.`, campaign.id);
+  render();
+  showToast("Publishing slot removed");
+}
+
+function focusPublishingSlot(slotId) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const slot = campaign.publishing.schedule.find((item) => item.id === slotId);
+  if (!slot) return;
+  elements.schedulePlatform.value = slot.platform;
+  elements.scheduleDate.value = slot.date;
+  elements.scheduleTime.value = slot.time;
+  elements.scheduleStatus.value = slot.status;
+  elements.scheduleNotes.value = slot.notes || "";
+  const card = document.querySelector(`[data-slot-card="${CSS.escape(slotId)}"]`);
+  if (card) highlightCommandCenterTarget(`[data-slot-card="${CSS.escape(slotId)}"]`);
 }
 
 function getAgentOps(campaign) {
@@ -2462,6 +2713,8 @@ function getPublishingPackage(campaign) {
     caption: campaign.publishing.caption,
     hashtags: campaign.publishing.hashtags,
     platformNotes: campaign.publishing.platformNotes,
+    publishingStatus: campaign.publishing.status,
+    schedule: campaign.publishing.schedule,
     bunnyFolder: campaign.assets.bunnyFolder
   };
 }
@@ -2983,6 +3236,27 @@ elements.approvalChecks.addEventListener("change", (event) => {
   });
 });
 
+document.querySelector("#seedPublishingSchedule").addEventListener("click", seedPublishingSchedule);
+document.querySelector("#addPublishingSlot").addEventListener("click", addPublishingSlot);
+
+elements.publishingCalendarGrid.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-focus-slot]");
+  if (!button) return;
+  focusPublishingSlot(button.dataset.focusSlot);
+});
+
+elements.publishingScheduleList.addEventListener("click", (event) => {
+  const advanceButton = event.target.closest("[data-cycle-schedule-status]");
+  const deleteButton = event.target.closest("[data-delete-schedule-slot]");
+  if (advanceButton) {
+    cyclePublishingSlotStatus(advanceButton.dataset.cycleScheduleStatus);
+    return;
+  }
+  if (deleteButton) {
+    deletePublishingSlot(deleteButton.dataset.deleteScheduleSlot);
+  }
+});
+
 document.querySelector("#copyBunnyManifest").addEventListener("click", () => {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
@@ -3076,6 +3350,7 @@ function handleCommandCenterHash() {
     "#approval-gate-section": { selector: "#approval-gate-section" },
     "#bunny-storage-section": { selector: "#bunny-storage-section" },
     "#publishing-package-section": { selector: "#publishing-package-section" },
+    "#publishing-calendar-section": { selector: "#publishing-calendar-section" },
     "#activity-log-section": { selector: "#activity-log-section" },
     "#agent-operations-layer": { selector: "#agent-operations-layer" }
   };
