@@ -40,6 +40,7 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Bunny storage manifest
 - Blotato publishing package
 - Publishing Calendar for platform-specific schedule slots and status control
+- Viral Launch Control for hook scoring, manual posting readiness, and copyable launch packets
 - Restream live broadcast and real-time viral clip strategy
 - Dedicated "Got an Enhancement Idea?" intake page with section-specific GitHub issue drafts
 - Team Collaboration Hub with section threads, reviewer roles, @mentions, focus jumps, and status controls

@@ -219,7 +219,8 @@ const reviewSections = [
   { id: "approval-gate", name: "Approval Gate" },
   { id: "bunny-storage", name: "Bunny Storage" },
   { id: "publishing-package", name: "Publishing Package" },
-  { id: "publishing-calendar", name: "Publishing Calendar" }
+  { id: "publishing-calendar", name: "Publishing Calendar" },
+  { id: "viral-launch", name: "Viral Launch Control" }
 ];
 
 const reviewSectionTargets = {
@@ -231,7 +232,8 @@ const reviewSectionTargets = {
   "approval-gate": "#approval-gate-section",
   "bunny-storage": "#bunny-storage-section",
   "publishing-package": "#publishing-package-section",
-  "publishing-calendar": "#publishing-calendar-section"
+  "publishing-calendar": "#publishing-calendar-section",
+  "viral-launch": "#viral-launch-control-section"
 };
 
 const integrationBoundaries = [
@@ -298,6 +300,7 @@ const commandSections = [
   { label: "Storage", target: "#bunny-storage-section", cue: "asset source of truth" },
   { label: "Publishing", target: "#publishing-package-section", cue: "caption package" },
   { label: "Calendar", target: "#publishing-calendar-section", cue: "schedule slots" },
+  { label: "Launch", target: "#viral-launch-control-section", cue: "post readiness" },
   { label: "Agent Ops", target: "#agent-operations-layer", cue: "live execution" }
 ];
 
@@ -420,6 +423,14 @@ const elements = {
   scheduleNotes: document.querySelector("#scheduleNotes"),
   publishingCalendarGrid: document.querySelector("#publishingCalendarGrid"),
   publishingScheduleList: document.querySelector("#publishingScheduleList"),
+  viralLaunchStatus: document.querySelector("#viralLaunchStatus"),
+  viralLaunchScoreboard: document.querySelector("#viralLaunchScoreboard"),
+  viralLaunchCandidate: document.querySelector("#viralLaunchCandidate"),
+  viralLaunchCandidatePreview: document.querySelector("#viralLaunchCandidatePreview"),
+  viralLaunchChecklist: document.querySelector("#viralLaunchChecklist"),
+  scoreViralLaunch: document.querySelector("#scoreViralLaunch"),
+  markManualLaunchReady: document.querySelector("#markManualLaunchReady"),
+  copyViralLaunchPack: document.querySelector("#copyViralLaunchPack"),
   campaignDialog: document.querySelector("#campaignDialog"),
   campaignForm: document.querySelector("#campaignForm"),
   campaignDialogCoPilot: document.querySelector("#campaignDialogCoPilot"),
@@ -884,6 +895,16 @@ function createAgentOps(seed = {}) {
   };
 }
 
+function createViralLaunchState(seed = {}) {
+  return {
+    selectedSceneId: seed.selectedSceneId || "",
+    score: Number(seed.score || 0),
+    status: seed.status || "draft",
+    lastScoredAt: seed.lastScoredAt || "",
+    launchNotes: seed.launchNotes || ""
+  };
+}
+
 function createCampaign(input) {
   const safeBrand = (input.brand || "").trim() || "Brand";
   const safeName = input.name.trim() || "Untitled Campaign";
@@ -938,6 +959,7 @@ function createCampaign(input) {
       status: "not-ready",
       schedule: []
     },
+    viralLaunch: createViralLaunchState(),
     agentOps: createAgentOps({ ...input, name: safeName, brand: safeBrand }),
     collaborationThreads: [],
     reviewRequests: []
@@ -1140,6 +1162,7 @@ function normalizeCampaignShape(campaign) {
         }))
       : []
   };
+  campaign.viralLaunch = createViralLaunchState(campaign.viralLaunch || {});
   const defaultOps = createAgentOps(campaign);
   campaign.agentOps = {
     tasks: Array.isArray(campaign.agentOps?.tasks) ? campaign.agentOps.tasks : defaultOps.tasks,
@@ -1712,6 +1735,7 @@ function renderCampaign() {
   renderApprovals(campaign);
   renderHandoff(campaign);
   renderPublishingCalendar(campaign);
+  renderViralLaunchControl(campaign);
   renderCollaborationHub(campaign);
   renderBrandProfileSummary(campaign);
   renderCreativeDirectionVersions(campaign);
@@ -2522,6 +2546,262 @@ function renderPublishingCalendar(campaign) {
     .join("");
 }
 
+function getSelectedLaunchScene(campaign) {
+  const launch = campaign.viralLaunch || createViralLaunchState();
+  const selected = campaign.scenes.find((scene) => scene.id === launch.selectedSceneId);
+  return selected || campaign.scenes.find((scene) => scene.script) || campaign.scenes[0] || null;
+}
+
+function getLaunchHookText(scene) {
+  const text = String(scene?.script || "").trim();
+  if (!text) return "";
+  return text.split(/[.!?]/)[0].trim() || text.slice(0, 140).trim();
+}
+
+function getViralLaunchReadiness(campaign) {
+  const scene = getSelectedLaunchScene(campaign);
+  const hook = getLaunchHookText(scene);
+  const hasScript = Boolean(scene?.script?.trim());
+  const hasPrompt = Boolean(scene?.prompt?.trim());
+  const hasAudio = Boolean(campaign.elevenLabs?.voiceoverUrl || campaign.assets?.voiceover || campaign.remotion?.sourceAudioUrl);
+  const hasMedia = Boolean(campaign.assets?.video || campaign.remotion?.outputUrl || campaign.assets?.remotionOutput);
+  const hasCaption = Boolean(campaign.publishing?.caption?.trim());
+  const hasHashtags = Boolean(campaign.publishing?.hashtags?.trim());
+  const hasReadySlot = Boolean(campaign.publishing?.schedule?.some((slot) => ["ready", "scheduled", "published"].includes(slot.status)));
+  const approvedScene = scene?.status === "approved";
+  const allApprovals = campaign.approvals?.every((check) => check.done);
+  const regulated = isRegulatedBrand(campaign.brand);
+  const complianceReady = regulated ? allApprovals && Boolean(campaign.guardrails?.trim()) : true;
+  const hookWords = hook.split(/\s+/).filter(Boolean).length;
+  const hookHasTension = /\b(cost|risk|wait|stuck|hidden|why|stop|without|before|after|miss|clear|faster|today|now)\b/i.test(hook);
+  const hookConcise = hookWords >= 6 && hookWords <= 18;
+
+  const checks = [
+    {
+      label: "Hook opens with tension",
+      detail: hookHasTension ? "Hook contains urgency, contrast, or a problem cue." : "Strengthen the opening tension or contrast.",
+      done: hasScript && hookHasTension
+    },
+    {
+      label: "Script can travel to audio",
+      detail: hasScript ? "Scene script is ready for voiceover context." : "Add script text to the selected scene.",
+      done: hasScript
+    },
+    {
+      label: "Visual prompt supports the story",
+      detail: hasPrompt ? "Higgsfield prompt is available." : "Add a visual prompt tied to the script.",
+      done: hasPrompt
+    },
+    {
+      label: "Audio or Remotion source exists",
+      detail: hasAudio ? "Voiceover/source audio is linked." : "Add ElevenLabs audio or Remotion source audio.",
+      done: hasAudio
+    },
+    {
+      label: "Publishable media exists",
+      detail: hasMedia ? "Final or Remotion media is linked." : "Add final video or Remotion output URL.",
+      done: hasMedia
+    },
+    {
+      label: "Caption package is ready",
+      detail: hasCaption && hasHashtags ? "Caption and hashtags are ready." : "Add caption and hashtags before posting.",
+      done: hasCaption && hasHashtags
+    },
+    {
+      label: "Calendar slot is ready",
+      detail: hasReadySlot ? "At least one slot is ready, scheduled, or published." : "Mark one Publishing Calendar slot as Ready.",
+      done: hasReadySlot
+    },
+    {
+      label: regulated ? "Regulated approvals are complete" : "Human review path is visible",
+      detail: complianceReady
+        ? regulated
+          ? "Regulated guardrails and approvals are complete."
+          : "Standard brand can move through manual launch review."
+        : "Hold launch until compliance guardrails and approval checks are complete.",
+      done: complianceReady
+    }
+  ];
+
+  let score = 0;
+  if (hasScript) score += 16;
+  if (hookHasTension) score += 14;
+  if (hookConcise) score += 8;
+  if (approvedScene) score += 8;
+  if (hasPrompt) score += 10;
+  if (hasAudio) score += 10;
+  if (hasMedia) score += 12;
+  if (hasCaption) score += 10;
+  if (hasHashtags) score += 4;
+  if (hasReadySlot) score += 4;
+  if (complianceReady) score += 4;
+
+  const doneCount = checks.filter((check) => check.done).length;
+  const status = score >= 78 && complianceReady ? "launch-ready" : score >= 58 ? "needs-final-checks" : "draft";
+  return {
+    scene,
+    hook,
+    checks,
+    score: Math.max(0, Math.min(100, score)),
+    doneCount,
+    totalCount: checks.length,
+    status,
+    regulated,
+    complianceReady
+  };
+}
+
+function getViralLaunchStatusClass(status) {
+  if (status === "launch-ready") return "approved";
+  if (status === "needs-final-checks") return "needs-review";
+  return "not-started";
+}
+
+function getViralLaunchStatusLabel(status) {
+  if (status === "launch-ready") return "Launch ready";
+  if (status === "manual-ready") return "Manual launch ready";
+  if (status === "needs-final-checks") return "Needs final checks";
+  return "Draft launch";
+}
+
+function renderViralLaunchControl(campaign) {
+  const launch = campaign.viralLaunch || createViralLaunchState();
+  const readiness = getViralLaunchReadiness(campaign);
+  const selectedScene = readiness.scene;
+  if (!launch.selectedSceneId && selectedScene) launch.selectedSceneId = selectedScene.id;
+
+  const status = launch.status === "manual-ready" ? "manual-ready" : readiness.status;
+  elements.viralLaunchStatus.className = `status-pill ${status === "manual-ready" ? "approved" : getViralLaunchStatusClass(status)}`;
+  elements.viralLaunchStatus.textContent = `${getViralLaunchStatusLabel(status)} - ${readiness.score}`;
+
+  elements.viralLaunchScoreboard.innerHTML = [
+    { label: "Launch score", value: readiness.score, detail: "hook and readiness" },
+    { label: "Checklist", value: `${readiness.doneCount}/${readiness.totalCount}`, detail: "launch gates clear" },
+    { label: "Candidate", value: selectedScene ? "1" : "0", detail: selectedScene?.title || "scene missing" },
+    { label: "Compliance", value: readiness.complianceReady ? "Clear" : "Hold", detail: readiness.regulated ? "regulated brand" : "standard brand" }
+  ]
+    .map(
+      (item) => `
+        <article>
+          <strong>${escapeHtml(item.value)}</strong>
+          <span>${escapeHtml(item.label)}</span>
+          <small>${escapeHtml(item.detail)}</small>
+        </article>
+      `
+    )
+    .join("");
+
+  if (!campaign.scenes.length) {
+    elements.viralLaunchCandidate.innerHTML = `<option>No scenes yet</option>`;
+    elements.viralLaunchCandidate.disabled = true;
+    elements.viralLaunchCandidatePreview.innerHTML = `<p class="meta-row">Add a scripted scene before selecting a launch candidate.</p>`;
+  } else {
+    elements.viralLaunchCandidate.disabled = false;
+    elements.viralLaunchCandidate.innerHTML = campaign.scenes
+      .map((scene, index) => `<option value="${escapeHtml(scene.id)}">${String(index + 1).padStart(2, "0")} ${escapeHtml(scene.title || "Untitled scene")}</option>`)
+      .join("");
+    elements.viralLaunchCandidate.value = selectedScene?.id || campaign.scenes[0].id;
+    elements.viralLaunchCandidatePreview.innerHTML = `
+      <div class="launch-hook">
+        <span>Opening hook</span>
+        <strong>${escapeHtml(readiness.hook || "Hook pending")}</strong>
+      </div>
+      <p>${escapeHtml(selectedScene?.script || "Add a script to create the audio-led posting packet.")}</p>
+      <small>${escapeHtml(selectedScene?.prompt || "Visual prompt pending.")}</small>
+    `;
+  }
+
+  elements.viralLaunchChecklist.innerHTML = readiness.checks
+    .map(
+      (check) => `
+        <article class="viral-launch-check ${check.done ? "ready" : ""}">
+          <span>${check.done ? "Ready" : "Open"}</span>
+          <div>
+            <strong>${escapeHtml(check.label)}</strong>
+            <small>${escapeHtml(check.detail)}</small>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function scoreViralLaunch() {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const readiness = getViralLaunchReadiness(campaign);
+  campaign.viralLaunch = {
+    ...createViralLaunchState(campaign.viralLaunch),
+    selectedSceneId: readiness.scene?.id || "",
+    score: readiness.score,
+    status: readiness.status,
+    lastScoredAt: new Date().toISOString()
+  };
+  addAgentActivity("Viral launch", `Scored ${campaign.name} at ${readiness.score}/100 for immediate posting readiness.`, campaign.id);
+  render();
+  showToast("Viral launch scored");
+}
+
+function markManualLaunchReady() {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const readiness = getViralLaunchReadiness(campaign);
+  campaign.viralLaunch = {
+    ...createViralLaunchState(campaign.viralLaunch),
+    selectedSceneId: readiness.scene?.id || "",
+    score: readiness.score,
+    status: "manual-ready",
+    lastScoredAt: new Date().toISOString(),
+    launchNotes:
+      readiness.status === "launch-ready"
+        ? "Approved for immediate manual posting packet."
+        : "Manual-ready mark applied with open checklist items visible for human judgment."
+  };
+  if (!campaign.publishing.schedule?.length) {
+    campaign.publishing.schedule = createSuggestedPublishingSchedule(campaign);
+  }
+  const firstSlot = campaign.publishing.schedule[0];
+  if (firstSlot && firstSlot.status === "draft") firstSlot.status = "ready";
+  campaign.publishing.status = "manual-launch-ready";
+  addAgentActivity("Viral launch", `Marked ${campaign.name} manual-launch ready with score ${readiness.score}/100.`, campaign.id);
+  render();
+  showToast("Manual launch ready");
+}
+
+function getViralLaunchPack(campaign) {
+  const readiness = getViralLaunchReadiness(campaign);
+  const scene = readiness.scene;
+  return {
+    campaign: campaign.name,
+    brand: campaign.brand,
+    platforms: getCampaignPlatforms(campaign),
+    launchScore: readiness.score,
+    launchStatus: getViralLaunchStatusLabel(campaign.viralLaunch?.status === "manual-ready" ? "manual-ready" : readiness.status),
+    selectedScene: scene
+      ? {
+          title: scene.title,
+          status: scene.status,
+          hook: readiness.hook,
+          script: scene.script,
+          visualPrompt: scene.prompt,
+          compliance: scene.compliance
+        }
+      : null,
+    publishing: getPublishingPackage(campaign),
+    checklist: readiness.checks,
+    manualPostingSteps: [
+      "Open the approved media URL or Remotion output.",
+      "Use the caption, hashtags, and platform notes exactly as reviewed.",
+      "Post or schedule only on the approved platform slot.",
+      "Watch comments, retention, saves, shares, and clip-worthy moments immediately after publish.",
+      "Feed public response signals into Agent Ops for repurpose and viral lift decisions."
+    ],
+    complianceWarning: readiness.complianceReady
+      ? "Compliance posture is clear for the current brand state."
+      : "Do not publish regulated content until guardrails and human approvals are complete."
+  };
+}
+
 function updateStageField(field, value) {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
@@ -3029,6 +3309,10 @@ function getManifest(campaign) {
     remotion: campaign.remotion,
     bunny: campaign.assets,
     publishing: campaign.publishing,
+    viralLaunch: {
+      ...campaign.viralLaunch,
+      pack: getViralLaunchPack(campaign)
+    },
     creativeDirection: campaign.creativeDirection,
     creativeDirectionVersions: campaign.creativeDirectionVersions,
     scenes: campaign.scenes,
@@ -3157,7 +3441,21 @@ async function copyText(text, label) {
     await navigator.clipboard.writeText(text);
     showToast(`${label} copied`);
   } catch (error) {
-    showToast(`${label} ready in export`);
+    const fallback = document.createElement("textarea");
+    fallback.value = text;
+    fallback.setAttribute("readonly", "");
+    fallback.style.position = "fixed";
+    fallback.style.left = "-9999px";
+    document.body.appendChild(fallback);
+    fallback.select();
+    try {
+      document.execCommand("copy");
+      showToast(`${label} copied`);
+    } catch (fallbackError) {
+      showToast(`${label} ready in export`);
+    } finally {
+      fallback.remove();
+    }
   }
 }
 
@@ -3652,6 +3950,27 @@ elements.publishingScheduleList.addEventListener("click", (event) => {
   }
 });
 
+elements.viralLaunchCandidate.addEventListener("change", (event) => {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  campaign.viralLaunch = {
+    ...createViralLaunchState(campaign.viralLaunch),
+    selectedSceneId: event.target.value,
+    status: campaign.viralLaunch?.status === "manual-ready" ? "draft" : campaign.viralLaunch?.status || "draft"
+  };
+  render();
+});
+
+elements.scoreViralLaunch.addEventListener("click", scoreViralLaunch);
+elements.markManualLaunchReady.addEventListener("click", markManualLaunchReady);
+elements.copyViralLaunchPack.addEventListener("click", () => {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  copyText(JSON.stringify(getViralLaunchPack(campaign), null, 2), "Viral launch pack");
+  addAgentActivity("Viral launch", `Copied manual posting packet for ${campaign.name}.`, campaign.id);
+  render();
+});
+
 elements.collaborationThreadList.addEventListener("click", (event) => {
   const focusButton = event.target.closest("[data-thread-focus]");
   const toggleButton = event.target.closest("[data-thread-toggle]");
@@ -3772,6 +4091,7 @@ function handleCommandCenterHash() {
     "#bunny-storage-section": { selector: "#bunny-storage-section" },
     "#publishing-package-section": { selector: "#publishing-package-section" },
     "#publishing-calendar-section": { selector: "#publishing-calendar-section" },
+    "#viral-launch-control-section": { selector: "#viral-launch-control-section" },
     "#activity-log-section": { selector: "#activity-log-section" },
     "#agent-operations-layer": { selector: "#agent-operations-layer" }
   };

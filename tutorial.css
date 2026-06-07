@@ -443,6 +443,30 @@
   background: var(--gold-soft);
 }
 
+.thumb-launch .thumb-shell {
+  grid-template-columns: repeat(3, 1fr);
+  border-color: rgba(116, 31, 43, 0.34);
+  background: linear-gradient(180deg, #ffffff, var(--cabernet-soft));
+}
+
+.thumb-launch .thumb-shell span {
+  min-height: 22px;
+  background: #ffffff;
+  border: 1px solid rgba(116, 31, 43, 0.18);
+}
+
+.thumb-launch .thumb-shell span:first-child {
+  grid-column: 1 / -1;
+  min-height: 28px;
+  background: var(--cabernet);
+}
+
+.thumb-launch .thumb-shell span:nth-child(2),
+.thumb-launch .thumb-shell span:nth-child(3),
+.thumb-launch .thumb-shell span:nth-child(4) {
+  background: var(--green-soft);
+}
+
 .thumb-activity .thumb-shell span {
   background: var(--paper);
   border-left: 6px solid var(--blue);
