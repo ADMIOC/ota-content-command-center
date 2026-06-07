@@ -2,12 +2,14 @@ const storageKey = "ota-content-command-center-v1";
 
 let state = loadState();
 let selectedCampaignId = state.selectedCampaignId || state.campaigns[0]?.id || "";
+let activeAgentRuns = {};
 
 const elements = {
   launchCampaignSelect: document.querySelector("#launchCampaignSelect"),
   viralLaunchStatus: document.querySelector("#viralLaunchStatus"),
   viralLaunchScoreboard: document.querySelector("#viralLaunchScoreboard"),
   agenticLaunchSummary: document.querySelector("#agenticLaunchSummary"),
+  agentProgressPanel: document.querySelector("#agentProgressPanel"),
   viralLaunchCandidate: document.querySelector("#viralLaunchCandidate"),
   viralLaunchCandidatePreview: document.querySelector("#viralLaunchCandidatePreview"),
   viralLaunchChecklist: document.querySelector("#viralLaunchChecklist"),
@@ -68,6 +70,75 @@ function createViralLaunchState(seed = {}) {
     agentHandledGates: seed.agentHandledGates || {},
     agentSummary: seed.agentSummary || ""
   };
+}
+
+const gateAgentWorkflows = {
+  hook: [
+    "Reading selected script and brand perspective",
+    "Identifying missing tension or contrast",
+    "Rewriting the opening hook",
+    "Re-scoring launch readiness"
+  ],
+  script: [
+    "Inspecting launch candidate scene",
+    "Drafting voiceover-ready script spine",
+    "Saving script to campaign workspace",
+    "Re-scoring launch readiness"
+  ],
+  prompt: [
+    "Reading script and cinematic perspective",
+    "Drafting visual prompt around the story",
+    "Saving prompt to launch candidate",
+    "Re-scoring launch readiness"
+  ],
+  audio: [
+    "Packaging script for ElevenLabs",
+    "Selecting launch narrator context",
+    "Queuing Audio Agent handoff",
+    "Waiting on returned audio URL"
+  ],
+  media: [
+    "Packaging scene for Remotion and Higgsfield",
+    "Preparing production notes",
+    "Queuing media generation handoff",
+    "Waiting on returned media URL"
+  ],
+  caption: [
+    "Reading hook and platform context",
+    "Drafting caption and hashtags",
+    "Saving publishing package notes",
+    "Re-scoring launch readiness"
+  ],
+  calendar: [
+    "Checking current publishing schedule",
+    "Creating or selecting primary launch slot",
+    "Marking slot as Ready",
+    "Re-scoring launch readiness"
+  ],
+  approval: [
+    "Checking brand regulation status",
+    "Reviewing approval requirements",
+    "Queuing approval agent if needed",
+    "Updating launch hold status"
+  ]
+};
+
+function getGateLabel(gateId) {
+  const labels = {
+    hook: "Hook Agent",
+    script: "Script Agent",
+    prompt: "Prompt Agent",
+    audio: "Audio Agent",
+    media: "Media Agent",
+    caption: "Caption Agent",
+    calendar: "Calendar Agent",
+    approval: "Approval Agent"
+  };
+  return labels[gateId] || "Launch Agent";
+}
+
+function delay(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
 function getSelectedCampaign() {
@@ -152,6 +223,58 @@ function addAgentActivity(type, message, campaignId = selectedCampaignId) {
     createdAt: new Date().toISOString()
   });
   if (state.agentActivity.length > 100) state.agentActivity = state.agentActivity.slice(-100);
+}
+
+function renderAgentProgress() {
+  const runs = Object.values(activeAgentRuns);
+  if (!runs.length) {
+    elements.agentProgressPanel.innerHTML = "";
+    return;
+  }
+
+  elements.agentProgressPanel.innerHTML = runs
+    .map(
+      (run) => `
+        <article class="agent-progress-card ${escapeHtml(run.status)}">
+          <div>
+            <strong>${escapeHtml(run.label)}</strong>
+            <span>${escapeHtml(run.status === "complete" ? "Complete" : "Running")}</span>
+          </div>
+          <p>${escapeHtml(run.step)}</p>
+          <div class="agent-progress-track" aria-label="${escapeHtml(run.label)} progress">
+            <i style="width: ${Number(run.percent || 0)}%"></i>
+          </div>
+          <small>${Number(run.percent || 0)}% complete</small>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function updateAgentProgress(gateId, update) {
+  activeAgentRuns[gateId] = {
+    gateId,
+    label: getGateLabel(gateId),
+    status: "running",
+    percent: 0,
+    step: "Starting agent",
+    ...(activeAgentRuns[gateId] || {}),
+    ...update
+  };
+  renderAgentProgress();
+  renderViralLaunchControl();
+}
+
+function completeAgentProgress(gateId, step = "Agent handoff complete") {
+  updateAgentProgress(gateId, {
+    status: "complete",
+    percent: 100,
+    step
+  });
+}
+
+function isGateAgentRunning(gateId) {
+  return activeAgentRuns[gateId]?.status === "running";
 }
 
 function markAgentHandled(campaign, gateId, detail) {
@@ -306,7 +429,41 @@ function applyAgentGate(gateId) {
   addAgentActivity("Launch Agent", `Handled launch gate: ${gateId}.`, campaign.id);
 }
 
-function runLaunchAgent() {
+function refreshLaunchScore(campaign) {
+  const readiness = getViralLaunchReadiness(campaign);
+  campaign.viralLaunch = {
+    ...createViralLaunchState(campaign.viralLaunch),
+    selectedSceneId: readiness.scene?.id || campaign.viralLaunch?.selectedSceneId || "",
+    score: readiness.score,
+    status: readiness.status,
+    lastScoredAt: new Date().toISOString()
+  };
+  return readiness;
+}
+
+async function runGateAgentWithProgress(gateId) {
+  if (isGateAgentRunning(gateId)) return;
+  const steps = gateAgentWorkflows[gateId] || ["Starting agent", "Handling gate", "Updating launch readiness"];
+  const stepWeight = Math.max(1, steps.length);
+
+  for (let index = 0; index < steps.length; index += 1) {
+    updateAgentProgress(gateId, {
+      status: "running",
+      step: steps[index],
+      percent: Math.max(8, Math.round(((index + 1) / (stepWeight + 1)) * 100))
+    });
+    await delay(420);
+  }
+
+  applyAgentGate(gateId);
+  const campaign = getSelectedCampaign();
+  if (campaign) refreshLaunchScore(campaign);
+  completeAgentProgress(gateId, `${getGateLabel(gateId)} updated the launch workspace.`);
+  saveState();
+  renderViralLaunchControl();
+}
+
+async function runLaunchAgent() {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
   const readiness = getViralLaunchReadiness(campaign);
@@ -315,15 +472,16 @@ function runLaunchAgent() {
     showToast("All gates are clear");
     return;
   }
-  openChecks.forEach((check) => applyAgentGate(check.id));
-  const updatedReadiness = getViralLaunchReadiness(campaign);
-  campaign.viralLaunch = {
-    ...createViralLaunchState(campaign.viralLaunch),
-    selectedSceneId: updatedReadiness.scene?.id || campaign.viralLaunch?.selectedSceneId || "",
-    score: updatedReadiness.score,
-    status: updatedReadiness.status,
-    lastScoredAt: new Date().toISOString()
-  };
+
+  try {
+    elements.runLaunchAgent.disabled = true;
+    for (const check of openChecks) {
+      await runGateAgentWithProgress(check.id);
+    }
+  } finally {
+    elements.runLaunchAgent.disabled = false;
+  }
+
   addAgentActivity("Launch Agent", `Ran agentic fixes across ${openChecks.length} open launch gates for ${campaign.name}.`, campaign.id);
   saveState();
   renderViralLaunchControl();
@@ -608,13 +766,14 @@ function renderViralLaunchControl() {
             ${
               check.done
                 ? ""
-                : `<button class="mini-button agent-gate-button" type="button" data-agent-gate="${escapeHtml(check.id)}">${check.agentHandled ? "Run Agent Again" : "Run Gate Agent"}</button>`
+                : `<button class="mini-button agent-gate-button" type="button" data-agent-gate="${escapeHtml(check.id)}" ${isGateAgentRunning(check.id) ? "disabled" : ""}>${isGateAgentRunning(check.id) ? "Agent Running" : check.agentHandled ? "Run Agent Again" : "Run Gate Agent"}</button>`
             }
           </div>
         </article>
       `
     )
     .join("");
+  renderAgentProgress();
 }
 
 function scoreViralLaunch() {
@@ -732,23 +891,10 @@ elements.viralLaunchCandidate.addEventListener("change", (event) => {
   renderViralLaunchControl();
 });
 
-elements.viralLaunchChecklist.addEventListener("click", (event) => {
+elements.viralLaunchChecklist.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-agent-gate]");
   if (!button) return;
-  applyAgentGate(button.dataset.agentGate);
-  const campaign = getSelectedCampaign();
-  if (campaign) {
-    const readiness = getViralLaunchReadiness(campaign);
-    campaign.viralLaunch = {
-      ...createViralLaunchState(campaign.viralLaunch),
-      selectedSceneId: readiness.scene?.id || campaign.viralLaunch?.selectedSceneId || "",
-      score: readiness.score,
-      status: readiness.status,
-      lastScoredAt: new Date().toISOString()
-    };
-  }
-  saveState();
-  renderViralLaunchControl();
+  await runGateAgentWithProgress(button.dataset.agentGate);
   showToast("Gate Agent handled this item");
 });
 

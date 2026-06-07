@@ -994,6 +994,69 @@ textarea {
   color: var(--blue);
 }
 
+.agent-progress-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-progress-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(46, 110, 158, 0.26);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.agent-progress-card > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agent-progress-card strong,
+.agent-progress-card span,
+.agent-progress-card small {
+  font-weight: 900;
+}
+
+.agent-progress-card span {
+  color: var(--blue);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.agent-progress-card.complete span {
+  color: var(--green);
+}
+
+.agent-progress-card p,
+.agent-progress-card small {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.36;
+}
+
+.agent-progress-track {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dce8f0;
+}
+
+.agent-progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--cabernet));
+  transition: width 220ms ease;
+}
+
+.agent-progress-card.complete .agent-progress-track i {
+  background: var(--green);
+}
+
 .viral-launch-grid {
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
 }
@@ -1611,6 +1674,13 @@ textarea {
   font-size: 0.78rem;
   font-weight: 800;
   text-decoration: none;
+}
+
+.mini-button:disabled,
+.ghost-button:disabled,
+.primary-button:disabled {
+  cursor: progress;
+  opacity: 0.72;
 }
 
 .status-pill.not-started {
