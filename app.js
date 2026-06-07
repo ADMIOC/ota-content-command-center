@@ -900,7 +900,9 @@ function createViralLaunchState(seed = {}) {
     score: Number(seed.score || 0),
     status: seed.status || "draft",
     lastScoredAt: seed.lastScoredAt || "",
-    launchNotes: seed.launchNotes || ""
+    launchNotes: seed.launchNotes || "",
+    agentHandledGates: seed.agentHandledGates || {},
+    agentSummary: seed.agentSummary || ""
   };
 }
 

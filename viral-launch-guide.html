@@ -26,8 +26,8 @@
           <h2>Use this panel to decide what can be posted now, what is missing, and what the publisher needs next.</h2>
           <p>
             Viral Launch Control is the final pre-posting checkpoint. It does not publish automatically.
-            It turns your campaign state into one visible action path: pick the candidate, clear the gates,
-            score the hook, mark manual readiness, and copy the launch packet.
+            It turns your campaign state into one visible action path: pick the candidate, run the Launch Agent,
+            review queued agent work, prepare manual readiness, and copy the launch packet.
           </p>
         </div>
         <div class="launch-score-card" aria-label="Launch score meaning">
@@ -63,18 +63,18 @@
           </article>
           <article>
             <span>03</span>
-            <h3>Click Score Hook</h3>
+            <h3>Run Scoring Agent</h3>
             <p>Refresh the launch score after every script, asset, caption, schedule, or approval change.</p>
           </article>
           <article>
             <span>04</span>
-            <h3>Clear the open gates</h3>
-            <p>Each OPEN row tells you exactly where to go next before launch readiness is real.</p>
+            <h3>Run Launch Agent</h3>
+            <p>Let the agent draft, queue, or prepare every OPEN gate from the launch page.</p>
           </article>
           <article>
             <span>05</span>
             <h3>Copy the launch pack</h3>
-            <p>Give the publisher one packet containing hook, script, assets, caption, schedule, and warnings.</p>
+            <p>Let the agent create one packet containing hook, script, assets, caption, schedule, and warnings.</p>
           </article>
         </div>
       </section>
@@ -94,7 +94,7 @@
           </article>
           <article>
             <strong>Checklist</strong>
-            <p>Shows how many launch gates are clear. Treat every OPEN item as the work queue.</p>
+            <p>Shows how many launch gates are clear. Treat every OPEN item as an agent action queue.</p>
           </article>
           <article>
             <strong>Candidate</strong>
@@ -119,50 +119,50 @@
           <article>
             <span>01</span>
             <strong>Hook opens with tension</strong>
-            <p>The first line should name a problem, contrast, urgency, risk, or before-and-after shift.</p>
-            <a href="./index.html#scene-queue-section">Fix in Scene Queue</a>
+            <p>The Launch Agent strengthens the first line with a problem, contrast, urgency, risk, or before-and-after shift.</p>
+            <a href="./viral-launch-control.html">Run Gate Agent</a>
           </article>
           <article>
             <span>02</span>
             <strong>Script can travel to audio</strong>
-            <p>The selected scene needs actual voiceover script text before ElevenLabs can matter.</p>
-            <a href="./index.html#scene-queue-section">Fix in Scene Queue</a>
+            <p>The Launch Agent drafts script text when the selected candidate is missing a voiceover spine.</p>
+            <a href="./viral-launch-control.html">Run Gate Agent</a>
           </article>
           <article>
             <span>03</span>
             <strong>Visual prompt supports the story</strong>
-            <p>The prompt must serve the script, emotional stakes, and cinematic brand perspective.</p>
-            <a href="./index.html#scene-queue-section">Fix in Scene Queue</a>
+            <p>The Launch Agent drafts the prompt around script, emotional stakes, and cinematic brand perspective.</p>
+            <a href="./viral-launch-control.html">Run Gate Agent</a>
           </article>
           <article>
             <span>04</span>
             <strong>Audio or Remotion source exists</strong>
-            <p>Add ElevenLabs audio or Remotion source audio so timing and assembly have a spine.</p>
-            <a href="./index.html#elevenlabs-audio-section">Fix in Audio</a>
+            <p>The Launch Agent queues ElevenLabs narration and makes the pending audio handoff visible.</p>
+            <a href="./viral-launch-control.html">Queue Audio Agent</a>
           </article>
           <article>
             <span>05</span>
             <strong>Publishable media exists</strong>
-            <p>Add final video or Remotion output URL before anyone tries to post.</p>
-            <a href="./index.html#bunny-storage-section">Fix in Storage</a>
+            <p>The Launch Agent queues Remotion/Higgsfield media production and tracks the required returned output.</p>
+            <a href="./viral-launch-control.html">Queue Media Agent</a>
           </article>
           <article>
             <span>06</span>
             <strong>Caption package is ready</strong>
-            <p>Caption and hashtags should be ready for the exact platform and selected candidate.</p>
-            <a href="./index.html#publishing-package-section">Fix in Publishing</a>
+            <p>The Launch Agent drafts caption, hashtags, and platform notes from the selected hook.</p>
+            <a href="./viral-launch-control.html">Run Caption Agent</a>
           </article>
           <article>
             <span>07</span>
             <strong>Calendar slot is ready</strong>
-            <p>At least one Publishing Calendar slot should be Ready, Scheduled, or Published.</p>
-            <a href="./index.html#publishing-calendar-section">Fix in Calendar</a>
+            <p>The Launch Agent creates or marks the primary calendar slot as Ready.</p>
+            <a href="./viral-launch-control.html">Run Calendar Agent</a>
           </article>
           <article>
             <span>08</span>
             <strong>Human review path is visible</strong>
-            <p>Standard brands need visible review. Regulated brands need guardrails and approvals complete.</p>
-            <a href="./index.html#approval-gate-section">Fix in Approval Gate</a>
+            <p>The Launch Agent confirms standard review or queues regulated approval review.</p>
+            <a href="./viral-launch-control.html">Run Approval Agent</a>
           </article>
         </div>
       </section>
@@ -174,15 +174,15 @@
         </div>
         <div class="button-decision-grid">
           <article>
-            <strong>Score Hook</strong>
+            <strong>Run Scoring Agent</strong>
             <p>Click after any campaign input changes. It refreshes the score and the launch gates.</p>
           </article>
           <article>
-            <strong>Mark Manual Launch Ready</strong>
-            <p>Click only when the human operator accepts the remaining risk and wants the campaign treated as manually post-ready.</p>
+            <strong>Agent Prepare Manual Launch</strong>
+            <p>Click when the agent has prepared the launch packet and the human operator accepts any remaining risk.</p>
           </article>
           <article>
-            <strong>Copy Viral Launch Pack</strong>
+            <strong>Agent Copy Launch Pack</strong>
             <p>Click when the publisher needs the final posting packet, including warnings and manual posting steps.</p>
           </article>
         </div>

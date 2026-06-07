@@ -7,10 +7,12 @@ const elements = {
   launchCampaignSelect: document.querySelector("#launchCampaignSelect"),
   viralLaunchStatus: document.querySelector("#viralLaunchStatus"),
   viralLaunchScoreboard: document.querySelector("#viralLaunchScoreboard"),
+  agenticLaunchSummary: document.querySelector("#agenticLaunchSummary"),
   viralLaunchCandidate: document.querySelector("#viralLaunchCandidate"),
   viralLaunchCandidatePreview: document.querySelector("#viralLaunchCandidatePreview"),
   viralLaunchChecklist: document.querySelector("#viralLaunchChecklist"),
   scoreViralLaunch: document.querySelector("#scoreViralLaunch"),
+  runLaunchAgent: document.querySelector("#runLaunchAgent"),
   markManualLaunchReady: document.querySelector("#markManualLaunchReady"),
   copyViralLaunchPack: document.querySelector("#copyViralLaunchPack"),
   toast: document.querySelector("#toast")
@@ -34,6 +36,8 @@ function normalizeCampaign(campaign) {
   campaign.assets = campaign.assets || {};
   campaign.elevenLabs = campaign.elevenLabs || {};
   campaign.remotion = campaign.remotion || {};
+  campaign.agentOps = campaign.agentOps || {};
+  campaign.agentOps.tasks = Array.isArray(campaign.agentOps.tasks) ? campaign.agentOps.tasks : [];
   campaign.publishing = {
     caption: campaign.publishing?.caption || "",
     hashtags: campaign.publishing?.hashtags || "",
@@ -60,7 +64,9 @@ function createViralLaunchState(seed = {}) {
     score: Number(seed.score || 0),
     status: seed.status || "draft",
     lastScoredAt: seed.lastScoredAt || "",
-    launchNotes: seed.launchNotes || ""
+    launchNotes: seed.launchNotes || "",
+    agentHandledGates: seed.agentHandledGates || {},
+    agentSummary: seed.agentSummary || ""
   };
 }
 
@@ -148,6 +154,182 @@ function addAgentActivity(type, message, campaignId = selectedCampaignId) {
   if (state.agentActivity.length > 100) state.agentActivity = state.agentActivity.slice(-100);
 }
 
+function markAgentHandled(campaign, gateId, detail) {
+  campaign.viralLaunch = createViralLaunchState(campaign.viralLaunch);
+  campaign.viralLaunch.agentHandledGates[gateId] = {
+    detail,
+    handledAt: new Date().toISOString()
+  };
+  campaign.viralLaunch.agentSummary = detail;
+}
+
+function queueAgentTask(campaign, agent, action) {
+  campaign.agentOps = campaign.agentOps || {};
+  campaign.agentOps.tasks = Array.isArray(campaign.agentOps.tasks) ? campaign.agentOps.tasks : [];
+  campaign.agentOps.tasks.unshift({
+    id: makeId(),
+    agent,
+    action,
+    status: "pending",
+    createdAt: new Date().toISOString()
+  });
+}
+
+function getBrandPerspective(campaign) {
+  return (
+    getBrandProfile(campaign.brand)?.perspective ||
+    "brand-native point of view, cinematic texture, clear emotional stakes, and repeatable visual language"
+  );
+}
+
+function buildAgentLaunchScript(campaign) {
+  return `Hidden cost: ${campaign.brand} is showing what happens when ${campaign.name} stays stuck in the old workflow. The shift is simple: name the friction, reveal the clearer path, and give the audience one next action they can trust.`;
+}
+
+function buildAgentLaunchPrompt(campaign) {
+  return `${getBrandPerspective(campaign)}, high-retention short-form launch candidate, clear before-and-after story, visible tension in the first frame, confident brand proof, clean lighting, platform-ready composition.`;
+}
+
+function getOrCreateLaunchScene(campaign) {
+  let scene = getSelectedLaunchScene(campaign);
+  if (scene) return scene;
+  scene = {
+    id: makeId(),
+    title: "Agent Launch Candidate",
+    script: buildAgentLaunchScript(campaign),
+    prompt: buildAgentLaunchPrompt(campaign),
+    compliance: isRegulatedBrand(campaign.brand) ? "Route final language through regulated-brand approval before publishing." : "",
+    status: "in-progress"
+  };
+  campaign.scenes.push(scene);
+  campaign.viralLaunch = createViralLaunchState(campaign.viralLaunch);
+  campaign.viralLaunch.selectedSceneId = scene.id;
+  return scene;
+}
+
+function strengthenLaunchHook(campaign) {
+  const scene = getOrCreateLaunchScene(campaign);
+  const current = String(scene.script || "").trim();
+  const hook = `Hidden cost: ${campaign.brand} is exposing the moment ${campaign.name} stops being a content idea and starts becoming a sharper audience action.`;
+  const rest = current.replace(/^[^.!?]+[.!?]?\s*/, "").trim();
+  scene.script = rest ? `${hook} ${rest}` : `${hook} ${buildAgentLaunchScript(campaign)}`;
+  scene.status = scene.status || "in-progress";
+  markAgentHandled(campaign, "hook", "Launch Agent strengthened the opening hook with tension and contrast.");
+}
+
+function ensureLaunchScript(campaign) {
+  const scene = getOrCreateLaunchScene(campaign);
+  if (!scene.script?.trim()) scene.script = buildAgentLaunchScript(campaign);
+  scene.status = scene.status || "in-progress";
+  markAgentHandled(campaign, "script", "Launch Agent drafted script text for the selected launch candidate.");
+}
+
+function ensureLaunchPrompt(campaign) {
+  const scene = getOrCreateLaunchScene(campaign);
+  if (!scene.prompt?.trim()) scene.prompt = buildAgentLaunchPrompt(campaign);
+  markAgentHandled(campaign, "prompt", "Launch Agent generated a cinematic visual prompt tied to the script.");
+}
+
+function queueAudioAgent(campaign) {
+  const scene = getOrCreateLaunchScene(campaign);
+  campaign.elevenLabs.voiceProfile = campaign.elevenLabs.voiceProfile || `${campaign.brand} launch narrator`;
+  campaign.elevenLabs.notes = [
+    campaign.elevenLabs.notes || "",
+    `Launch Agent queued ElevenLabs narration for "${scene.title}" using the selected scene script.`,
+    "Human must attach the generated audio URL before final publish."
+  ]
+    .filter(Boolean)
+    .join("\n");
+  queueAgentTask(campaign, "ElevenLabs Audio Agent", `Generate narration for launch candidate "${scene.title}" and return the audio URL.`);
+  markAgentHandled(campaign, "audio", "Launch Agent queued ElevenLabs audio generation. Attach the returned audio URL to clear the gate.");
+}
+
+function queueMediaAgent(campaign) {
+  const scene = getOrCreateLaunchScene(campaign);
+  campaign.remotion.compositionNotes = [
+    campaign.remotion.compositionNotes || "",
+    `Launch Agent queued Remotion/Higgsfield production for "${scene.title}" with audio-led timing and platform-ready pacing.`,
+    "Human must attach the final video or Remotion output URL before final publish."
+  ]
+    .filter(Boolean)
+    .join("\n");
+  queueAgentTask(campaign, "Remotion + Higgsfield Agent", `Produce the launch candidate media and return final/Remotion output URL for "${scene.title}".`);
+  markAgentHandled(campaign, "media", "Launch Agent queued media production. Attach final video or Remotion output URL to clear the gate.");
+}
+
+function draftCaptionPackage(campaign) {
+  const scene = getOrCreateLaunchScene(campaign);
+  const hook = getLaunchHookText(scene) || `${campaign.brand} turns attention into action.`;
+  campaign.publishing.caption =
+    campaign.publishing.caption ||
+    `${hook}\n\nThis is the moment to turn the idea into a publishable move. Watch the shift, then act on the clearer next step.`;
+  campaign.publishing.hashtags =
+    campaign.publishing.hashtags || "#OTASocialEngine #ContentEngine #AIMarketing #LaunchReady";
+  campaign.publishing.platformNotes = [
+    campaign.publishing.platformNotes || "",
+    "Launch Agent drafted the caption package from the selected hook. Review final wording before publishing."
+  ]
+    .filter(Boolean)
+    .join("\n");
+  markAgentHandled(campaign, "caption", "Launch Agent drafted caption, hashtags, and platform notes for the selected candidate.");
+}
+
+function readyCalendarSlot(campaign) {
+  if (!campaign.publishing.schedule.length) campaign.publishing.schedule = createSuggestedPublishingSchedule(campaign);
+  const slot = campaign.publishing.schedule[0];
+  slot.status = ["scheduled", "published"].includes(slot.status) ? slot.status : "ready";
+  slot.notes = slot.notes || "Launch Agent marked this as the primary manual launch slot.";
+  campaign.publishing.status = "manual-launch-slot-ready";
+  markAgentHandled(campaign, "calendar", "Launch Agent created or marked the primary calendar slot as Ready.");
+}
+
+function queueApprovalAgent(campaign) {
+  if (!isRegulatedBrand(campaign.brand)) {
+    markAgentHandled(campaign, "approval", "Launch Agent confirmed standard-brand manual review path is visible.");
+    return;
+  }
+  queueAgentTask(campaign, "Compliance Approval Agent", `Review regulated launch candidate for ${campaign.brand} before manual posting.`);
+  markAgentHandled(campaign, "approval", "Launch Agent queued regulated approval review. Human approval must complete before final publish.");
+}
+
+function applyAgentGate(gateId) {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  if (gateId === "hook") strengthenLaunchHook(campaign);
+  if (gateId === "script") ensureLaunchScript(campaign);
+  if (gateId === "prompt") ensureLaunchPrompt(campaign);
+  if (gateId === "audio") queueAudioAgent(campaign);
+  if (gateId === "media") queueMediaAgent(campaign);
+  if (gateId === "caption") draftCaptionPackage(campaign);
+  if (gateId === "calendar") readyCalendarSlot(campaign);
+  if (gateId === "approval") queueApprovalAgent(campaign);
+  addAgentActivity("Launch Agent", `Handled launch gate: ${gateId}.`, campaign.id);
+}
+
+function runLaunchAgent() {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  const readiness = getViralLaunchReadiness(campaign);
+  const openChecks = readiness.checks.filter((check) => !check.done);
+  if (!openChecks.length) {
+    showToast("All gates are clear");
+    return;
+  }
+  openChecks.forEach((check) => applyAgentGate(check.id));
+  const updatedReadiness = getViralLaunchReadiness(campaign);
+  campaign.viralLaunch = {
+    ...createViralLaunchState(campaign.viralLaunch),
+    selectedSceneId: updatedReadiness.scene?.id || campaign.viralLaunch?.selectedSceneId || "",
+    score: updatedReadiness.score,
+    status: updatedReadiness.status,
+    lastScoredAt: new Date().toISOString()
+  };
+  addAgentActivity("Launch Agent", `Ran agentic fixes across ${openChecks.length} open launch gates for ${campaign.name}.`, campaign.id);
+  saveState();
+  renderViralLaunchControl();
+  showToast("Launch Agent handled open gates");
+}
+
 function getSelectedLaunchScene(campaign) {
   const launch = campaign.viralLaunch || createViralLaunchState();
   const selected = campaign.scenes.find((scene) => scene.id === launch.selectedSceneId);
@@ -162,6 +344,7 @@ function getLaunchHookText(scene) {
 
 function getViralLaunchReadiness(campaign) {
   const scene = getSelectedLaunchScene(campaign);
+  const handledGates = campaign.viralLaunch?.agentHandledGates || {};
   const hook = getLaunchHookText(scene);
   const hasScript = Boolean(scene?.script?.trim());
   const hasPrompt = Boolean(scene?.prompt?.trim());
@@ -180,56 +363,68 @@ function getViralLaunchReadiness(campaign) {
 
   const checks = [
     {
+      id: "hook",
       label: "Hook opens with tension",
       detail: hookHasTension ? "Hook contains urgency, contrast, or a problem cue." : "Strengthen the opening tension or contrast.",
       done: hasScript && hookHasTension,
-      fixHref: "./index.html#scene-queue-section"
+      agentHandled: Boolean(handledGates.hook)
     },
     {
+      id: "script",
       label: "Script can travel to audio",
       detail: hasScript ? "Scene script is ready for voiceover context." : "Add script text to the selected scene.",
       done: hasScript,
-      fixHref: "./index.html#scene-queue-section"
+      agentHandled: Boolean(handledGates.script)
     },
     {
+      id: "prompt",
       label: "Visual prompt supports the story",
       detail: hasPrompt ? "Higgsfield prompt is available." : "Add a visual prompt tied to the script.",
       done: hasPrompt,
-      fixHref: "./index.html#scene-queue-section"
+      agentHandled: Boolean(handledGates.prompt)
     },
     {
+      id: "audio",
       label: "Audio or Remotion source exists",
-      detail: hasAudio ? "Voiceover/source audio is linked." : "Add ElevenLabs audio or Remotion source audio.",
+      detail: hasAudio
+        ? "Voiceover/source audio is linked."
+        : handledGates.audio?.detail || "Add ElevenLabs audio or Remotion source audio.",
       done: hasAudio,
-      fixHref: "./index.html#elevenlabs-audio-section"
+      agentHandled: Boolean(handledGates.audio)
     },
     {
+      id: "media",
       label: "Publishable media exists",
-      detail: hasMedia ? "Final or Remotion media is linked." : "Add final video or Remotion output URL.",
+      detail: hasMedia
+        ? "Final or Remotion media is linked."
+        : handledGates.media?.detail || "Add final video or Remotion output URL.",
       done: hasMedia,
-      fixHref: "./index.html#bunny-storage-section"
+      agentHandled: Boolean(handledGates.media)
     },
     {
+      id: "caption",
       label: "Caption package is ready",
       detail: hasCaption && hasHashtags ? "Caption and hashtags are ready." : "Add caption and hashtags before posting.",
       done: hasCaption && hasHashtags,
-      fixHref: "./index.html#publishing-package-section"
+      agentHandled: Boolean(handledGates.caption)
     },
     {
+      id: "calendar",
       label: "Calendar slot is ready",
       detail: hasReadySlot ? "At least one slot is ready, scheduled, or published." : "Mark one Publishing Calendar slot as Ready.",
       done: hasReadySlot,
-      fixHref: "./index.html#publishing-calendar-section"
+      agentHandled: Boolean(handledGates.calendar)
     },
     {
+      id: "approval",
       label: regulated ? "Regulated approvals are complete" : "Human review path is visible",
       detail: complianceReady
         ? regulated
           ? "Regulated guardrails and approvals are complete."
           : "Standard brand can move through manual launch review."
-        : "Hold launch until compliance guardrails and approval checks are complete.",
+        : handledGates.approval?.detail || "Hold launch until compliance guardrails and approval checks are complete.",
       done: complianceReady,
-      fixHref: "./index.html#approval-gate-section"
+      agentHandled: Boolean(handledGates.approval)
     }
   ];
 
@@ -335,6 +530,7 @@ function renderViralLaunchControl() {
     elements.viralLaunchStatus.className = "status-pill not-started";
     elements.viralLaunchStatus.textContent = "No campaign";
     elements.viralLaunchScoreboard.innerHTML = "";
+    elements.agenticLaunchSummary.innerHTML = "";
     elements.viralLaunchCandidate.innerHTML = `<option>No campaigns yet</option>`;
     elements.viralLaunchCandidate.disabled = true;
     elements.viralLaunchCandidatePreview.innerHTML = `<p class="meta-row">Open the Command Center and create a campaign before using Viral Launch Control.</p>`;
@@ -368,6 +564,19 @@ function renderViralLaunchControl() {
     )
     .join("");
 
+  const handledCount = readiness.checks.filter((check) => check.agentHandled && !check.done).length;
+  elements.agenticLaunchSummary.innerHTML = `
+    <article>
+      <strong>Launch Readiness Agent</strong>
+      <p>${
+        handledCount
+          ? `${handledCount} open gates have already been handled agentically and are waiting on returned platform outputs or human approval.`
+          : "Every open gate can be handled from this page. Use Run Launch Agent or run a single gate agent below."
+      }</p>
+      ${campaign.viralLaunch?.agentSummary ? `<small>${escapeHtml(campaign.viralLaunch.agentSummary)}</small>` : ""}
+    </article>
+  `;
+
   if (!campaign.scenes.length) {
     elements.viralLaunchCandidate.innerHTML = `<option>No scenes yet</option>`;
     elements.viralLaunchCandidate.disabled = true;
@@ -391,12 +600,16 @@ function renderViralLaunchControl() {
   elements.viralLaunchChecklist.innerHTML = readiness.checks
     .map(
       (check) => `
-        <article class="viral-launch-check ${check.done ? "ready" : ""}">
-          <span>${check.done ? "Ready" : "Open"}</span>
+        <article class="viral-launch-check ${check.done ? "ready" : check.agentHandled ? "agent-queued" : ""}">
+          <span>${check.done ? "Ready" : check.agentHandled ? "Agent queued" : "Open"}</span>
           <div>
             <strong>${escapeHtml(check.label)}</strong>
             <small>${escapeHtml(check.detail)}</small>
-            ${check.done ? "" : `<a href="${escapeHtml(check.fixHref)}">Fix this gate</a>`}
+            ${
+              check.done
+                ? ""
+                : `<button class="mini-button agent-gate-button" type="button" data-agent-gate="${escapeHtml(check.id)}">${check.agentHandled ? "Run Agent Again" : "Run Gate Agent"}</button>`
+            }
           </div>
         </article>
       `
@@ -519,7 +732,28 @@ elements.viralLaunchCandidate.addEventListener("change", (event) => {
   renderViralLaunchControl();
 });
 
+elements.viralLaunchChecklist.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-agent-gate]");
+  if (!button) return;
+  applyAgentGate(button.dataset.agentGate);
+  const campaign = getSelectedCampaign();
+  if (campaign) {
+    const readiness = getViralLaunchReadiness(campaign);
+    campaign.viralLaunch = {
+      ...createViralLaunchState(campaign.viralLaunch),
+      selectedSceneId: readiness.scene?.id || campaign.viralLaunch?.selectedSceneId || "",
+      score: readiness.score,
+      status: readiness.status,
+      lastScoredAt: new Date().toISOString()
+    };
+  }
+  saveState();
+  renderViralLaunchControl();
+  showToast("Gate Agent handled this item");
+});
+
 elements.scoreViralLaunch.addEventListener("click", scoreViralLaunch);
+elements.runLaunchAgent.addEventListener("click", runLaunchAgent);
 elements.markManualLaunchReady.addEventListener("click", markManualLaunchReady);
 elements.copyViralLaunchPack.addEventListener("click", () => {
   const campaign = getSelectedCampaign();
