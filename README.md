@@ -22,6 +22,7 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Outcome-first workflow labels with tool names preserved as subtitles
 - Stage owners, due dates, status, notes, and checklists
 - Readiness breakdown and next-action cue for creator adoption
+- Creator Preview Studio for script, video, audio, thumbnail, and platform-format review
 - Active-brand dropdown with an `Other` path for new brands
 - Editable brand profile management
 - Brand-tied creative direction drafts that creators can edit or regenerate

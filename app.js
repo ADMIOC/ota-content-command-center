@@ -225,6 +225,7 @@ const commandSections = [
   { label: "Overview", target: "#campaign-overview", cue: "brand, owner, readiness" },
   { label: "Brand", target: "#active-brand-profile", cue: "voice and guardrails" },
   { label: "Direction", target: "#creative-direction", cue: "active creative version" },
+  { label: "Preview", target: "#creator-preview-studio", cue: "script and media view" },
   { label: "Reviews", target: "#reviewPanel", cue: "improvement requests" },
   { label: "Current Stage", target: "#workflow-stage-panel", cue: "checklist and owner" },
   { label: "Scenes", target: "#scene-queue-section", cue: "scripts and prompts" },
@@ -297,6 +298,12 @@ const elements = {
   readinessBreakdown: document.querySelector("#readinessBreakdown"),
   nextActionCue: document.querySelector("#nextActionCue"),
   commandSectionNav: document.querySelector("#commandSectionNav"),
+  previewReadinessStatus: document.querySelector("#previewReadinessStatus"),
+  previewSignalStrip: document.querySelector("#previewSignalStrip"),
+  scriptPreviewStatus: document.querySelector("#scriptPreviewStatus"),
+  scriptPreview: document.querySelector("#scriptPreview"),
+  mediaPreview: document.querySelector("#mediaPreview"),
+  platformPreview: document.querySelector("#platformPreview"),
   brandProfileSummary: document.querySelector("#brandProfileSummary"),
   creativeDirectionVersions: document.querySelector("#creativeDirectionVersions"),
   regenerateCampaignDirection: document.querySelector("#regenerateCampaignDirection"),
@@ -1123,6 +1130,97 @@ function getNextActionCue(campaign) {
     : `Next move: move ${template.name} to Approved or add the missing owner, date, or note.`;
 }
 
+function getSafePreviewUrl(url) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+  try {
+    const parsed = new URL(value, window.location.href);
+    return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function getPreviewAssets(campaign) {
+  return {
+    videoUrl: getSafePreviewUrl(campaign.assets.video || campaign.remotion.outputUrl || campaign.assets.remotionOutput),
+    audioUrl: getSafePreviewUrl(campaign.elevenLabs.voiceoverUrl || campaign.assets.voiceover || campaign.remotion.sourceAudioUrl),
+    thumbnailUrl: getSafePreviewUrl(campaign.assets.thumbnail),
+    scriptUrl: getSafePreviewUrl(campaign.elevenLabs.scriptUrl || campaign.assets.voiceScript),
+    captionDocUrl: getSafePreviewUrl(campaign.assets.captionDoc)
+  };
+}
+
+function getScriptPreviewScenes(campaign) {
+  return campaign.scenes.filter((scene) => scene.script || scene.prompt).slice(0, 4);
+}
+
+function getPreviewSignals(campaign) {
+  const assets = getPreviewAssets(campaign);
+  const scriptedScenes = campaign.scenes.filter((scene) => scene.script).length;
+  return [
+    {
+      label: "Script",
+      ready: scriptedScenes > 0 || Boolean(assets.scriptUrl),
+      detail: scriptedScenes ? `${scriptedScenes} scene scripts` : assets.scriptUrl ? "Script URL linked" : "No script yet"
+    },
+    {
+      label: "Audio",
+      ready: Boolean(assets.audioUrl),
+      detail: assets.audioUrl ? "Playable/linkable audio" : "ElevenLabs audio pending"
+    },
+    {
+      label: "Video",
+      ready: Boolean(assets.videoUrl),
+      detail: assets.videoUrl ? "Video reference linked" : "Final or Remotion video pending"
+    },
+    {
+      label: "Thumbnail",
+      ready: Boolean(assets.thumbnailUrl),
+      detail: assets.thumbnailUrl ? "Thumbnail linked" : "Thumbnail pending"
+    },
+    {
+      label: "Caption",
+      ready: Boolean(campaign.publishing.caption),
+      detail: campaign.publishing.caption ? "Caption draft visible" : "Caption draft pending"
+    }
+  ];
+}
+
+function getPlatformPreviewProfiles(campaign) {
+  const platform = campaign.platform || "Multi-platform";
+  const profiles = {
+    TikTok: {
+      name: "TikTok",
+      className: "vertical",
+      frame: "9:16 short-form frame",
+      note: "Lead with motion, hook text, fast caption beats, and a single visual promise."
+    },
+    "Instagram Reels": {
+      name: "Instagram Reels",
+      className: "vertical",
+      frame: "9:16 reel frame",
+      note: "Keep the first second visually clear and make thumbnail text readable in-feed."
+    },
+    "YouTube Shorts": {
+      name: "YouTube Shorts",
+      className: "vertical",
+      frame: "9:16 shorts frame",
+      note: "Make the voiceover arc complete without relying on a caption-only CTA."
+    },
+    LinkedIn: {
+      name: "LinkedIn",
+      className: "feed",
+      frame: "Feed video/card frame",
+      note: "Open with operational authority, legible captions, and a professional thumbnail."
+    }
+  };
+  if (platform === "Multi-platform") {
+    return [profiles.TikTok, profiles["Instagram Reels"], profiles["YouTube Shorts"], profiles.LinkedIn];
+  }
+  return [profiles[platform] || { name: platform, className: "vertical", frame: "Platform preview", note: "Confirm format, caption, thumbnail, and CTA before publishing." }];
+}
+
 function getBrandTone(profile) {
   return profile?.voice || profile?.perspective || "brand-native, clear, and useful";
 }
@@ -1377,6 +1475,7 @@ function renderCampaign() {
   renderHandoff(campaign);
   renderBrandProfileSummary(campaign);
   renderCreativeDirectionVersions(campaign);
+  renderPreviewStudio(campaign);
   renderCoPilot(campaign);
   renderAgentOperations(campaign);
   renderCommandSectionNav(campaign);
@@ -1393,6 +1492,137 @@ function renderCommandSectionNav(campaign) {
         </button>
       `;
     })
+    .join("");
+}
+
+function renderPreviewStudio(campaign) {
+  const signals = getPreviewSignals(campaign);
+  const readyCount = signals.filter((signal) => signal.ready).length;
+  const statusClass = readyCount >= 4 ? "approved" : readyCount >= 2 ? "in-progress" : "not-started";
+  elements.previewReadinessStatus.className = `status-pill ${statusClass}`;
+  elements.previewReadinessStatus.textContent =
+    readyCount >= 4 ? "Preview ready" : readyCount >= 2 ? `${readyCount}/5 preview inputs` : "Preview pending";
+
+  elements.previewSignalStrip.innerHTML = signals
+    .map(
+      (signal) => `
+        <article class="${signal.ready ? "ready" : ""}">
+          <strong>${escapeHtml(signal.label)}</strong>
+          <span>${escapeHtml(signal.detail)}</span>
+        </article>
+      `
+    )
+    .join("");
+
+  renderScriptPreview(campaign);
+  renderMediaPreview(campaign);
+  renderPlatformPreview(campaign);
+}
+
+function renderScriptPreview(campaign) {
+  const scenes = getScriptPreviewScenes(campaign);
+  const scriptedCount = campaign.scenes.filter((scene) => scene.script).length;
+  elements.scriptPreviewStatus.className = `status-pill ${scriptedCount ? "in-progress" : "not-started"}`;
+  elements.scriptPreviewStatus.textContent = scriptedCount ? `${scriptedCount} scripted` : "Draft";
+
+  if (!scenes.length) {
+    elements.scriptPreview.innerHTML = `
+      <p class="empty-preview">No scene scripts yet. Use Scene Queue or the OTA Co-Pilot to draft the first audio-led scene.</p>
+    `;
+    return;
+  }
+
+  elements.scriptPreview.innerHTML = scenes
+    .map(
+      (scene, index) => `
+        <article class="script-preview-scene">
+          <header>
+            <strong>${String(index + 1).padStart(2, "0")} ${escapeHtml(scene.title || "Untitled scene")}</strong>
+            <span class="status-pill ${scene.status || "not-started"}">${escapeHtml(formatStatus(scene.status || "not-started"))}</span>
+          </header>
+          ${scene.script ? `<p>${escapeHtml(scene.script)}</p>` : `<p class="empty-preview">Script missing. Prompt exists, but ElevenLabs needs voiceover text.</p>`}
+          ${scene.prompt ? `<small>${escapeHtml(scene.prompt)}</small>` : ""}
+        </article>
+      `
+    )
+    .join("");
+}
+
+function renderMediaPreview(campaign) {
+  const assets = getPreviewAssets(campaign);
+  const videoMarkup = assets.videoUrl
+    ? `
+      <figure class="media-frame">
+        <video controls preload="metadata" src="${escapeHtml(assets.videoUrl)}"></video>
+        <figcaption>Video reference <a href="${escapeHtml(assets.videoUrl)}" target="_blank" rel="noreferrer">Open source</a></figcaption>
+      </figure>
+    `
+    : `
+      <figure class="media-frame empty-media">
+        <div>Video pending</div>
+        <figcaption>Add final video, Remotion output, or Bunny video URL.</figcaption>
+      </figure>
+    `;
+
+  const audioMarkup = assets.audioUrl
+    ? `
+      <div class="audio-preview">
+        <strong>Audio preview</strong>
+        <audio controls src="${escapeHtml(assets.audioUrl)}"></audio>
+        <a href="${escapeHtml(assets.audioUrl)}" target="_blank" rel="noreferrer">Open audio source</a>
+      </div>
+    `
+    : `
+      <div class="audio-preview empty-preview">
+        <strong>Audio pending</strong>
+        <span>Add ElevenLabs audio or source audio URL.</span>
+      </div>
+    `;
+
+  const thumbnailMarkup = assets.thumbnailUrl
+    ? `
+      <figure class="thumbnail-preview">
+        <img src="${escapeHtml(assets.thumbnailUrl)}" alt="Campaign thumbnail preview" loading="lazy" />
+        <figcaption>Thumbnail reference <a href="${escapeHtml(assets.thumbnailUrl)}" target="_blank" rel="noreferrer">Open image</a></figcaption>
+      </figure>
+    `
+    : `
+      <figure class="thumbnail-preview empty-media">
+        <div>Thumbnail pending</div>
+        <figcaption>Add thumbnail URL to inspect feed readability.</figcaption>
+      </figure>
+    `;
+
+  elements.mediaPreview.innerHTML = `${videoMarkup}${audioMarkup}${thumbnailMarkup}`;
+}
+
+function renderPlatformPreview(campaign) {
+  const assets = getPreviewAssets(campaign);
+  const profiles = getPlatformPreviewProfiles(campaign);
+  const caption = campaign.publishing.caption || "Caption draft pending. Draft the hook, value, and CTA before publishing.";
+  const hashtags = campaign.publishing.hashtags || "#HashtagsPending";
+
+  elements.platformPreview.innerHTML = profiles
+    .map(
+      (profile) => `
+        <article class="platform-preview-card ${profile.className}">
+          <div class="platform-frame">
+            ${
+              assets.thumbnailUrl
+                ? `<img src="${escapeHtml(assets.thumbnailUrl)}" alt="${escapeHtml(profile.name)} thumbnail preview" loading="lazy" />`
+                : `<div class="platform-frame-empty">${escapeHtml(profile.frame)}</div>`
+            }
+          </div>
+          <div class="platform-preview-copy">
+            <strong>${escapeHtml(profile.name)}</strong>
+            <small>${escapeHtml(profile.frame)}</small>
+            <p>${escapeHtml(caption)}</p>
+            <span>${escapeHtml(hashtags)}</span>
+            <em>${escapeHtml(profile.note)}</em>
+          </div>
+        </article>
+      `
+    )
     .join("");
 }
 
@@ -2826,6 +3056,7 @@ function handleCommandCenterHash() {
     "#brand-profile-manager": { open: () => openBrandDialog(getSelectedCampaign()?.brand), selector: "#brandDialog" },
     "#launch-workstream": { open: openCampaignDialog, selector: "#campaignDialog" },
     "#creative-direction": { selector: "#creative-direction" },
+    "#creator-preview-studio": { selector: "#creator-preview-studio" },
     "#ota-copilot": { selector: "#ota-copilot" },
     "#review-lane": { selector: "#reviewPanel" },
     "#reviewPanel": { selector: "#reviewPanel" },

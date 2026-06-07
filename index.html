@@ -83,6 +83,48 @@
 
             <nav id="commandSectionNav" class="command-section-nav" aria-label="Command Center sections"></nav>
 
+            <section id="creator-preview-studio" class="panel preview-studio">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Creator confidence</p>
+                  <h3>Preview Studio</h3>
+                  <p class="panel-note">Review scripts, media references, thumbnail state, and platform framing before production handoff.</p>
+                </div>
+                <span id="previewReadinessStatus" class="status-pill not-started">Preview pending</span>
+              </div>
+              <div id="previewSignalStrip" class="preview-signal-strip" aria-label="Preview readiness"></div>
+              <div class="preview-grid">
+                <article class="preview-card script-preview-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Script</p>
+                      <h4>Voiceover Script Preview</h4>
+                    </div>
+                    <span id="scriptPreviewStatus" class="status-pill not-started">Draft</span>
+                  </div>
+                  <div id="scriptPreview" class="script-preview"></div>
+                </article>
+                <article class="preview-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Media</p>
+                      <h4>Video, Audio, and Thumbnail</h4>
+                    </div>
+                  </div>
+                  <div id="mediaPreview" class="media-preview"></div>
+                </article>
+                <article class="preview-card">
+                  <div class="panel-heading tight">
+                    <div>
+                      <p class="eyebrow">Platform</p>
+                      <h4>Format Preview</h4>
+                    </div>
+                  </div>
+                  <div id="platformPreview" class="platform-preview"></div>
+                </article>
+              </div>
+            </section>
+
             <section class="handoff-grid">
               <article id="active-brand-profile" class="panel">
                 <div class="panel-heading tight">
