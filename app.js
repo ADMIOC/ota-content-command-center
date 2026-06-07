@@ -300,7 +300,6 @@ const commandSections = [
   { label: "Storage", target: "#bunny-storage-section", cue: "asset source of truth" },
   { label: "Publishing", target: "#publishing-package-section", cue: "caption package" },
   { label: "Calendar", target: "#publishing-calendar-section", cue: "schedule slots" },
-  { label: "Launch", target: "#viral-launch-control-section", cue: "post readiness" },
   { label: "Agent Ops", target: "#agent-operations-layer", cue: "live execution" }
 ];
 
@@ -1735,7 +1734,6 @@ function renderCampaign() {
   renderApprovals(campaign);
   renderHandoff(campaign);
   renderPublishingCalendar(campaign);
-  renderViralLaunchControl(campaign);
   renderCollaborationHub(campaign);
   renderBrandProfileSummary(campaign);
   renderCreativeDirectionVersions(campaign);
@@ -3950,27 +3948,6 @@ elements.publishingScheduleList.addEventListener("click", (event) => {
   }
 });
 
-elements.viralLaunchCandidate.addEventListener("change", (event) => {
-  const campaign = getSelectedCampaign();
-  if (!campaign) return;
-  campaign.viralLaunch = {
-    ...createViralLaunchState(campaign.viralLaunch),
-    selectedSceneId: event.target.value,
-    status: campaign.viralLaunch?.status === "manual-ready" ? "draft" : campaign.viralLaunch?.status || "draft"
-  };
-  render();
-});
-
-elements.scoreViralLaunch.addEventListener("click", scoreViralLaunch);
-elements.markManualLaunchReady.addEventListener("click", markManualLaunchReady);
-elements.copyViralLaunchPack.addEventListener("click", () => {
-  const campaign = getSelectedCampaign();
-  if (!campaign) return;
-  copyText(JSON.stringify(getViralLaunchPack(campaign), null, 2), "Viral launch pack");
-  addAgentActivity("Viral launch", `Copied manual posting packet for ${campaign.name}.`, campaign.id);
-  render();
-});
-
 elements.collaborationThreadList.addEventListener("click", (event) => {
   const focusButton = event.target.closest("[data-thread-focus]");
   const toggleButton = event.target.closest("[data-thread-toggle]");
@@ -4091,7 +4068,7 @@ function handleCommandCenterHash() {
     "#bunny-storage-section": { selector: "#bunny-storage-section" },
     "#publishing-package-section": { selector: "#publishing-package-section" },
     "#publishing-calendar-section": { selector: "#publishing-calendar-section" },
-    "#viral-launch-control-section": { selector: "#viral-launch-control-section" },
+    "#viral-launch-control-section": { open: () => window.location.assign("./viral-launch-control.html"), selector: "#command-topbar" },
     "#activity-log-section": { selector: "#activity-log-section" },
     "#agent-operations-layer": { selector: "#agent-operations-layer" }
   };
