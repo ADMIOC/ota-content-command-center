@@ -234,6 +234,57 @@ const reviewSectionTargets = {
   "publishing-calendar": "#publishing-calendar-section"
 };
 
+const integrationBoundaries = [
+  {
+    id: "elevenlabs",
+    name: "ElevenLabs",
+    endpoint: "POST /api/elevenlabs/generate-audio",
+    secret: "ELEVENLABS_API_KEY",
+    approval: "Compliance approval before regulated-brand audio generation.",
+    owner: "Audio Agent"
+  },
+  {
+    id: "remotion",
+    name: "Codex + Remotion",
+    endpoint: "POST /api/remotion/render",
+    secret: "REMOTION_RENDER_TOKEN",
+    approval: "Human review before Higgsfield handoff.",
+    owner: "Remotion Agent"
+  },
+  {
+    id: "bunny",
+    name: "Bunny Storage",
+    endpoint: "POST /api/bunny/upload-manifest",
+    secret: "BUNNY_ACCESS_KEY",
+    approval: "Final package review before publishing handoff.",
+    owner: "Storage Agent"
+  },
+  {
+    id: "blotato",
+    name: "Blotato",
+    endpoint: "POST /api/blotato/create-draft",
+    secret: "BLOTATO_API_KEY",
+    approval: "Explicit human approval before publishing or scheduling.",
+    owner: "Publishing Agent"
+  },
+  {
+    id: "descript",
+    name: "Descript",
+    endpoint: "POST /api/descript/create-edit",
+    secret: "DESCRIPT_API_KEY",
+    approval: "Human approval before enhanced assets enter publishing.",
+    owner: "Descript Editorial Agent"
+  },
+  {
+    id: "restream",
+    name: "Restream",
+    endpoint: "POST /api/restream/create-broadcast",
+    secret: "RESTREAM_API_KEY",
+    approval: "Explicit human approval before going live.",
+    owner: "Live Broadcast Agent"
+  }
+];
+
 const commandSections = [
   { label: "Overview", target: "#campaign-overview", cue: "brand, owner, readiness" },
   { label: "Brand", target: "#active-brand-profile", cue: "voice and guardrails" },
@@ -409,7 +460,9 @@ const elements = {
   restreamOps: document.querySelector("#restreamOps"),
   descriptOps: document.querySelector("#descriptOps"),
   agentApprovalConsole: document.querySelector("#agentApprovalConsole"),
+  integrationBoundaryConsole: document.querySelector("#integrationBoundaryConsole"),
   viralLiftScore: document.querySelector("#viralLiftScore"),
+  copyIntegrationManifest: document.querySelector("#copyIntegrationManifest"),
   copyActivityLog: document.querySelector("#copyActivityLog"),
   toast: document.querySelector("#toast")
 };
@@ -1921,6 +1974,95 @@ function getSignalStatus(score) {
   return "not-started";
 }
 
+function getIntegrationBoundaryState(campaign, boundary) {
+  const scenesScripted = campaign.scenes?.some((scene) => scene.script);
+  const hasApprovedMedia = Boolean(campaign.assets?.video);
+  const hasCaptionPackage = Boolean(campaign.publishing?.caption);
+  const hasScheduleReady = campaign.publishing?.schedule?.some((slot) => ["ready", "scheduled"].includes(slot.status));
+  const hasHumanApproval = campaign.approvals?.every((check) => check.done);
+  const hasAudioSource = Boolean(campaign.elevenLabs?.voiceoverUrl || campaign.assets?.voiceover);
+  const hasRemotionOutput = Boolean(campaign.remotion?.outputUrl || campaign.assets?.remotionOutput);
+
+  const states = {
+    elevenlabs: {
+      ready: scenesScripted,
+      status: scenesScripted ? "proxy-ready" : "needs-script",
+      detail: scenesScripted
+        ? "Scene scripts are ready for secure server-side audio generation."
+        : "Add approved scene scripts before calling the audio service."
+    },
+    remotion: {
+      ready: hasAudioSource,
+      status: hasAudioSource ? "proxy-ready" : "needs-audio",
+      detail: hasAudioSource
+        ? "Audio source is available for a server-side Remotion render job."
+        : "Add ElevenLabs audio before rendering the Remotion package."
+    },
+    bunny: {
+      ready: Boolean(campaign.assets?.bunnyFolder),
+      status: campaign.assets?.bunnyFolder ? "manifest-ready" : "needs-folder",
+      detail: campaign.assets?.bunnyFolder
+        ? "Bunny folder path is present; upload service can accept the manifest."
+        : "Confirm a Bunny folder before upload automation."
+    },
+    blotato: {
+      ready: hasApprovedMedia && hasCaptionPackage && hasScheduleReady,
+      status: hasApprovedMedia && hasCaptionPackage && hasScheduleReady ? "draft-ready" : "needs-package",
+      detail:
+        hasApprovedMedia && hasCaptionPackage && hasScheduleReady
+          ? "Media, caption, and schedule state are ready for draft creation."
+          : "Complete approved media, caption, and ready calendar slot before draft creation."
+    },
+    descript: {
+      ready: hasApprovedMedia || hasRemotionOutput,
+      status: hasApprovedMedia || hasRemotionOutput ? "edit-ready" : "needs-media",
+      detail:
+        hasApprovedMedia || hasRemotionOutput
+          ? "Source media is available for Descript edit handoff."
+          : "Add final media or Remotion output before Descript handoff."
+    },
+    restream: {
+      ready: hasHumanApproval && hasCaptionPackage,
+      status: hasHumanApproval && hasCaptionPackage ? "broadcast-ready" : "needs-approval",
+      detail:
+        hasHumanApproval && hasCaptionPackage
+          ? "Approval and publishing context are ready for live broadcast setup."
+          : "Hold live broadcast setup until approvals and publishing notes are complete."
+    }
+  };
+
+  return states[boundary.id] || { ready: false, status: "not-started", detail: "Boundary state pending." };
+}
+
+function getIntegrationReadiness(campaign) {
+  return integrationBoundaries.map((boundary) => ({
+    ...boundary,
+    ...getIntegrationBoundaryState(campaign, boundary)
+  }));
+}
+
+function getIntegrationBoundaryManifest(campaign) {
+  return {
+    campaign: campaign.name,
+    brand: campaign.brand,
+    securityModel:
+      "Static client displays state only. API keys, service tokens, webhook secrets, and storage credentials stay server-side.",
+    sourceDocument: "docs/backend-integration-boundaries.md",
+    services: getIntegrationReadiness(campaign).map((service) => ({
+      service: service.name,
+      owner: service.owner,
+      endpoint: service.endpoint,
+      requiredSecret: service.secret,
+      clientSecretPolicy: "Never expose in static client",
+      approvalGate: service.approval,
+      readinessStatus: service.status,
+      readinessDetail: service.detail
+    })),
+    activityContract:
+      "Every automated action must write actor, action, campaign, input reference, output reference, timestamp, and approval state."
+  };
+}
+
 function renderAgentOperations(campaign) {
   if (!elements.agentOpsMetrics) return;
   const ops = campaign.agentOps || createAgentOps(campaign);
@@ -1929,6 +2071,7 @@ function renderAgentOperations(campaign) {
   const repurposeCount = ops.repurposeCandidates.length;
   const clipCount = ops.restream.clipCandidates.length;
   const approvalCount = ops.approvals.filter((approval) => approval.status !== "approved").length;
+  const integrationReadyCount = getIntegrationReadiness(campaign).filter((service) => service.ready).length;
 
   elements.viralLiftScore.className = `status-pill ${getSignalStatus(viralLift)}`;
   elements.viralLiftScore.textContent = `${viralLift} lift`;
@@ -1953,6 +2096,10 @@ function renderAgentOperations(campaign) {
       <strong>${approvalCount}</strong>
       <span>approval holds</span>
     </article>
+    <article>
+      <strong>${integrationReadyCount}/${integrationBoundaries.length}</strong>
+      <span>API boundaries ready</span>
+    </article>
   `;
 
   renderAgentTaskQueue(ops.tasks);
@@ -1961,6 +2108,7 @@ function renderAgentOperations(campaign) {
   renderRestreamOps(ops.restream);
   renderDescriptOps(ops.descript);
   renderAgentApprovalConsole(ops.approvals);
+  renderIntegrationBoundaries(campaign);
 }
 
 function renderAgentTaskQueue(tasks) {
@@ -2058,6 +2206,21 @@ function renderAgentApprovalConsole(approvals) {
         <span class="status-pill ${approval.status === "approved" ? "approved" : "blocked"}">${escapeHtml(formatStatus(approval.status))}</span>
       </header>
       <small>${new Date(approval.createdAt).toLocaleString()}</small>
+    </article>
+  `);
+}
+
+function renderIntegrationBoundaries(campaign) {
+  const services = getIntegrationReadiness(campaign);
+  renderAgentOpsList(elements.integrationBoundaryConsole, services, (service) => `
+    <article class="agent-ops-item integration-boundary-item">
+      <header>
+        <strong>${escapeHtml(service.name)}</strong>
+        <span class="status-pill ${service.ready ? "approved" : "needs-review"}">${escapeHtml(formatStatus(service.status))}</span>
+      </header>
+      <p>${escapeHtml(service.detail)}</p>
+      <small>${escapeHtml(service.endpoint)} - ${escapeHtml(service.secret)} stays server-side</small>
+      <small>${escapeHtml(service.approval)}</small>
     </article>
   `);
 }
@@ -2871,6 +3034,7 @@ function getManifest(campaign) {
     scenes: campaign.scenes,
     approvals: campaign.approvals,
     agentOps: campaign.agentOps,
+    integrationBoundaries: getIntegrationBoundaryManifest(campaign),
     collaborationThreads: campaign.collaborationThreads || [],
     reviewRequests: getCampaignReviewRequests(campaign),
     agentActivity: (state.agentActivity || []).filter((item) => !item.campaignId || item.campaignId === campaign.id),
@@ -3508,6 +3672,14 @@ document.querySelector("#copyBunnyManifest").addEventListener("click", () => {
   const campaign = getSelectedCampaign();
   if (!campaign) return;
   copyText(JSON.stringify(getManifest(campaign), null, 2), "Bunny manifest");
+});
+
+elements.copyIntegrationManifest.addEventListener("click", () => {
+  const campaign = getSelectedCampaign();
+  if (!campaign) return;
+  copyText(JSON.stringify(getIntegrationBoundaryManifest(campaign), null, 2), "Integration boundary manifest");
+  addAgentActivity("Integration boundary", `Copied secure API boundary plan for ${campaign.name}.`, campaign.id);
+  render();
 });
 
 elements.copyActivityLog.addEventListener("click", () => {

@@ -31,6 +31,7 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Scene queue with video scripts, Higgsfield prompts, and compliance notes
 - Live OTA Co-Pilot guidance for each campaign build section and dialog surface
 - Agent Operations Layer with task queue, performance intelligence, repurpose candidates, Restream live ops, Descript enhancement, and approval console
+- Secure Integration Boundary Console for server-side ElevenLabs, Remotion, Bunny, Blotato, Descript, and Restream API readiness
 - Agent activity log
 - ElevenLabs script/audio tracking for the active `agentic@ownthealgo.com` account
 - Codex + Remotion handoff tracking for the output Higgsfield Studio ingests

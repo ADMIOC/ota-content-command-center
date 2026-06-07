@@ -1448,7 +1448,7 @@ textarea {
 
 .agent-ops-metrics {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 18px;
 }
@@ -1492,6 +1492,22 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
+}
+
+.integration-boundary-card {
+  grid-column: 1 / -1;
+}
+
+.integration-boundary-card .agent-ops-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.integration-boundary-item {
+  background: linear-gradient(180deg, #ffffff, var(--paper));
+}
+
+.integration-boundary-item small + small {
+  margin-top: -2px;
 }
 
 .agent-ops-list {
@@ -1742,6 +1758,10 @@ textarea {
 
   .preview-signal-strip,
   .agent-ops-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .integration-boundary-card .agent-ops-list {
     grid-template-columns: 1fr;
   }
 

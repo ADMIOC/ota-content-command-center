@@ -175,3 +175,4 @@ GET /api/campaigns/:id/manifest
 - Store activity events in the production database before returning success.
 - Return retryable statuses for long-running jobs instead of blocking the UI.
 - Design every endpoint so the static app can safely call it without ever seeing secrets.
+- Use the Command Center Integration Boundary Console and copied integration manifest as the front-end contract for initial server implementation.
