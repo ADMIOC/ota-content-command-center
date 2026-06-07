@@ -3,8 +3,10 @@ const githubRepoFullName = "ADMIOC/ota-content-command-center";
 
 const stageTemplates = [
   {
-    name: "Campaign setup and creative direction",
+    name: "Campaign Setup",
     shortName: "Setup",
+    toolName: "Creative Direction",
+    filterName: "01 Setup - Campaign Setup",
     checklist: [
       "Active brand and campaign name confirmed",
       "Agentic creative direction generated and reviewed",
@@ -15,8 +17,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Scene planning and compliance guardrails",
+    name: "Scene Planning",
     shortName: "Scenes",
+    toolName: "Scripts, prompts, and guardrails",
+    filterName: "02 Scenes - Scene Planning",
     checklist: [
       "Scene list drafted",
       "Each scene has a Higgsfield prompt",
@@ -27,8 +31,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "ElevenLabs script and audio tracks",
-    shortName: "ElevenLabs",
+    name: "Script + Audio Production",
+    shortName: "Audio",
+    toolName: "ElevenLabs",
+    filterName: "03 Audio - ElevenLabs",
     checklist: [
       "ElevenLabs account confirmed",
       "Voice profile selected",
@@ -38,8 +44,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Codex + Remotion assembly pass",
-    shortName: "Remotion",
+    name: "Timed Video Assembly",
+    shortName: "Assembly Input",
+    toolName: "Codex + Remotion",
+    filterName: "04 Assembly Input - Codex + Remotion",
     checklist: [
       "ElevenLabs script and audio tracks imported",
       "Remotion composition generated",
@@ -49,8 +57,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Higgsfield Studio generation",
-    shortName: "Higgsfield",
+    name: "Visual Generation",
+    shortName: "Visuals",
+    toolName: "Higgsfield Studio",
+    filterName: "05 Visuals - Higgsfield Studio",
     checklist: [
       "Approved Codex + Remotion output imported",
       "Generation files created",
@@ -60,8 +70,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Human QA and approvals",
+    name: "Quality Review",
     shortName: "QA",
+    toolName: "Human QA and compliance",
+    filterName: "06 QA - Quality Review",
     checklist: [
       "Reviewer assigned",
       "Visual quality approved",
@@ -72,8 +84,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Final video assembly",
-    shortName: "Assembly",
+    name: "Final Assembly",
+    shortName: "Final Edit",
+    toolName: "Render, audio, and thumbnail",
+    filterName: "07 Final Edit - Assembly",
     checklist: [
       "Final edit assembled",
       "Audio levels checked",
@@ -83,8 +97,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Caption, hashtag, and platform package prep",
+    name: "Publishing Package",
     shortName: "Package",
+    toolName: "Caption, hashtags, and platform notes",
+    filterName: "08 Package - Publishing Prep",
     checklist: [
       "Caption written",
       "Hashtags approved",
@@ -93,8 +109,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Storage handoff",
-    shortName: "Bunny",
+    name: "Asset Storage",
+    shortName: "Storage",
+    toolName: "Bunny CDN",
+    filterName: "09 Storage - Bunny CDN",
     checklist: [
       "Bunny folder path confirmed",
       "Final video URL added",
@@ -104,8 +122,10 @@ const stageTemplates = [
     ]
   },
   {
-    name: "Publishing handoff through Blotato",
-    shortName: "Blotato",
+    name: "Social Publishing",
+    shortName: "Publish",
+    toolName: "Blotato",
+    filterName: "10 Publish - Blotato",
     checklist: [
       "Approved media URL present",
       "Caption package ready",
@@ -201,6 +221,20 @@ const reviewSections = [
   { id: "publishing-package", name: "Publishing Package" }
 ];
 
+const commandSections = [
+  { label: "Overview", target: "#campaign-overview", cue: "brand, owner, readiness" },
+  { label: "Brand", target: "#active-brand-profile", cue: "voice and guardrails" },
+  { label: "Direction", target: "#creative-direction", cue: "active creative version" },
+  { label: "Reviews", target: "#reviewPanel", cue: "improvement requests" },
+  { label: "Current Stage", target: "#workflow-stage-panel", cue: "checklist and owner" },
+  { label: "Scenes", target: "#scene-queue-section", cue: "scripts and prompts" },
+  { label: "Approvals", target: "#approval-gate-section", cue: "human gate" },
+  { label: "Production", target: "#elevenlabs-audio-section", cue: "audio and video" },
+  { label: "Storage", target: "#bunny-storage-section", cue: "asset source of truth" },
+  { label: "Publishing", target: "#publishing-package-section", cue: "caption package" },
+  { label: "Agent Ops", target: "#agent-operations-layer", cue: "live execution" }
+];
+
 const defaultCampaigns = [
   {
     brand: "CRS",
@@ -260,6 +294,9 @@ const elements = {
   campaignBrand: document.querySelector("#campaignBrand"),
   campaignTitle: document.querySelector("#campaignTitle"),
   campaignMeta: document.querySelector("#campaignMeta"),
+  readinessBreakdown: document.querySelector("#readinessBreakdown"),
+  nextActionCue: document.querySelector("#nextActionCue"),
+  commandSectionNav: document.querySelector("#commandSectionNav"),
   brandProfileSummary: document.querySelector("#brandProfileSummary"),
   creativeDirectionVersions: document.querySelector("#creativeDirectionVersions"),
   regenerateCampaignDirection: document.querySelector("#regenerateCampaignDirection"),
@@ -1054,8 +1091,36 @@ function getReadiness(campaign) {
   return Math.round((complete / total) * 100);
 }
 
+function getReadinessDetails(campaign) {
+  const stageChecks = campaign.stages.flatMap((stage) => stage.checks);
+  const completedChecks = stageChecks.filter((check) => check.done).length;
+  const approvedStages = campaign.stages.filter((stage) => stage.status === "approved").length;
+  const approvedScenes = campaign.scenes.filter((scene) => scene.status === "approved").length;
+  const approvalChecks = campaign.approvals.filter((check) => check.done).length;
+  return [
+    { label: "Stage checks", value: `${completedChecks}/${stageChecks.length}` },
+    { label: "Stages approved", value: `${approvedStages}/${campaign.stages.length}` },
+    { label: "Scenes approved", value: `${approvedScenes}/${campaign.scenes.length || 0}` },
+    { label: "Approval gate", value: `${approvalChecks}/${campaign.approvals.length}` }
+  ];
+}
+
 function getFirstOpenCheck(stage) {
   return stage.checks.find((check) => !check.done);
+}
+
+function getNextActionCue(campaign) {
+  const stageIndex = campaign.stages.findIndex((stage) => stage.status !== "approved");
+  const index = stageIndex === -1 ? campaign.stages.length - 1 : stageIndex;
+  const stage = campaign.stages[index];
+  const template = stageTemplates[index];
+  const openCheck = getFirstOpenCheck(stage);
+  if (stageIndex === -1) {
+    return "Next move: archive this campaign package or run Agent Ops to identify repurpose opportunities.";
+  }
+  return openCheck
+    ? `Next move: ${template.name} needs "${openCheck.label}".`
+    : `Next move: move ${template.name} to Approved or add the missing owner, date, or note.`;
 }
 
 function getBrandTone(profile) {
@@ -1204,7 +1269,7 @@ function render() {
 function renderFilters() {
   if (elements.stageFilter.options.length) return;
   const options = [{ label: "All Stages", value: "all" }].concat(
-    stageTemplates.map((stage, index) => ({ label: stage.shortName, value: String(index) }))
+    stageTemplates.map((stage, index) => ({ label: stage.filterName || stage.shortName, value: String(index) }))
   );
   elements.stageFilter.innerHTML = options
     .map((option) => `<option value="${option.value}">${option.label}</option>`)
@@ -1271,14 +1336,25 @@ function renderCampaign() {
     <span class="status-pill ${status}">${formatStatus(status)}</span>
   `;
   elements.readinessScore.textContent = `${getReadiness(campaign)}%`;
+  elements.readinessBreakdown.innerHTML = getReadinessDetails(campaign)
+    .map((item) => `<span><strong>${escapeHtml(item.value)}</strong> ${escapeHtml(item.label)}</span>`)
+    .join("");
+  elements.nextActionCue.textContent = getNextActionCue(campaign);
 
   elements.stageTabs.forEach((tab, index) => {
+    const stageTemplate = stageTemplates[index];
     tab.classList.toggle("active", index === selectedStageIndex);
     tab.classList.toggle("approved", campaign.stages[index].status === "approved");
     tab.classList.toggle("blocked", campaign.stages[index].status === "blocked");
+    tab.setAttribute("aria-current", index === selectedStageIndex ? "step" : "false");
+    tab.innerHTML = `
+      <span>${String(index + 1).padStart(2, "0")}</span>
+      ${escapeHtml(stageTemplate.shortName)}
+      <small>${escapeHtml(stageTemplate.toolName)}</small>
+    `;
   });
 
-  elements.stageKicker.textContent = `Stage ${String(selectedStageIndex + 1).padStart(2, "0")}`;
+  elements.stageKicker.textContent = `Stage ${String(selectedStageIndex + 1).padStart(2, "0")} - ${template.toolName}`;
   elements.stageTitle.textContent = template.name;
   elements.stageStatus.value = stage.status;
   elements.stageOwner.value = stage.owner || "";
@@ -1303,6 +1379,21 @@ function renderCampaign() {
   renderCreativeDirectionVersions(campaign);
   renderCoPilot(campaign);
   renderAgentOperations(campaign);
+  renderCommandSectionNav(campaign);
+}
+
+function renderCommandSectionNav(campaign) {
+  elements.commandSectionNav.innerHTML = commandSections
+    .map((section) => {
+      const isActive = section.target === "#workflow-stage-panel";
+      return `
+        <button class="command-section-link ${isActive ? "active" : ""}" type="button" data-jump-target="${escapeHtml(section.target)}">
+          <strong>${escapeHtml(section.label)}</strong>
+          <small>${escapeHtml(section.cue)}</small>
+        </button>
+      `;
+    })
+    .join("");
 }
 
 function renderCoPilot(campaign) {
@@ -2267,6 +2358,12 @@ document.addEventListener("click", (event) => {
   render();
   elements.reviewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   elements.reviewComment.focus();
+});
+
+elements.commandSectionNav.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-jump-target]");
+  if (!button) return;
+  highlightCommandCenterTarget(button.dataset.jumpTarget);
 });
 
 document.querySelector("#copyReviewRequest").addEventListener("click", () => {

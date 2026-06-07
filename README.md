@@ -17,8 +17,11 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 ## Current MVP
 
 - Campaign launcher
+- Sticky Command Center section map for faster creator navigation
 - Ten-stage production workflow
+- Outcome-first workflow labels with tool names preserved as subtitles
 - Stage owners, due dates, status, notes, and checklists
+- Readiness breakdown and next-action cue for creator adoption
 - Active-brand dropdown with an `Other` path for new brands
 - Editable brand profile management
 - Brand-tied creative direction drafts that creators can edit or regenerate
