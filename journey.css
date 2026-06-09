@@ -261,6 +261,7 @@
 .generation-visual,
 .qa-visual,
 .assembly-visual,
+.heygen-visual,
 .package-visual,
 .storage-visual,
 .handoff-visual,
@@ -446,6 +447,33 @@
 
 .assembly-visual span:nth-child(3) {
   min-height: 124px;
+}
+
+.heygen-visual {
+  grid-template-columns: 0.72fr 1fr;
+  background: linear-gradient(180deg, #ffffff, var(--plum-soft));
+}
+
+.heygen-visual span {
+  min-height: 38px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(110, 70, 110, 0.22);
+}
+
+.heygen-visual span:first-child {
+  grid-row: span 3;
+  min-height: 138px;
+  border-radius: 999px 999px 10px 10px;
+  background:
+    radial-gradient(circle at 50% 30%, #ffffff 0 16px, transparent 17px),
+    linear-gradient(180deg, var(--plum), var(--red));
+}
+
+.heygen-visual span:nth-child(4) {
+  grid-column: 1 / -1;
+  min-height: 28px;
+  background: var(--gold-soft);
 }
 
 .package-visual p {

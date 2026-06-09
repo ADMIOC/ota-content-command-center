@@ -1,0 +1,17 @@
+{
+  "name": "ota-content-command-center",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OTA Social Engine Content Command Center MVP with a local backend action layer.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  }
+}

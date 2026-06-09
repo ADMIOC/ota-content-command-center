@@ -1,8 +1,18 @@
 # OTA Content Command Center MVP
 
-Static HTML MVP for launching and executing the OTA video workflow across campaign setup, scene planning, ElevenLabs script/audio generation, Codex + Remotion assembly, Higgsfield Studio generation, QA, final assembly, Descript enhancement, Bunny storage, Blotato publishing handoff, Restream live broadcast/clip capture, and repurpose planning.
+HTML MVP plus a local backend action layer for launching and executing the OTA video workflow across campaign setup, scene planning, ElevenLabs script/audio generation, Codex + Remotion assembly, Higgsfield Studio generation, QA, final assembly, Descript enhancement, HeyGen avatar/lip-sync personalization, Bunny storage, Blotato publishing handoff, Restream live broadcast/clip capture, and repurpose planning.
 
 Open `index.html` in a browser. The app stores workspace data in `localStorage` and can export a JSON workspace file from the top bar.
+
+For live backend actions, run:
+
+```bash
+npm start
+```
+
+Then open `http://127.0.0.1:4180/index.html`. Opening the file directly still works for static review, but API checks and backend jobs only run through the local server.
+
+Restream OAuth can be started locally at `http://127.0.0.1:4180/api/restream/oauth/start?redirect=1` after the Restream client id, client secret, and redirect URI are available to the backend. Once authorized, read-only Restream operations are available through `/api/restream/operations`, `/api/restream/channels`, `/api/restream/events/upcoming`, `/api/restream/events/in-progress`, `/api/restream/events/history`, `/api/restream/storage/files`, and `/api/restream/clips/projects`.
 
 Any database added during this MVP phase is temporary testing infrastructure only. It is not intended to be the production system of record.
 
@@ -10,7 +20,7 @@ Any database added during this MVP phase is temporary testing infrastructure onl
 
 The long-term system map lives in [docs/ota-social-engine-operating-model.md](docs/ota-social-engine-operating-model.md). It defines OTA Social Engine as a 24/7/365 agentically engineered marketing operation across research, planning, production, publishing, communications, scaling, and monetization.
 
-Secure API boundaries for future ElevenLabs, Remotion, Bunny, Blotato, Descript, and Restream services live in [docs/backend-integration-boundaries.md](docs/backend-integration-boundaries.md).
+Secure API boundaries for future ElevenLabs, Remotion, Bunny, Blotato, Descript, HeyGen, and Restream services live in [docs/backend-integration-boundaries.md](docs/backend-integration-boundaries.md).
 
 The official internal creator tutorial lives in [command-center-tutorial.html](command-center-tutorial.html). It explains the strategy and tactical use of every Content Command Center section for team adoption.
 
@@ -18,7 +28,7 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 
 - Campaign launcher
 - Sticky Command Center section map for faster creator navigation
-- Ten-stage production workflow
+- Eleven-stage production workflow with a dedicated HeyGen avatar personalization stage
 - Outcome-first workflow labels with tool names preserved as subtitles
 - Stage owners, due dates, status, notes, and checklists
 - Readiness breakdown and next-action cue for creator adoption
@@ -30,12 +40,15 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Regulated-brand compliance guardrails for CRS and The VFO
 - Scene queue with video scripts, Higgsfield prompts, and compliance notes
 - Live OTA Co-Pilot guidance for each campaign build section and dialog surface
-- Agent Operations Layer with task queue, performance intelligence, repurpose candidates, Restream live ops, Descript enhancement, and approval console
-- Secure Integration Boundary Console for server-side ElevenLabs, Remotion, Bunny, Blotato, Descript, and Restream API readiness
+- Agent Operations Layer with task queue, performance intelligence, repurpose candidates, Restream live ops, Descript enhancement, HeyGen avatar personalization, and approval console
+- Local backend action layer with `/api/health`, `/api/integrations/status`, and `/api/jobs` for credential-aware, trackable agent work
+- Blotato connected-account readiness check with `/api/blotato/accounts` before publishing draft automation
+- Secure Integration Boundary Console for server-side ElevenLabs, Remotion, Higgsfield, Bunny, Blotato, Descript, HeyGen, and Restream API readiness
 - Agent activity log
 - ElevenLabs script/audio tracking for the active `agentic@ownthealgo.com` account
 - Codex + Remotion handoff tracking for the output Higgsfield Studio ingests
 - Descript enhancement strategy for stitched, polished, avatar/audio/video assets
+- HeyGen avatar, lip-sync, translation, and personalized CTA strategy
 - Human approval gate
 - Bunny storage manifest
 - Blotato publishing package
@@ -52,12 +65,14 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 
 ## Next API Wiring
 
-- Bunny.net upload and CDN URL creation
-- Server-side ElevenLabs API wiring for script/audio generation without exposing keys in the static client
+- Bunny.net storage upload and CDN URL creation after storage-zone credentials are added
+- Server-side ElevenLabs audio generation after approved voice IDs, scripts, and spend approvals are attached
 - Codex + Remotion automation hooks for creating the Higgsfield Studio input package
-- Blotato publishing draft creation
-- Descript project handoff and enhanced asset tracking
-- Restream live broadcast and viral clip signal ingestion
+- Higgsfield generation jobs connected to approved Remotion outputs and prompt/source media payloads
+- Blotato publishing draft creation after connected account selection, final media URL, caption package, and human approval
+- Descript project handoff and enhanced asset tracking after Descript API access is available
+- HeyGen OAuth MCP completion or `HEYGEN_API_KEY` fallback for avatar videos, lip-sync jobs, translations, and personalized variants; model routing is staged for Avatar IV by default and Avatar V only after avatar-look eligibility confirms `avatar_v`
+- Restream event creation, chat websocket ingestion, and go-live actions after OAuth scopes, approval workflows, and live-event payloads are production backed
 - Temporary testing database for team-wide campaign state
 - Authentication and reviewer roles
 - File upload surfaces for final video, thumbnails, captions, scene files, and approval docs

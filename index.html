@@ -533,7 +533,7 @@
                   <p class="eyebrow">Agent Operations Layer</p>
                   <h3>Real-Time OTA Social Engine Flywheel</h3>
                   <p class="panel-note">
-                    Live operating layer for agent tasks, performance intelligence, Restream clips, Descript enhancements, repurpose candidates, and human approval controls.
+                    Live operating layer for agent tasks, performance intelligence, Restream clips, Descript enhancements, HeyGen avatar personalization, repurpose candidates, and human approval controls.
                   </p>
                 </div>
                 <div class="panel-actions">
@@ -546,8 +546,9 @@
               <div id="agentOpsMetrics" class="agent-ops-metrics"></div>
 
               <div class="agent-ops-grid">
-                <article class="agent-ops-card">
+                <article class="agent-ops-card" data-sequence="01">
                   <div class="panel-heading tight">
+                    <span class="sequence-badge">01</span>
                     <div>
                       <p class="eyebrow">Execution</p>
                       <h4>Agent Task Queue</h4>
@@ -557,8 +558,9 @@
                   <div id="agentTaskQueue" class="agent-ops-list"></div>
                 </article>
 
-                <article class="agent-ops-card">
+                <article class="agent-ops-card" data-sequence="02">
                   <div class="panel-heading tight">
+                    <span class="sequence-badge">02</span>
                     <div>
                       <p class="eyebrow">Public response</p>
                       <h4>Performance Intelligence</h4>
@@ -568,8 +570,24 @@
                   <div id="performanceIntelligence" class="agent-ops-list"></div>
                 </article>
 
-                <article class="agent-ops-card">
+                <article class="agent-ops-card" data-sequence="03">
                   <div class="panel-heading tight">
+                    <span class="sequence-badge">03</span>
+                    <div>
+                      <p class="eyebrow">Restream</p>
+                      <h4>Live Broadcast Ops</h4>
+                    </div>
+                    <div class="inline-actions">
+                      <button class="mini-button" type="button" data-restream-refresh>Refresh Live</button>
+                      <button class="mini-button" type="button" data-agent-action="capture-live-clip">Capture Clip</button>
+                    </div>
+                  </div>
+                  <div id="restreamOps" class="agent-ops-list"></div>
+                </article>
+
+                <article class="agent-ops-card" data-sequence="04">
+                  <div class="panel-heading tight">
+                    <span class="sequence-badge">04</span>
                     <div>
                       <p class="eyebrow">Repurpose</p>
                       <h4>Repurpose Candidates</h4>
@@ -579,19 +597,21 @@
                   <div id="repurposeCandidates" class="agent-ops-list"></div>
                 </article>
 
-                <article class="agent-ops-card">
+                <article class="agent-ops-card blotato-draft-card" data-sequence="05">
                   <div class="panel-heading tight">
+                    <span class="sequence-badge">05</span>
                     <div>
-                      <p class="eyebrow">Restream</p>
-                      <h4>Live Broadcast Ops</h4>
+                      <p class="eyebrow">Blotato</p>
+                      <h4>Draft Review Builder</h4>
                     </div>
-                    <button class="mini-button" type="button" data-agent-action="capture-live-clip">Capture Clip</button>
+                    <button class="mini-button" type="button" data-blotato-refresh>Refresh Accounts</button>
                   </div>
-                  <div id="restreamOps" class="agent-ops-list"></div>
+                  <div id="blotatoDraftReview" class="agent-ops-list"></div>
                 </article>
 
-                <article class="agent-ops-card">
+                <article class="agent-ops-card" data-sequence="06">
                   <div class="panel-heading tight">
+                    <span class="sequence-badge">06</span>
                     <div>
                       <p class="eyebrow">Descript</p>
                       <h4>Enhancement Pipeline</h4>
@@ -601,8 +621,21 @@
                   <div id="descriptOps" class="agent-ops-list"></div>
                 </article>
 
-                <article class="agent-ops-card">
+                <article class="agent-ops-card" data-sequence="07">
                   <div class="panel-heading tight">
+                    <span class="sequence-badge">07</span>
+                    <div>
+                      <p class="eyebrow">HeyGen</p>
+                      <h4>Avatar Personalization</h4>
+                    </div>
+                    <button class="mini-button" type="button" data-agent-action="draft-heygen-plan">Draft Avatar Plan</button>
+                  </div>
+                  <div id="heygenOps" class="agent-ops-list"></div>
+                </article>
+
+                <article class="agent-ops-card" data-sequence="08">
+                  <div class="panel-heading tight">
+                    <span class="sequence-badge">08</span>
                     <div>
                       <p class="eyebrow">Control</p>
                       <h4>Human Approval Console</h4>
@@ -612,8 +645,9 @@
                   <div id="agentApprovalConsole" class="agent-ops-list"></div>
                 </article>
 
-                <article class="agent-ops-card integration-boundary-card">
+                <article class="agent-ops-card integration-boundary-card" data-sequence="09">
                   <div class="panel-heading tight">
+                    <span class="sequence-badge">09</span>
                     <div>
                       <p class="eyebrow">Secure API layer</p>
                       <h4>Integration Boundary Console</h4>
@@ -712,16 +746,16 @@
             <input name="title" type="text" required />
           </label>
           <label class="field">
-            <span>Higgsfield Prompt</span>
-            <textarea name="prompt" rows="5" required></textarea>
+            <span>ElevenLabs Voiceover Script (spoken)</span>
+            <textarea name="script" rows="5" required placeholder="Only write the exact words the voice agent should speak. No camera notes, compliance notes, or visual instructions."></textarea>
           </label>
           <label class="field">
-            <span>Video Script</span>
-            <textarea name="script" rows="5" required></textarea>
+            <span>Higgsfield Visual Prompt (not spoken)</span>
+            <textarea name="prompt" rows="5" required placeholder="Describe the shot, camera, setting, lighting, motion, and visual storytelling. This is not sent as spoken audio."></textarea>
           </label>
           <label class="field">
-            <span>Compliance Note</span>
-            <textarea name="compliance" rows="3"></textarea>
+            <span>Compliance / Production Note (not spoken)</span>
+            <textarea name="compliance" rows="3" placeholder="Add guardrails, exclusions, or review notes. This is never spoken by ElevenLabs."></textarea>
           </label>
         </div>
         <div class="dialog-actions">

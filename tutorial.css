@@ -406,6 +406,25 @@
   background: var(--red-soft);
 }
 
+.thumb-heygen .thumb-shell {
+  grid-template-columns: 0.72fr 1fr;
+  border-color: rgba(110, 70, 110, 0.35);
+  background: linear-gradient(180deg, #ffffff, var(--plum-soft));
+}
+
+.thumb-heygen .thumb-shell span:first-child {
+  grid-row: span 3;
+  min-height: 70px;
+  border-radius: 999px 999px 8px 8px;
+  background: var(--plum);
+}
+
+.thumb-heygen .thumb-shell span:nth-child(2),
+.thumb-heygen .thumb-shell span:nth-child(3) {
+  background: #ffffff;
+  border: 1px solid rgba(110, 70, 110, 0.2);
+}
+
 .thumb-approval .thumb-shell span {
   position: relative;
   background: var(--green-soft);

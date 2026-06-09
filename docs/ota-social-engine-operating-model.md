@@ -28,11 +28,12 @@ The hallmark user experience is live agent-guided assistance in every campaign b
 6. Human QA
 7. Final assembly
 8. Descript stitching, enhancement, avatar, and audio polish
-9. Publishing package
-10. Bunny storage
-11. Blotato handoff
-12. Restream live broadcast and real-time viral clip capture
-13. Public-response monitoring and repurpose loop
+9. HeyGen avatar, lip-sync, translation, and personalized video variants
+10. Publishing package
+11. Bunny storage
+12. Blotato handoff
+13. Restream live broadcast and real-time viral clip capture
+14. Public-response monitoring and repurpose loop
 
 ## Agent Roles
 
@@ -80,6 +81,10 @@ Checks visual quality, audio quality, compliance fit, caption accuracy, thumbnai
 
 Coordinates Descript-based stitching, audio cleanup, transcript-aware edits, avatar/video enhancement, and rapid polish passes using Descript's on-platform agents before publishing or repurposing.
 
+### Avatar Personalization Agent
+
+Coordinates HeyGen Remote MCP for approved avatar-led explainers, lip-sync variants, personalized CTA videos, video translation, voice/avatar selection, and brand-kit aware video outputs. This agent must preserve consent, likeness, translation, and regulated-brand approval gates.
+
 ### Storage Agent
 
 Organizes Bunny folders, final media URLs, thumbnails, scripts, audio tracks, Remotion output, caption docs, scene files, and approval documents.
@@ -124,6 +129,7 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - Codex + Remotion for audio-led composition
 - Higgsfield Studio for video generation
 - Descript for stitching, transcript-aware editing, audio/video enhancement, avatar content, and rapid polish using on-platform agents
+- HeyGen for avatar-led explainers, lip-sync, personalized CTAs, video translation, voice/avatar workflows, and OAuth MCP video generation
 - Human review for approvals
 
 ### Storage Layer
@@ -146,6 +152,7 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - Performance analytics
 - Restream live chat, engagement velocity, and clip-response signals
 - Descript-derived transcript insights and reusable edit moments
+- HeyGen avatar, lip-sync, translation, and personalization outputs
 - Content experiment history
 
 ### Monetization Layer
@@ -181,6 +188,7 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - ElevenLabs and Remotion handoff tracking
 - Bunny and Blotato package tracking
 - Descript and Restream strategic handoff tracking
+- HeyGen avatar, lip-sync, translation, and personalized video handoff tracking
 - GitHub review request lane
 
 ### Phase 2: Server-Side Automation
@@ -188,7 +196,8 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - Secure API proxy for ElevenLabs
 - Secure Bunny upload service
 - Secure Descript handoff service for enhanced video/audio asset references
-- Secure Restream handoff service for live broadcast metadata and clip references
+- HeyGen OAuth MCP handoff service for avatar, lip-sync, translation, and personalized video references
+- Secure Restream OAuth handoff service for live broadcast metadata, channel/event state, chat signals, analytics, recordings, and clip references
 - Remotion render job runner
 - Asset manifest generator
 - Persistent production database
@@ -202,6 +211,7 @@ Connects content production to offers, funnels, lead capture, sponsors, affiliat
 - Audio-to-Remotion automation
 - Remotion-to-Higgsfield package automation
 - Final-asset-to-Descript enhancement routing
+- Approved-script/audio-to-HeyGen avatar and lip-sync routing
 - QA summary generation
 - Publishing package generation
 - Restream live broadcast package generation

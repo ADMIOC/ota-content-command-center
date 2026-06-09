@@ -1,5 +1,32 @@
 const storageKey = "ota-content-command-center-v1";
 const githubRepoFullName = "ADMIOC/ota-content-command-center";
+const backendApiBase = window.location.protocol === "file:" ? "" : window.location.origin;
+
+const backendState = {
+  checked: false,
+  available: false,
+  checking: false,
+  integrations: {},
+  restreamOperations: {
+    checked: false,
+    available: false,
+    checking: false,
+    snapshot: null,
+    error: "",
+    clipDetails: {},
+    clipDetailLoading: {}
+  },
+  blotato: {
+    checked: false,
+    available: false,
+    checking: false,
+    accounts: [],
+    platformCounts: {},
+    error: "",
+    creatingDraft: false
+  },
+  jobs: {}
+};
 
 const stageTemplates = [
   {
@@ -97,10 +124,23 @@ const stageTemplates = [
     ]
   },
   {
+    name: "Avatar Personalization",
+    shortName: "HeyGen",
+    toolName: "HeyGen",
+    filterName: "08 Avatar - HeyGen",
+    checklist: [
+      "HeyGen OAuth MCP connector status visible",
+      "Approved script, audio, or source video selected",
+      "Avatar, lip-sync, or translation purpose defined",
+      "Consent and likeness guardrails reviewed",
+      "HeyGen output URL or session reference captured"
+    ]
+  },
+  {
     name: "Publishing Package",
     shortName: "Package",
     toolName: "Caption, hashtags, and platform notes",
-    filterName: "08 Package - Publishing Prep",
+    filterName: "09 Package - Publishing Prep",
     checklist: [
       "Caption written",
       "Hashtags approved",
@@ -112,7 +152,7 @@ const stageTemplates = [
     name: "Asset Storage",
     shortName: "Storage",
     toolName: "Bunny CDN",
-    filterName: "09 Storage - Bunny CDN",
+    filterName: "10 Storage - Bunny CDN",
     checklist: [
       "Bunny folder path confirmed",
       "Final video URL added",
@@ -125,7 +165,7 @@ const stageTemplates = [
     name: "Social Publishing",
     shortName: "Publish",
     toolName: "Blotato",
-    filterName: "10 Publish - Blotato",
+    filterName: "11 Publish - Blotato",
     checklist: [
       "Approved media URL present",
       "Caption package ready",
@@ -140,6 +180,7 @@ const approvalLabels = [
   "Compliance guardrails satisfied",
   "ElevenLabs audio approved",
   "Codex + Remotion output approved",
+  "HeyGen avatar, lip-sync, or translation output approved when used",
   "Thumbnail reads as a reduced full infographic cover",
   "Bunny storage links complete",
   "Publishing package ready for Blotato"
@@ -254,10 +295,18 @@ const integrationBoundaries = [
     owner: "Remotion Agent"
   },
   {
+    id: "higgsfield",
+    name: "Higgsfield Studio",
+    endpoint: "POST /api/higgsfield/create-generation",
+    secret: "higgsfield auth login",
+    approval: "Human review before spending generation credits or moving raw outputs to QA.",
+    owner: "Visual Generation Agent"
+  },
+  {
     id: "bunny",
     name: "Bunny Storage",
     endpoint: "POST /api/bunny/upload-manifest",
-    secret: "BUNNY_ACCESS_KEY",
+    secret: "BUNNY_ACCESS_KEY + BUNNY_STORAGE_ZONE + BUNNY_STORAGE_PASSWORD",
     approval: "Final package review before publishing handoff.",
     owner: "Storage Agent"
   },
@@ -278,10 +327,18 @@ const integrationBoundaries = [
     owner: "Descript Editorial Agent"
   },
   {
+    id: "heygen",
+    name: "HeyGen",
+    endpoint: "POST /api/heygen/create-avatar-video or MCP https://mcp.heygen.com/mcp/v1/",
+    secret: "HEYGEN_API_KEY or OAuth account authorization",
+    approval: "Human approval before avatar, lip-sync, translation, or personalized video output enters publishing.",
+    owner: "Avatar Personalization Agent"
+  },
+  {
     id: "restream",
     name: "Restream",
-    endpoint: "POST /api/restream/create-broadcast",
-    secret: "RESTREAM_API_KEY",
+    endpoint: "GET /api/restream/operations + Restream event/channel/storage/clip endpoints",
+    secret: "RESTREAM_CLIENT_ID + RESTREAM_CLIENT_SECRET + RESTREAM_REDIRECT_URI + OAuth tokens",
     approval: "Explicit human approval before going live.",
     owner: "Live Broadcast Agent"
   }
@@ -468,7 +525,9 @@ const elements = {
   performanceIntelligence: document.querySelector("#performanceIntelligence"),
   repurposeCandidates: document.querySelector("#repurposeCandidates"),
   restreamOps: document.querySelector("#restreamOps"),
+  blotatoDraftReview: document.querySelector("#blotatoDraftReview"),
   descriptOps: document.querySelector("#descriptOps"),
+  heygenOps: document.querySelector("#heygenOps"),
   agentApprovalConsole: document.querySelector("#agentApprovalConsole"),
   integrationBoundaryConsole: document.querySelector("#integrationBoundaryConsole"),
   viralLiftScore: document.querySelector("#viralLiftScore"),
@@ -659,7 +718,8 @@ function renderSceneDialogCoPilot() {
       ? `I am helping convert ${campaign.brand}'s creative direction into a script-first scene for ElevenLabs, Remotion, and Higgsfield.`
       : "I am helping create a script-first scene that can travel through the OTA production chain.",
     suggestions: [
-      "Write the video script first. The prompt should serve the voiceover, not the other way around.",
+      "Put only the exact spoken narration in the ElevenLabs Voiceover Script field.",
+      "Keep camera, lighting, setting, and motion instructions in the Higgsfield Visual Prompt field.",
       `Visual language should follow: ${profile?.perspective || "the active brand cinematic perspective"}.`,
       profile?.regulated
         ? "Include a compliance note before generation because this brand is regulated."
@@ -876,6 +936,13 @@ function createAgentOps(seed = {}) {
       projectRef: "",
       enhancedAssetUrl: "",
       editPlan: "Use Descript for transcript-aware edits, audio cleanup, stitched segments, avatar polish, and rapid derivative exports."
+    },
+    heygen: {
+      status: "not-started",
+      sessionRef: "",
+      avatarPlan: "Use HeyGen for approved avatar explainers, lip-sync variants, personalized CTA videos, and multilingual derivatives after script/audio context is approved. Route new video work through Avatar IV by default; use Avatar V only after the selected look confirms avatar_v support.",
+      outputUrl: "",
+      translationTargets: []
     },
     approvals: [
       {
@@ -1105,6 +1172,7 @@ function normalizeCampaignShape(campaign) {
   }
   campaign.scenes = (campaign.scenes || []).map((scene) => ({
     ...scene,
+    voiceoverScript: scene.voiceoverScript || scene.script || "",
     script: scene.script || "",
     voiceoverNotes: scene.voiceoverNotes || ""
   }));
@@ -1181,6 +1249,10 @@ function normalizeCampaignShape(campaign) {
       ...defaultOps.descript,
       ...(campaign.agentOps?.descript || {})
     },
+    heygen: {
+      ...defaultOps.heygen,
+      ...(campaign.agentOps?.heygen || {})
+    },
     approvals: Array.isArray(campaign.agentOps?.approvals) ? campaign.agentOps.approvals : defaultOps.approvals
   };
   campaign.approvals = approvalLabels.map((label) => {
@@ -1199,25 +1271,44 @@ function migrateStages(stages, campaign) {
   const dueDate = campaign.dueDate || "";
   const elevenStage = () => createStage(stageTemplates[2], owner, dueDate);
   const remotionStage = () => createStage(stageTemplates[3], owner, dueDate);
+  const heygenStage = () => createStage(stageTemplates[7], owner, dueDate);
 
-  if (migrated.length === stageTemplates.length - 2) {
-    migrated.splice(2, 0, elevenStage(), remotionStage());
+  if (
+    migrated.length === stageTemplates.length - 1 &&
+    migrated.some((stage) => stageHasCheck(stage, "ElevenLabs account confirmed")) &&
+    migrated.some((stage) => stageHasCheck(stage, "ElevenLabs script and audio tracks imported")) &&
+    !migrated.some((stage) => stageHasCheck(stage, "HeyGen OAuth MCP connector status visible"))
+  ) {
+    migrated.splice(7, 0, heygenStage());
     return migrated;
   }
 
-  if (migrated.length === stageTemplates.length - 1) {
+  if (migrated.length === stageTemplates.length - 3) {
+    migrated.splice(2, 0, elevenStage(), remotionStage());
+    migrated.splice(7, 0, heygenStage());
+    return migrated;
+  }
+
+  if (migrated.length === stageTemplates.length - 2) {
     if (stageHasCheck(migrated[2], "ElevenLabs account confirmed")) {
       migrated.splice(3, 0, remotionStage());
+      migrated.splice(7, 0, heygenStage());
       return migrated;
     }
 
     if (stageHasCheck(migrated[3], "ElevenLabs account confirmed")) {
       const [legacyElevenLabs] = migrated.splice(3, 1);
       migrated.splice(2, 0, legacyElevenLabs, remotionStage());
+      migrated.splice(7, 0, heygenStage());
       return migrated;
     }
 
     migrated.splice(2, 0, elevenStage());
+    migrated.splice(7, 0, heygenStage());
+  }
+
+  if (!migrated.some((stage) => stageHasCheck(stage, "HeyGen OAuth MCP connector status visible"))) {
+    migrated.splice(7, 0, heygenStage());
   }
 
   return migrated;
@@ -1306,13 +1397,17 @@ function getPreviewAssets(campaign) {
   };
 }
 
+function getSceneVoiceoverScript(scene) {
+  return scene?.voiceoverScript || scene?.script || "";
+}
+
 function getScriptPreviewScenes(campaign) {
-  return campaign.scenes.filter((scene) => scene.script || scene.prompt).slice(0, 4);
+  return campaign.scenes.filter((scene) => getSceneVoiceoverScript(scene) || scene.prompt).slice(0, 4);
 }
 
 function getPreviewSignals(campaign) {
   const assets = getPreviewAssets(campaign);
-  const scriptedScenes = campaign.scenes.filter((scene) => scene.script).length;
+  const scriptedScenes = campaign.scenes.filter((scene) => getSceneVoiceoverScript(scene)).length;
   return [
     {
       label: "Script",
@@ -1492,7 +1587,7 @@ function getCoPilotGuidance(campaign) {
     : " Keep the output sharp, useful, and aligned to the brand promise.";
   const sceneCount = campaign.scenes.length;
   const approvedScenes = campaign.scenes.filter((scene) => scene.status === "approved").length;
-  const hasScriptedScenes = campaign.scenes.some((scene) => scene.script);
+  const hasScriptedScenes = campaign.scenes.some((scene) => getSceneVoiceoverScript(scene));
 
   const base = {
     kicker: `OTA Co-Pilot - Stage ${String(selectedStageIndex + 1).padStart(2, "0")}`,
@@ -1568,6 +1663,20 @@ function getCoPilotGuidance(campaign) {
       "Confirm audio levels before storage and publishing handoff."
     ];
   } else if (selectedStageIndex === 7) {
+    base.summary = `HeyGen should create avatar-led, lip-sync, translation, or personalized CTA variants only from approved script, audio, or source video context.`;
+    base.suggestions = [
+      campaign.agentOps?.heygen?.sessionRef
+        ? `HeyGen session/reference is tracked: ${campaign.agentOps.heygen.sessionRef}.`
+        : "Draft a HeyGen avatar plan before requesting avatar or lip-sync output.",
+      campaign.elevenLabs.voiceoverUrl || campaign.assets.voiceover || campaign.assets.video
+        ? "Approved audio or source media exists for HeyGen planning."
+        : "Add approved audio, script, or source video before HeyGen handoff.",
+      profile?.regulated
+        ? "Regulated claims, likeness use, translations, and voice/avatar choices need human review before publishing."
+        : "Use HeyGen when avatar presence, lip-sync, translation, or personalized CTAs will improve the story."
+    ];
+    base.actions.push({ id: "draft-heygen-plan", label: "Draft HeyGen Plan" });
+  } else if (selectedStageIndex === 8) {
     base.summary = `The publishing package should make scheduling effortless: caption, hashtags, notes, media, and brand context in one place.`;
     base.suggestions = [
       campaign.publishing.caption ? "Caption draft exists." : "Draft a caption that turns the video insight into a clear audience action.",
@@ -1578,7 +1687,7 @@ function getCoPilotGuidance(campaign) {
       "Platform notes should identify any hook, CTA, cutdown, or approval constraint."
     ];
     base.actions.push({ id: "draft-publishing-package", label: "Draft Package Copy" });
-  } else if (selectedStageIndex === 8) {
+  } else if (selectedStageIndex === 9) {
     base.summary = `Bunny storage should become the clean source of truth between production and publishing.`;
     base.suggestions = [
       campaign.assets.bunnyFolder ? `Folder path: ${campaign.assets.bunnyFolder}.` : "Confirm the Bunny folder path.",
@@ -1609,7 +1718,7 @@ function getCampaignStatus(campaign) {
 
 function formatStatus(status) {
   return status
-    .split("-")
+    .split(/[-_]/)
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
 }
@@ -1785,7 +1894,7 @@ function renderPreviewStudio(campaign) {
 
 function renderScriptPreview(campaign) {
   const scenes = getScriptPreviewScenes(campaign);
-  const scriptedCount = campaign.scenes.filter((scene) => scene.script).length;
+  const scriptedCount = campaign.scenes.filter((scene) => getSceneVoiceoverScript(scene)).length;
   elements.scriptPreviewStatus.className = `status-pill ${scriptedCount ? "in-progress" : "not-started"}`;
   elements.scriptPreviewStatus.textContent = scriptedCount ? `${scriptedCount} scripted` : "Draft";
 
@@ -1804,8 +1913,8 @@ function renderScriptPreview(campaign) {
             <strong>${String(index + 1).padStart(2, "0")} ${escapeHtml(scene.title || "Untitled scene")}</strong>
             <span class="status-pill ${scene.status || "not-started"}">${escapeHtml(formatStatus(scene.status || "not-started"))}</span>
           </header>
-          ${scene.script ? `<p>${escapeHtml(scene.script)}</p>` : `<p class="empty-preview">Script missing. Prompt exists, but ElevenLabs needs voiceover text.</p>`}
-          ${scene.prompt ? `<small>${escapeHtml(scene.prompt)}</small>` : ""}
+          ${getSceneVoiceoverScript(scene) ? `<small class="scene-field-label spoken">ElevenLabs spoken text</small><p>${escapeHtml(getSceneVoiceoverScript(scene))}</p>` : `<p class="empty-preview">Voiceover script missing. Prompt exists, but ElevenLabs needs spoken text.</p>`}
+          ${scene.prompt ? `<small class="scene-field-label muted">Visual prompt - not spoken</small><small>${escapeHtml(scene.prompt)}</small>` : ""}
         </article>
       `
     )
@@ -1999,13 +2108,14 @@ function getSignalStatus(score) {
 }
 
 function getIntegrationBoundaryState(campaign, boundary) {
-  const scenesScripted = campaign.scenes?.some((scene) => scene.script);
+  const scenesScripted = campaign.scenes?.some((scene) => getSceneVoiceoverScript(scene));
   const hasApprovedMedia = Boolean(campaign.assets?.video);
   const hasCaptionPackage = Boolean(campaign.publishing?.caption);
   const hasScheduleReady = campaign.publishing?.schedule?.some((slot) => ["ready", "scheduled"].includes(slot.status));
   const hasHumanApproval = campaign.approvals?.every((check) => check.done);
   const hasAudioSource = Boolean(campaign.elevenLabs?.voiceoverUrl || campaign.assets?.voiceover);
   const hasRemotionOutput = Boolean(campaign.remotion?.outputUrl || campaign.assets?.remotionOutput);
+  const hasHeyGenInput = scenesScripted || hasAudioSource || hasApprovedMedia || hasRemotionOutput;
 
   const states = {
     elevenlabs: {
@@ -2021,6 +2131,13 @@ function getIntegrationBoundaryState(campaign, boundary) {
       detail: hasAudioSource
         ? "Audio source is available for a server-side Remotion render job."
         : "Add ElevenLabs audio before rendering the Remotion package."
+    },
+    higgsfield: {
+      ready: hasRemotionOutput,
+      status: hasRemotionOutput ? "generation-ready" : "needs-remotion-output",
+      detail: hasRemotionOutput
+        ? "Codex + Remotion output is ready for a server-side Higgsfield generation handoff."
+        : "Add the approved Remotion output before calling Higgsfield generation."
     },
     bunny: {
       ready: Boolean(campaign.assets?.bunnyFolder),
@@ -2045,13 +2162,21 @@ function getIntegrationBoundaryState(campaign, boundary) {
           ? "Source media is available for Descript edit handoff."
           : "Add final media or Remotion output before Descript handoff."
     },
+    heygen: {
+      ready: hasHeyGenInput && hasHumanApproval,
+      status: hasHeyGenInput && hasHumanApproval ? "oauth-agent-ready" : "needs-input-or-approval",
+      detail:
+        hasHeyGenInput && hasHumanApproval
+          ? "Approved script/audio/media context is ready for HeyGen OAuth MCP avatar, lip-sync, or translation work."
+          : "Hold HeyGen avatar and personalization work until approved input context and human approval are present."
+    },
     restream: {
       ready: hasHumanApproval && hasCaptionPackage,
-      status: hasHumanApproval && hasCaptionPackage ? "broadcast-ready" : "needs-approval",
+      status: hasHumanApproval && hasCaptionPackage ? "oauth-broadcast-ready" : "needs-approval",
       detail:
         hasHumanApproval && hasCaptionPackage
-          ? "Approval and publishing context are ready for live broadcast setup."
-          : "Hold live broadcast setup until approvals and publishing notes are complete."
+          ? "Approval and publishing context are ready for Restream OAuth-backed broadcast setup."
+          : "Hold live broadcast setup until approvals, publishing notes, and Restream OAuth validation are complete."
     }
   };
 
@@ -2066,22 +2191,55 @@ function getIntegrationReadiness(campaign) {
 }
 
 function getIntegrationBoundaryManifest(campaign) {
+  const checkedAt = new Date().toISOString();
   return {
     campaign: campaign.name,
     brand: campaign.brand,
     securityModel:
       "Static client displays state only. API keys, service tokens, webhook secrets, and storage credentials stay server-side.",
     sourceDocument: "docs/backend-integration-boundaries.md",
-    services: getIntegrationReadiness(campaign).map((service) => ({
-      service: service.name,
-      owner: service.owner,
-      endpoint: service.endpoint,
-      requiredSecret: service.secret,
-      clientSecretPolicy: "Never expose in static client",
-      approvalGate: service.approval,
-      readinessStatus: service.status,
-      readinessDetail: service.detail
-    })),
+    checkedAt,
+    validationSource: backendState.available
+      ? "Live backend validation from /api/integrations/status plus workflow readiness."
+      : "Workflow readiness only. Start local backend server for live validation.",
+    services: getIntegrationReadiness(campaign).map((service) => {
+      const backend = backendState.integrations[service.id] || null;
+      const backendReady = Boolean(backend?.live);
+      const backendChecked = Boolean(backendState.available && backend);
+      return {
+        service: service.name,
+        owner: service.owner,
+        endpoint: service.endpoint,
+        requiredSecret: service.secret,
+        clientSecretPolicy: "Never expose in static client",
+        approvalGate: service.approval,
+        readinessStatus: backendChecked && !backendReady ? `backend-${backend.state}` : service.status,
+        readinessDetail:
+          backendChecked && !backendReady
+            ? `Backend validation blocked: ${backend.detail} Workflow state: ${service.detail}`
+            : service.detail,
+        workflowReadinessStatus: service.status,
+        workflowReadinessDetail: service.detail,
+        backendValidation: backendChecked
+          ? {
+              status: backend.state,
+              live: backendReady,
+              configured: Boolean(backend.configured),
+              detail: backend.detail,
+              requiredEnvironment: backend.env,
+              checkedAt: backend.checkedAt,
+              metadata: backend.metadata || null
+            }
+          : {
+              status: "not-checked",
+              live: false,
+              configured: false,
+              detail: "Backend validation has not run in this browser session.",
+              requiredEnvironment: service.secret
+            },
+        productionReady: backendReady && service.ready
+      };
+    }),
     activityContract:
       "Every automated action must write actor, action, campaign, input reference, output reference, timestamp, and approval state."
   };
@@ -2089,11 +2247,12 @@ function getIntegrationBoundaryManifest(campaign) {
 
 function renderAgentOperations(campaign) {
   if (!elements.agentOpsMetrics) return;
-  const ops = campaign.agentOps || createAgentOps(campaign);
+  const ops = getAgentOps(campaign);
   const viralLift = getViralLiftScore(campaign);
   const openTasks = ops.tasks.filter((task) => task.status !== "completed").length;
   const repurposeCount = ops.repurposeCandidates.length;
-  const clipCount = ops.restream.clipCandidates.length;
+  const clipCount = getRestreamClipCount(ops.restream);
+  const heygenCount = ops.heygen?.outputUrl || ops.heygen?.sessionRef ? 1 : 0;
   const approvalCount = ops.approvals.filter((approval) => approval.status !== "approved").length;
   const integrationReadyCount = getIntegrationReadiness(campaign).filter((service) => service.ready).length;
 
@@ -2102,35 +2261,41 @@ function renderAgentOperations(campaign) {
   elements.agentOpsMetrics.innerHTML = `
     <article>
       <strong>${openTasks}</strong>
-      <span>open agent tasks</span>
+      <span>01 open tasks</span>
     </article>
     <article>
       <strong>${viralLift}</strong>
-      <span>viral lift score</span>
+      <span>02 signal score</span>
     </article>
     <article>
       <strong>${repurposeCount}</strong>
-      <span>repurpose candidates</span>
+      <span>04 candidates</span>
     </article>
     <article>
       <strong>${clipCount}</strong>
-      <span>Restream clips</span>
+      <span>03 Restream clips</span>
+    </article>
+    <article>
+      <strong>${heygenCount}</strong>
+      <span>07 HeyGen outputs</span>
     </article>
     <article>
       <strong>${approvalCount}</strong>
-      <span>approval holds</span>
+      <span>08 approval holds</span>
     </article>
     <article>
       <strong>${integrationReadyCount}/${integrationBoundaries.length}</strong>
-      <span>API boundaries ready</span>
+      <span>09 APIs ready</span>
     </article>
   `;
 
   renderAgentTaskQueue(ops.tasks);
   renderPerformanceIntelligence(ops.performanceSignals);
   renderRepurposeCandidates(ops.repurposeCandidates);
+  renderBlotatoDraftReview(campaign, ops.repurposeCandidates);
   renderRestreamOps(ops.restream);
   renderDescriptOps(ops.descript);
+  renderHeyGenOps(ops.heygen);
   renderAgentApprovalConsole(ops.approvals);
   renderIntegrationBoundaries(campaign);
 }
@@ -2169,33 +2334,385 @@ function renderRepurposeCandidates(candidates) {
         <span class="status-pill ${candidate.status === "promoted" ? "approved" : "needs-review"}">${escapeHtml(formatStatus(candidate.status))}</span>
       </header>
       <p>${escapeHtml(candidate.idea)}</p>
+      ${candidate.hook ? `<p><strong>Hook:</strong> ${escapeHtml(candidate.hook)}</p>` : ""}
+      ${candidate.caption ? `<p><strong>Caption:</strong> ${escapeHtml(candidate.caption)}</p>` : ""}
+      ${candidate.hashtags ? `<small>${escapeHtml(candidate.hashtags)}</small>` : ""}
+      ${candidate.cta ? `<small>CTA: ${escapeHtml(candidate.cta)}</small>` : ""}
+      ${candidate.platformNotes ? `<small>Platform notes: ${escapeHtml(candidate.platformNotes)}</small>` : ""}
       <small>${escapeHtml(candidate.source)} - ${new Date(candidate.createdAt).toLocaleString()}</small>
     </article>
   `);
 }
 
+function getDraftableRepurposeCandidate(candidates = []) {
+  return candidates.find((candidate) => candidate.status === "promoted" && !candidate.blotatoDraftReference)
+    || candidates.find((candidate) => candidate.format === "Restream viral clip package" && !candidate.blotatoDraftReference)
+    || candidates[0]
+    || null;
+}
+
+function normalizeBlotatoPlatform(platform) {
+  const normalized = String(platform || "").toLowerCase().replace(/\s+/g, "");
+  const aliases = {
+    instagramreels: "instagram",
+    facebookpage: "facebook",
+    linkedincompany: "linkedin",
+    x: "twitter"
+  };
+  return aliases[normalized] || normalized || "linkedin";
+}
+
+function getBlotatoAccountsForCandidate(candidate) {
+  const accounts = backendState.blotato.accounts || [];
+  if (!candidate?.preferredPlatform) return accounts;
+  const preferred = normalizeBlotatoPlatform(candidate.preferredPlatform);
+  const preferredAccounts = accounts.filter((account) => account.platform === preferred);
+  return preferredAccounts.length ? preferredAccounts : accounts;
+}
+
+function buildBlotatoDraftDefaultTime() {
+  const date = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  date.setMinutes(0, 0, 0);
+  return date.toISOString().slice(0, 16);
+}
+
+function renderBlotatoDraftReview(campaign, candidates) {
+  if (!elements.blotatoDraftReview) return;
+  const candidate = getDraftableRepurposeCandidate(candidates);
+  const accounts = candidate ? getBlotatoAccountsForCandidate(candidate) : [];
+  const firstAccount = accounts[0] || backendState.blotato.accounts?.[0] || null;
+  const sourceReference = candidate?.thumbnailUrl || campaign.assets.video || campaign.assets.thumbnail || candidate?.sourceClipId || "";
+  const safeTime = buildBlotatoDraftDefaultTime();
+
+  if (!candidate) {
+    renderAgentOpsList(elements.blotatoDraftReview, [
+      {
+        title: "No promoted package yet",
+        body: "Promote a Restream clip into Repurpose Candidates before building a Blotato draft.",
+        meta: backendState.blotato.checked ? `${backendState.blotato.accounts.length} connected Blotato accounts visible.` : "Refresh accounts to prepare the publishing path.",
+        status: "not-started"
+      }
+    ], renderSimpleAgentOpsItem);
+    return;
+  }
+
+  elements.blotatoDraftReview.innerHTML = `
+    <article class="agent-ops-item blotato-draft-review" data-blotato-candidate="${escapeHtml(candidate.id)}">
+      <header>
+        <strong>${escapeHtml(candidate.format || "Repurpose package")}</strong>
+        <span class="status-pill ${candidate.blotatoDraftReference ? "approved" : "needs-review"}">${escapeHtml(candidate.blotatoDraftReference ? "Draft Ready" : "Needs Approval")}</span>
+      </header>
+      <p>${escapeHtml(candidate.idea || "Review the promoted package before Blotato draft creation.")}</p>
+      ${backendState.blotato.error ? `<small class="backend-status offline">${escapeHtml(backendState.blotato.error)}</small>` : ""}
+      <label class="field">
+        <span>Blotato Account / Platform</span>
+        <select data-blotato-account ${accounts.length ? "" : "disabled"}>
+          ${accounts.length
+            ? accounts.map((account) => `
+              <option value="${escapeHtml(account.id)}" data-platform="${escapeHtml(account.platform)}" ${account.id === firstAccount?.id ? "selected" : ""}>
+                ${escapeHtml(`${formatStatus(account.platform)} - ${account.username || account.fullname || account.id}`)}
+              </option>
+            `).join("")
+            : `<option value="">No connected Blotato accounts loaded</option>`}
+        </select>
+      </label>
+      <label class="field">
+        <span>Safe Scheduled Time</span>
+        <input data-blotato-scheduled-time type="datetime-local" value="${escapeHtml(safeTime)}" />
+      </label>
+      <label class="field full-width">
+        <span>Caption</span>
+        <textarea data-blotato-caption rows="5">${escapeHtml(candidate.caption || campaign.publishing.caption || "")}</textarea>
+      </label>
+      <label class="field">
+        <span>Hashtags</span>
+        <input data-blotato-hashtags type="text" value="${escapeHtml(candidate.hashtags || campaign.publishing.hashtags || "")}" />
+      </label>
+      <label class="field">
+        <span>CTA</span>
+        <input data-blotato-cta type="text" value="${escapeHtml(candidate.cta || "")}" />
+      </label>
+      <label class="field full-width">
+        <span>Platform Notes</span>
+        <textarea data-blotato-platform-notes rows="3">${escapeHtml(candidate.platformNotes || campaign.publishing.platformNotes || "")}</textarea>
+      </label>
+      <label class="field full-width">
+        <span>Media / Source Reference</span>
+        <input data-blotato-media-source type="url" value="${escapeHtml(sourceReference)}" placeholder="https://..." />
+      </label>
+      <label class="checkbox-line full-width">
+        <input data-blotato-human-approval type="checkbox" />
+        <span>I approve creating a safe Blotato draft/scheduled post from this reviewed package.</span>
+      </label>
+      <div class="inline-actions">
+        <button class="mini-button" type="button" data-blotato-create-draft ${accounts.length ? "" : "disabled"}>${backendState.blotato.creatingDraft ? "Creating..." : "Create Blotato Draft"}</button>
+      </div>
+      ${candidate.blotatoDraftReference ? `<small class="backend-status online">Blotato reference: ${escapeHtml(candidate.blotatoDraftReference)}</small>` : ""}
+    </article>
+  `;
+}
+
+function renderSimpleAgentOpsItem(item) {
+  return `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(item.title)}</strong>
+        ${item.status ? `<span class="status-pill ${escapeHtml(item.status)}">${escapeHtml(formatStatus(item.status))}</span>` : ""}
+      </header>
+      <p>${escapeHtml(item.body)}</p>
+      <small>${escapeHtml(item.meta)}</small>
+    </article>
+  `;
+}
+
+function getRestreamOperation(name) {
+  return backendState.restreamOperations.snapshot?.operations?.[name] || null;
+}
+
+function getRestreamDataList(operationName, keys = []) {
+  const data = getRestreamOperation(operationName)?.data;
+  if (Array.isArray(data)) return data;
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) return data[key];
+  }
+  return [];
+}
+
+function getRestreamTitle(item, fallback) {
+  return item?.title || item?.displayName || item?.name || item?.channelUrl || fallback;
+}
+
+function getRestreamProjectId(project) {
+  return project?.projectId || project?.id || project?.sourceIdentifier || "";
+}
+
+function getRestreamClipDetail(projectId) {
+  return backendState.restreamOperations.clipDetails[projectId] || null;
+}
+
+function getRestreamProjectClips(projectId) {
+  const detail = getRestreamClipDetail(projectId);
+  if (!detail) return [];
+  if (Array.isArray(detail.clips)) return detail.clips;
+  if (Array.isArray(detail.items)) return detail.items;
+  if (Array.isArray(detail.data)) return detail.data;
+  return [];
+}
+
+function getBestRestreamClip(projectId) {
+  return [...getRestreamProjectClips(projectId)].sort(
+    (a, b) => Number(b.viralityScore || 0) - Number(a.viralityScore || 0)
+  )[0] || null;
+}
+
+function excerptText(value, limit = 180) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (text.length <= limit) return text;
+  return `${text.slice(0, limit).trim()}...`;
+}
+
+function toHashtag(value) {
+  return String(value || "")
+    .replace(/[^a-zA-Z0-9 ]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((word) => word[0]?.toUpperCase() + word.slice(1))
+    .join("");
+}
+
+function buildRestreamRepurposePackage(campaign, project, clip) {
+  const profile = getBrandProfile(campaign.brand);
+  const platforms = getCampaignPlatforms(campaign).slice(0, 4);
+  const title = clip?.name || getRestreamTitle(project, "Restream clip");
+  const transcript = excerptText(clip?.transcriptText, 260);
+  const score = Number(clip?.viralityScore || 0);
+  const hook = `${title}: ${transcript || "turn this live moment into a tight audience-facing insight."}`;
+  const cta = profile?.regulated
+    ? "Review the approved next step with the team before publishing."
+    : `Use this moment to start the ${campaign.brand} conversation.`;
+  const hashtags = [
+    `#${toHashtag(campaign.brand) || "OTASocialEngine"}`,
+    "#LiveClip",
+    "#Repurpose",
+    score >= 80 ? "#ViralCandidate" : "#ContentStrategy"
+  ].join(" ");
+
+  return {
+    hook,
+    caption: `${title}\n\n${transcript || "This clip has a strong live-response signal and is ready for a tighter short-form edit."}\n\n${cta}`,
+    hashtags,
+    cta,
+    platformNotes: `${platforms.join(", ") || "Multi-platform"}: lead with the Restream-generated hook, keep captions tight, open on the strongest quote, and cut dead air before scheduling.`,
+    viralScore: score,
+    sourceProjectId: getRestreamProjectId(project),
+    sourceClipId: clip?.clipId || clip?.id || "",
+    thumbnailUrl: clip?.thumbnailUrl || project?.clipThumbnails?.[0] || "",
+    transcript,
+    timing:
+      clip?.sourceStartSeconds !== undefined && clip?.sourceEndSeconds !== undefined
+        ? `${clip.sourceStartSeconds}s-${clip.sourceEndSeconds}s`
+        : ""
+  };
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+  const numericValue = typeof value === "number" || /^\d+$/.test(String(value)) ? Number(value) : null;
+  const date = numericValue && numericValue < 10_000_000_000 ? new Date(numericValue * 1000) : new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+}
+
+function formatBytes(value) {
+  const bytes = Number(value || 0);
+  if (!bytes) return "size pending";
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unit = 0;
+  while (size >= 1024 && unit < units.length - 1) {
+    size /= 1024;
+    unit += 1;
+  }
+  return `${size.toFixed(unit ? 1 : 0)} ${units[unit]}`;
+}
+
+function getRestreamClipCount(restream) {
+  const liveProjects = getRestreamDataList("clipProjects", ["projects"]);
+  if (backendState.restreamOperations.available && liveProjects.length) {
+    return liveProjects.reduce((total, project) => total + Number(project.clipsCount || 0), 0);
+  }
+  return restream.clipCandidates.length;
+}
+
+function getRestreamOperationStatusLine() {
+  const live = backendState.restreamOperations;
+  if (live.checking) return "Refreshing live Restream operations.";
+  if (live.available) return `Live Restream snapshot updated ${formatDateTime(live.snapshot?.checkedAt)}.`;
+  if (live.checked) return `Restream operations unavailable: ${live.error || "backend request failed"}.`;
+  return backendApiBase ? "Live Restream operations have not been loaded yet." : "Open through the local backend server to load live Restream operations.";
+}
+
 function renderRestreamOps(restream) {
+  const channels = getRestreamDataList("channels", ["channels"]);
+  const upcoming = getRestreamDataList("upcomingEvents", ["events", "items"]);
+  const inProgress = getRestreamDataList("inProgressEvents", ["events", "items"]);
+  const history = getRestreamDataList("eventHistory", ["items", "events"]);
+  const storageFiles = getRestreamDataList("storageFiles", ["files", "items"]);
+  const clipProjects = getRestreamDataList("clipProjects", ["projects", "items"]);
+  const nextEvent = upcoming[0] || null;
   const items = [
     {
-      title: "Broadcast status",
-      body: `${formatStatus(restream.status)} - ${restream.broadcastTitle}`,
-      meta: restream.liveNotes
+      title: "Live Restream status",
+      body: backendState.restreamOperations.available
+        ? `${inProgress.length} live now - ${upcoming.length} upcoming - ${channels.length} channel${channels.length === 1 ? "" : "s"} connected`
+        : `${formatStatus(restream.status)} - ${restream.broadcastTitle}`,
+      meta: getRestreamOperationStatusLine(),
+      status: backendState.restreamOperations.available ? "approved" : backendState.restreamOperations.checking ? "in-progress" : "not-started"
     },
+    {
+      title: "Next scheduled broadcast",
+      body: nextEvent
+        ? getRestreamTitle(nextEvent, "Untitled Restream event")
+        : "No upcoming Restream event returned by the live endpoint.",
+      meta: nextEvent?.scheduledFor ? `Scheduled ${formatDateTime(nextEvent.scheduledFor)}` : "Schedule pending or not supplied.",
+      status: nextEvent ? "in-progress" : "not-started"
+    },
+    {
+      title: "Storage and recordings",
+      body: storageFiles.length
+        ? `${storageFiles.length} Restream storage file${storageFiles.length === 1 ? "" : "s"} visible. Latest: ${getRestreamTitle(storageFiles[0], storageFiles[0]?.id || "Stored file")}`
+        : "No Restream storage files returned yet.",
+      meta: storageFiles[0] ? `${formatBytes(storageFiles[0].sizeBytes)} - ${formatStatus(storageFiles[0].status || "available")}` : "Storage endpoint ready.",
+      status: storageFiles.length ? "approved" : "not-started"
+    },
+    {
+      title: "Clip discovery",
+      body: clipProjects.length
+        ? `${clipProjects.length} clip project${clipProjects.length === 1 ? "" : "s"} visible with ${getRestreamClipCount(restream)} total clip${getRestreamClipCount(restream) === 1 ? "" : "s"} tracked.`
+        : "No Restream clip projects returned yet.",
+      meta: clipProjects[0]
+        ? `${getRestreamTitle(clipProjects[0], "Clip project")} - ${formatDateTime(clipProjects[0].createdAt)}`
+        : "Clip discovery endpoint ready.",
+      status: clipProjects.length ? "approved" : "not-started"
+    },
+    ...inProgress.slice(0, 2).map((event) => ({
+      title: "Currently live",
+      body: getRestreamTitle(event, "Live Restream event"),
+      meta: event.startedAt ? `Started ${formatDateTime(event.startedAt)}` : formatStatus(event.status || "in-progress"),
+      status: "in-progress"
+    })),
+    ...history.slice(0, 2).map((event) => ({
+      title: "Recent broadcast history",
+      body: getRestreamTitle(event, "Restream event"),
+      meta: event.finishedAt
+        ? `Finished ${formatDateTime(event.finishedAt)}`
+        : event.startedAt
+          ? `Started ${formatDateTime(event.startedAt)}`
+          : formatStatus(event.status || "history"),
+      status: "approved"
+    })),
+    ...clipProjects.slice(0, 4).map((project) => {
+      const projectId = getRestreamProjectId(project);
+      const clips = getRestreamProjectClips(projectId);
+      const bestClip = getBestRestreamClip(projectId);
+      return {
+        title: `Clip project: ${getRestreamTitle(project, "Restream clip project")}`,
+        body: clips.length
+          ? `${clips.length} clips inspected. Top score: ${Number(bestClip?.viralityScore || 0)} - ${bestClip?.name || "clip title pending"}`
+          : `${Number(project.clipsCount || 0)} clips available for inspection.`,
+        meta: project.createdAt ? `Created ${formatDateTime(project.createdAt)}` : "Restream clip project",
+        status: clips.length ? "approved" : backendState.restreamOperations.clipDetailLoading[projectId] ? "in-progress" : "needs-review",
+        projectId,
+        project
+      };
+    }),
     ...restream.clipCandidates.map((clip) => ({
       title: clip.title,
       body: clip.reason,
-      meta: `${clip.status} - ${new Date(clip.createdAt).toLocaleString()}`
+      meta: `${clip.status} - ${new Date(clip.createdAt).toLocaleString()}`,
+      status: clip.status === "promoted" ? "approved" : "needs-review"
     }))
   ];
   renderAgentOpsList(elements.restreamOps, items, (item) => `
     <article class="agent-ops-item">
       <header>
         <strong>${escapeHtml(item.title)}</strong>
+        ${item.status ? `<span class="status-pill ${escapeHtml(item.status)}">${escapeHtml(formatStatus(item.status))}</span>` : ""}
       </header>
       <p>${escapeHtml(item.body)}</p>
       <small>${escapeHtml(item.meta)}</small>
+      ${item.projectId ? `
+        <div class="inline-actions">
+          <button class="mini-button" type="button" data-restream-project="${escapeHtml(item.projectId)}">Inspect Clips</button>
+          <button class="mini-button" type="button" data-restream-promote-project="${escapeHtml(item.projectId)}">Promote Top Clip</button>
+        </div>
+        ${renderRestreamClipProjectDetails(item.projectId)}
+      ` : ""}
     </article>
   `);
+}
+
+function renderRestreamClipProjectDetails(projectId) {
+  if (backendState.restreamOperations.clipDetailLoading[projectId]) {
+    return `<small>Loading Restream clip detail...</small>`;
+  }
+  const clips = getRestreamProjectClips(projectId);
+  if (!clips.length) return "";
+  return `
+    <div class="restream-clip-drilldown">
+      ${clips
+        .slice(0, 3)
+        .map((clip) => `
+          <article>
+            <strong>${escapeHtml(clip.name || "Restream clip")}</strong>
+            <span>${Number(clip.viralityScore || 0)} score</span>
+            <p>${escapeHtml(excerptText(clip.transcriptText, 180))}</p>
+            <button class="mini-button" type="button" data-restream-promote-project="${escapeHtml(projectId)}" data-restream-clip="${escapeHtml(clip.clipId || clip.id || "")}">Promote This Clip</button>
+          </article>
+        `)
+        .join("")}
+    </div>
+  `;
 }
 
 function renderDescriptOps(descript) {
@@ -2212,6 +2729,30 @@ function renderDescriptOps(descript) {
     }
   ];
   renderAgentOpsList(elements.descriptOps, items, (item) => `
+    <article class="agent-ops-item">
+      <header>
+        <strong>${escapeHtml(item.title)}</strong>
+      </header>
+      <p>${escapeHtml(item.body)}</p>
+      <small>${escapeHtml(item.meta)}</small>
+    </article>
+  `);
+}
+
+function renderHeyGenOps(heygen) {
+  const items = [
+    {
+      title: "HeyGen status",
+      body: formatStatus(heygen.status),
+      meta: heygen.sessionRef || "OAuth MCP session reference pending."
+    },
+    {
+      title: "Avatar and personalization plan",
+      body: heygen.avatarPlan,
+      meta: heygen.outputUrl || "Avatar, lip-sync, translation, or personalized video output pending."
+    }
+  ];
+  renderAgentOpsList(elements.heygenOps, items, (item) => `
     <article class="agent-ops-item">
       <header>
         <strong>${escapeHtml(item.title)}</strong>
@@ -2243,10 +2784,386 @@ function renderIntegrationBoundaries(campaign) {
         <span class="status-pill ${service.ready ? "approved" : "needs-review"}">${escapeHtml(formatStatus(service.status))}</span>
       </header>
       <p>${escapeHtml(service.detail)}</p>
+      ${renderBackendIntegrationStatus(service.id)}
       <small>${escapeHtml(service.endpoint)} - ${escapeHtml(service.secret)} stays server-side</small>
       <small>${escapeHtml(service.approval)}</small>
     </article>
   `);
+}
+
+function renderBackendIntegrationStatus(serviceId) {
+  const status = backendState.integrations[serviceId];
+  if (!backendApiBase) {
+    return `<small class="backend-status offline">Backend: open the Command Center through the local server to enable live actions.</small>`;
+  }
+  if (backendState.checking && !backendState.checked) {
+    return `<small class="backend-status pending">Backend: checking live connection...</small>`;
+  }
+  if (!backendState.checked) {
+    return `<small class="backend-status pending">Backend: not checked yet.</small>`;
+  }
+  if (!backendState.available) {
+    return `<small class="backend-status offline">Backend: unavailable. Start the local action layer server.</small>`;
+  }
+  if (!status) {
+    return `<small class="backend-status pending">Backend: no status returned for this service yet.</small>`;
+  }
+  const statusClass = status.live ? "online" : status.configured ? "pending" : "offline";
+  return `
+    <small class="backend-status ${statusClass}">
+      Backend: ${escapeHtml(formatStatus(status.state || "unknown"))} - ${escapeHtml(status.detail || "No detail returned.")}
+    </small>
+  `;
+}
+
+async function refreshBackendStatus() {
+  if (!backendApiBase || backendState.checking) return;
+  backendState.checking = true;
+  try {
+    const response = await fetch(`${backendApiBase}/api/integrations/status`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    backendState.available = true;
+    backendState.integrations = data.integrations || {};
+    await refreshRestreamOperations({ renderAfter: false });
+    await refreshBlotatoAccounts({ renderAfter: false });
+  } catch (error) {
+    backendState.available = false;
+    backendState.integrations = {};
+  } finally {
+    backendState.checked = true;
+    backendState.checking = false;
+    render();
+  }
+}
+
+async function refreshRestreamOperations(options = {}) {
+  const { renderAfter = true } = options;
+  if (!backendApiBase || backendState.restreamOperations.checking) return;
+  backendState.restreamOperations.checking = true;
+  backendState.restreamOperations.error = "";
+  if (renderAfter) render();
+
+  try {
+    const response = await fetch(`${backendApiBase}/api/restream/operations`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    backendState.restreamOperations.available = Boolean(data.ok);
+    backendState.restreamOperations.snapshot = data;
+    backendState.restreamOperations.error = data.ok ? "" : "Restream operations returned no successful checks.";
+  } catch (error) {
+    backendState.restreamOperations.available = false;
+    backendState.restreamOperations.snapshot = null;
+    backendState.restreamOperations.error = error.message;
+  } finally {
+    backendState.restreamOperations.checked = true;
+    backendState.restreamOperations.checking = false;
+    if (renderAfter) render();
+  }
+}
+
+async function refreshBlotatoAccounts(options = {}) {
+  const { renderAfter = true } = options;
+  if (!backendApiBase || backendState.blotato.checking) return;
+  backendState.blotato.checking = true;
+  backendState.blotato.error = "";
+  if (renderAfter) render();
+
+  try {
+    const response = await fetch(`${backendApiBase}/api/blotato/accounts`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    backendState.blotato.available = Boolean(data.ok);
+    backendState.blotato.accounts = Array.isArray(data.accounts) ? data.accounts : [];
+    backendState.blotato.platformCounts = data.platformCounts || {};
+    backendState.blotato.error = data.ok ? "" : data.detail || "Blotato accounts unavailable.";
+  } catch (error) {
+    backendState.blotato.available = false;
+    backendState.blotato.accounts = [];
+    backendState.blotato.platformCounts = {};
+    backendState.blotato.error = error.message;
+  } finally {
+    backendState.blotato.checked = true;
+    backendState.blotato.checking = false;
+    if (renderAfter) render();
+  }
+}
+
+async function inspectRestreamClipProject(projectId) {
+  const campaign = getSelectedCampaign();
+  if (!backendApiBase || !projectId || !campaign) return null;
+  backendState.restreamOperations.clipDetailLoading[projectId] = true;
+  render();
+
+  try {
+    const response = await fetch(`${backendApiBase}/api/restream/clips/projects/${encodeURIComponent(projectId)}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const result = await response.json();
+    if (!result.ok) throw new Error(result.detail || "Restream clip detail request failed");
+    backendState.restreamOperations.clipDetails[projectId] = result.data || {};
+    const clips = getRestreamProjectClips(projectId);
+    addAgentActivity(
+      "Restream Clip Agent",
+      `Inspected Restream clip project ${projectId}; ${clips.length} clips are available for repurpose scoring.`,
+      campaign.id
+    );
+    return result.data || {};
+  } catch (error) {
+    addAgentActivity("Restream Clip Agent", `Clip project inspection failed: ${error.message}`, campaign.id);
+    showToast("Restream clip inspection failed");
+    return null;
+  } finally {
+    backendState.restreamOperations.clipDetailLoading[projectId] = false;
+    render();
+  }
+}
+
+async function promoteRestreamClipProject(projectId, clipId = "") {
+  const campaign = getSelectedCampaign();
+  if (!campaign || !projectId) return;
+  const ops = getAgentOps(campaign);
+  let project = getRestreamDataList("clipProjects", ["projects", "items"]).find(
+    (item) => getRestreamProjectId(item) === projectId
+  );
+  if (!project) {
+    showToast("Restream project not found");
+    return;
+  }
+
+  if (!getRestreamClipDetail(projectId)) {
+    await inspectRestreamClipProject(projectId);
+  }
+
+  const clips = getRestreamProjectClips(projectId);
+  const clip =
+    clips.find((item) => (item.clipId || item.id) === clipId) ||
+    getBestRestreamClip(projectId);
+  if (!clip) {
+    showToast("No Restream clips available");
+    return;
+  }
+
+  const pack = buildRestreamRepurposePackage(campaign, project, clip);
+  const alreadyExists = ops.repurposeCandidates.some((candidate) => candidate.sourceClipId === pack.sourceClipId);
+  if (!alreadyExists) {
+    ops.repurposeCandidates.unshift({
+      id: makeId(),
+      format: "Restream viral clip package",
+      idea: `Promote "${clip.name || getRestreamTitle(project, "Restream clip")}" from live Restream clip discovery into a short-form repurpose package.`,
+      source: "Restream Live Clip Repurpose Agent",
+      status: "candidate",
+      createdAt: new Date().toISOString(),
+      ...pack
+    });
+  }
+
+  ops.performanceSignals.unshift({
+    id: makeId(),
+    source: "Restream Live Clip Repurpose Agent",
+    signal: `Restream clip "${clip.name || "Untitled clip"}" scored ${pack.viralScore}/100 and was converted into hook, caption, hashtag, CTA, and platform notes.`,
+    score: pack.viralScore || 70,
+    createdAt: new Date().toISOString()
+  });
+  ops.tasks.unshift(createAgentTask("Publishing Agent", `Stage Blotato draft for Restream clip: ${clip.name || "Untitled clip"}.`, "pending"));
+
+  campaign.publishing.caption = campaign.publishing.caption || pack.caption;
+  campaign.publishing.hashtags = campaign.publishing.hashtags || pack.hashtags;
+  campaign.publishing.platformNotes = campaign.publishing.platformNotes || pack.platformNotes;
+  campaign.publishing.status = "draft-ready";
+
+  addAgentActivity("Restream Clip Agent", `Generated repurpose package for "${clip.name || "Untitled Restream clip"}".`, campaign.id);
+  addAgentActivity("Repurposing", `Promoted Restream clip into Repurpose Candidates with viral score ${pack.viralScore}/100.`, campaign.id);
+  await queueBackendAction("promote-repurpose-candidate", campaign, {
+    publishingPackage: {
+      ...getPublishingPackage(campaign),
+      restreamClipPackage: pack
+    },
+    source: {
+      service: "restream",
+      projectId,
+      clipId: pack.sourceClipId
+    }
+  });
+  addAgentActivity("Blotato", `Staged Blotato draft job for Restream clip "${clip.name || "Untitled clip"}" pending human approval.`, campaign.id);
+  render();
+  showToast("Restream clip promoted");
+}
+
+function readBlotatoDraftReviewPayload() {
+  const card = elements.blotatoDraftReview?.querySelector("[data-blotato-candidate]");
+  if (!card) return null;
+  const accountSelect = card.querySelector("[data-blotato-account]");
+  const selectedOption = accountSelect?.selectedOptions?.[0];
+  return {
+    candidateId: card.dataset.blotatoCandidate,
+    accountId: accountSelect?.value || "",
+    platform: selectedOption?.dataset.platform || "",
+    caption: card.querySelector("[data-blotato-caption]")?.value.trim() || "",
+    hashtags: card.querySelector("[data-blotato-hashtags]")?.value.trim() || "",
+    cta: card.querySelector("[data-blotato-cta]")?.value.trim() || "",
+    platformNotes: card.querySelector("[data-blotato-platform-notes]")?.value.trim() || "",
+    mediaSource: card.querySelector("[data-blotato-media-source]")?.value.trim() || "",
+    scheduledTimeLocal: card.querySelector("[data-blotato-scheduled-time]")?.value || "",
+    humanApproval: Boolean(card.querySelector("[data-blotato-human-approval]")?.checked)
+  };
+}
+
+function toIsoFromLocalDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
+}
+
+async function createBlotatoDraftFromReview() {
+  const campaign = getSelectedCampaign();
+  if (!campaign || !backendApiBase) return;
+  const ops = getAgentOps(campaign);
+  const payload = readBlotatoDraftReviewPayload();
+  if (!payload) return;
+  const candidate = ops.repurposeCandidates.find((item) => item.id === payload.candidateId);
+  if (!candidate) {
+    showToast("Repurpose package not found");
+    return;
+  }
+  if (!payload.accountId || !payload.platform) {
+    showToast("Select a Blotato account");
+    return;
+  }
+  if (!payload.caption) {
+    showToast("Caption is required");
+    return;
+  }
+  if (!payload.humanApproval) {
+    showToast("Human approval is required");
+    return;
+  }
+
+  backendState.blotato.creatingDraft = true;
+  render();
+  const scheduledTime = toIsoFromLocalDateTime(payload.scheduledTimeLocal);
+
+  try {
+    const response = await fetch(`${backendApiBase}/api/blotato/create-draft`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        execute: true,
+        humanApproval: payload.humanApproval,
+        safeModeAcknowledged: true,
+        accountId: payload.accountId,
+        platform: payload.platform,
+        caption: payload.caption,
+        hashtags: payload.hashtags,
+        cta: payload.cta,
+        platformNotes: payload.platformNotes,
+        mediaSource: payload.mediaSource,
+        scheduledTime,
+        candidate: {
+          id: candidate.id,
+          format: candidate.format,
+          sourceClipId: candidate.sourceClipId,
+          sourceProjectId: candidate.sourceProjectId,
+          viralScore: candidate.viralScore
+        },
+        campaignManifest: getManifest(campaign)
+      })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.detail || `HTTP ${response.status}`);
+
+    candidate.status = "draft-created";
+    candidate.blotatoDraftReference = result.postSubmissionId || result.draftReferenceId || "";
+    candidate.blotatoDraftState = result.mode || "created";
+    candidate.blotatoPlatform = payload.platform;
+    candidate.blotatoAccountId = payload.accountId;
+    candidate.scheduledTime = scheduledTime;
+    campaign.publishing.caption = payload.caption;
+    campaign.publishing.hashtags = payload.hashtags;
+    campaign.publishing.platformNotes = payload.platformNotes;
+    campaign.publishing.status = "draft-created";
+    ops.tasks.unshift(createAgentTask("Publishing Agent", `Blotato draft created for ${candidate.format}.`, "completed"));
+    addAgentActivity("Blotato", `Created Blotato draft/post reference ${candidate.blotatoDraftReference} for ${campaign.name}.`, campaign.id);
+    addAgentActivity("Approval", `Human-approved Blotato draft creation for ${candidate.format}.`, campaign.id);
+    showToast("Blotato draft created");
+  } catch (error) {
+    addAgentActivity("Blotato", `Blotato draft creation blocked: ${error.message}`, campaign.id);
+    showToast("Blotato draft blocked");
+  } finally {
+    backendState.blotato.creatingDraft = false;
+    render();
+  }
+}
+
+function getBackendAction(actionId) {
+  return {
+    "run-signal-sweep": { service: "analytics", action: "signal-sweep" },
+    "queue-repurpose-plan": { service: "repurpose", action: "plan" },
+    "capture-live-clip": { service: "restream", action: "create-broadcast" },
+    "draft-descript-plan": { service: "descript", action: "create-edit" },
+    "draft-heygen-plan": { service: "heygen", action: "create-avatar-video" },
+    "request-human-approval": { service: "approval", action: "request-human-review" },
+    "promote-repurpose-candidate": { service: "blotato", action: "create-draft" }
+  }[actionId];
+}
+
+async function queueBackendAction(actionId, campaign, extraPayload = {}) {
+  const backendAction = getBackendAction(actionId);
+  if (!backendApiBase || !backendAction || !campaign) return;
+
+  try {
+    const response = await fetch(`${backendApiBase}/api/jobs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...backendAction,
+        execute: false,
+        campaignManifest: getManifest(campaign),
+        ...extraPayload
+      })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const job = data.job;
+    if (!job?.id) return;
+    backendState.jobs[job.id] = job;
+    recordBackendJobActivity(job, campaign.id);
+    pollBackendJob(job.id, campaign.id);
+  } catch (error) {
+    addAgentActivity("Backend action layer", `Could not queue backend action: ${error.message}`, campaign.id);
+    render();
+  }
+}
+
+function recordBackendJobActivity(job, campaignId) {
+  const latestEvent = job.events?.[job.events.length - 1];
+  addAgentActivity(
+    "Backend action layer",
+    `${job.service}:${job.action} ${formatStatus(job.status)} (${job.progress || 0}%) - ${latestEvent?.message || "Job accepted."}`,
+    campaignId
+  );
+}
+
+function pollBackendJob(jobId, campaignId, attempt = 0) {
+  if (!backendApiBase || attempt > 8) return;
+  window.setTimeout(async () => {
+    try {
+      const response = await fetch(`${backendApiBase}/api/jobs/${jobId}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      const previousStatus = backendState.jobs[jobId]?.status;
+      backendState.jobs[jobId] = data.job;
+      if (data.job.status !== previousStatus || data.job.status === "completed" || data.job.status === "blocked") {
+        recordBackendJobActivity(data.job, campaignId);
+        render();
+      }
+      if (!["completed", "blocked", "failed", "needs_approval"].includes(data.job.status)) {
+        pollBackendJob(jobId, campaignId, attempt + 1);
+      }
+    } catch (error) {
+      addAgentActivity("Backend action layer", `Backend job ${jobId} polling stopped: ${error.message}`, campaignId);
+      render();
+    }
+  }, 900);
 }
 
 function renderAgentOpsList(container, items, template) {
@@ -2404,6 +3321,7 @@ function renderScenes(campaign) {
   }
 
   campaign.scenes.forEach((scene) => {
+    const voiceoverScript = getSceneVoiceoverScript(scene);
     const card = document.createElement("article");
     card.className = "scene-card";
     card.innerHTML = `
@@ -2411,9 +3329,22 @@ function renderScenes(campaign) {
         <strong>${escapeHtml(scene.title)}</strong>
         <span class="status-pill ${scene.status || "not-started"}">${formatStatus(scene.status || "not-started")}</span>
       </header>
-      ${scene.script ? `<p><strong>Script:</strong> ${escapeHtml(scene.script)}</p>` : ""}
-      <p>${escapeHtml(scene.prompt)}</p>
-      ${scene.compliance ? `<p>${escapeHtml(scene.compliance)}</p>` : ""}
+      ${voiceoverScript ? `
+        <section class="scene-field spoken">
+          <strong>ElevenLabs Voiceover Script <span>spoken</span></strong>
+          <p>${escapeHtml(voiceoverScript)}</p>
+        </section>
+      ` : ""}
+      <section class="scene-field visual">
+        <strong>Higgsfield Visual Prompt <span>not spoken</span></strong>
+        <p>${escapeHtml(scene.prompt)}</p>
+      </section>
+      ${scene.compliance ? `
+        <section class="scene-field instruction">
+          <strong>Compliance / Production Note <span>not spoken</span></strong>
+          <p>${escapeHtml(scene.compliance)}</p>
+        </section>
+      ` : ""}
       <div class="scene-actions">
         <button class="mini-button" type="button" data-scene-status="in-progress" data-scene-id="${scene.id}">Generating</button>
         <button class="mini-button" type="button" data-scene-status="needs-review" data-scene-id="${scene.id}">Review</button>
@@ -2549,11 +3480,11 @@ function renderPublishingCalendar(campaign) {
 function getSelectedLaunchScene(campaign) {
   const launch = campaign.viralLaunch || createViralLaunchState();
   const selected = campaign.scenes.find((scene) => scene.id === launch.selectedSceneId);
-  return selected || campaign.scenes.find((scene) => scene.script) || campaign.scenes[0] || null;
+  return selected || campaign.scenes.find((scene) => getSceneVoiceoverScript(scene)) || campaign.scenes[0] || null;
 }
 
 function getLaunchHookText(scene) {
-  const text = String(scene?.script || "").trim();
+  const text = String(getSceneVoiceoverScript(scene)).trim();
   if (!text) return "";
   return text.split(/[.!?]/)[0].trim() || text.slice(0, 140).trim();
 }
@@ -2782,9 +3713,9 @@ function getViralLaunchPack(campaign) {
           title: scene.title,
           status: scene.status,
           hook: readiness.hook,
-          script: scene.script,
+          voiceoverScript: getSceneVoiceoverScript(scene),
           visualPrompt: scene.prompt,
-          compliance: scene.compliance
+          complianceNote: scene.compliance
         }
       : null,
     publishing: getPublishingPackage(campaign),
@@ -2836,6 +3767,7 @@ function buildSuggestedScene(campaign) {
   return {
     id: makeId(),
     title: `Co-Pilot Scene ${ordinal}`,
+    voiceoverScript: `Open on ${tension}. Reframe it through ${campaign.brand}'s point of view, then show the clear next action the audience can take.`,
     script: `Open on ${tension}. Reframe it through ${campaign.brand}'s point of view, then show the clear next action the audience can take.`,
     prompt: `${profile?.perspective || "Brand-native cinematic perspective"}, scene ${ordinal}, clear before-and-after storytelling, platform-ready composition, clean lighting, high-signal visual detail.`,
     compliance: profile?.regulated ? buildComplianceGuardrails(campaign.brand).split("\n")[0] || "" : "",
@@ -2909,13 +3841,14 @@ function draftSceneFields() {
     ? buildSuggestedScene(campaign)
     : {
         title: "Co-Pilot Scene",
+        voiceoverScript: "Open with the audience's familiar tension, reframe it with the brand insight, and close with a clear next action.",
         script: "Open with the audience's familiar tension, reframe it with the brand insight, and close with a clear next action.",
         prompt:
           "Brand-native cinematic scene, clear before-and-after storytelling, clean lighting, platform-ready composition.",
         compliance: ""
       };
   if (!elements.sceneForm.elements.title.value.trim()) elements.sceneForm.elements.title.value = scene.title;
-  if (!elements.sceneForm.elements.script.value.trim()) elements.sceneForm.elements.script.value = scene.script;
+  if (!elements.sceneForm.elements.script.value.trim()) elements.sceneForm.elements.script.value = getSceneVoiceoverScript(scene);
   if (!elements.sceneForm.elements.prompt.value.trim()) elements.sceneForm.elements.prompt.value = scene.prompt;
   if (!elements.sceneForm.elements.compliance.value.trim()) elements.sceneForm.elements.compliance.value = scene.compliance;
   renderSceneDialogCoPilot();
@@ -3182,7 +4115,30 @@ function focusCollaborationThread(threadId) {
 
 function getAgentOps(campaign) {
   if (!campaign.agentOps) campaign.agentOps = createAgentOps(campaign);
+  hydrateAgentOps(campaign.agentOps, campaign);
   return campaign.agentOps;
+}
+
+function hydrateAgentOps(ops, campaign) {
+  const campaignName = campaign?.name || "this campaign";
+  if (!ops.descript) {
+    ops.descript = {
+      status: "not-started",
+      projectRef: "",
+      enhancedAssetUrl: "",
+      editPlan: `Use Descript to polish ${campaignName} before publishing or repurposing.`
+    };
+  }
+  if (!ops.heygen) {
+    ops.heygen = {
+      status: "not-started",
+      sessionRef: "",
+      avatarPlan:
+        "Use HeyGen for approved avatar explainers, lip-sync variants, personalized CTA videos, and multilingual derivatives after script/audio context is approved. Route new video work through Avatar IV by default; use Avatar V only after the selected look confirms avatar_v support.",
+      outputUrl: "",
+      translationTargets: []
+    };
+  }
 }
 
 function applyAgentAction(actionId) {
@@ -3250,6 +4206,19 @@ function applyAgentAction(actionId) {
     addAgentActivity("Descript", `Drafted Descript enhancement plan for ${campaign.name}.`, campaign.id);
   }
 
+  if (actionId === "draft-heygen-plan") {
+    ops.heygen.status = "ready-for-avatar-plan";
+    ops.heygen.sessionRef = ops.heygen.sessionRef || `HeyGen/OAuth/${campaign.brand}/${campaign.name}`;
+    ops.heygen.avatarPlan = [
+      "Use HeyGen Remote MCP for approved avatar-led explainers, lip-sync, and translation variants.",
+      "Use Avatar IV by default through POST /v3/videos; use Avatar V only after the selected avatar look confirms avatar_v support.",
+      "Use approved script/audio context only; no regulated claims move forward without human review.",
+      "Return HeyGen video URLs, caption references, and avatar/voice metadata into Bunny and the publishing package."
+    ].join(" ");
+    ops.tasks.unshift(createAgentTask("Avatar Personalization Agent", "Prepare HeyGen avatar, lip-sync, and translation handoff plan.", "running"));
+    addAgentActivity("HeyGen", `Drafted HeyGen avatar personalization plan for ${campaign.name}.`, campaign.id);
+  }
+
   if (actionId === "request-human-approval") {
     ops.approvals.unshift({
       id: makeId(),
@@ -3292,6 +4261,7 @@ function applyAgentAction(actionId) {
   }
 
   render();
+  queueBackendAction(actionId, campaign);
   showToast("Agent operation applied");
 }
 
@@ -3408,9 +4378,15 @@ function getElevenLabsBrief(campaign) {
     complianceGuardrails: campaign.guardrails,
     scenes: campaign.scenes.map((scene) => ({
       title: scene.title,
-      script: scene.script,
-      prompt: scene.prompt,
-      compliance: scene.compliance,
+      voiceoverScript: getSceneVoiceoverScript(scene),
+      elevenLabsInput: {
+        spokenTextOnly: true,
+        text: getSceneVoiceoverScript(scene)
+      },
+      nonSpokenInstructions: {
+        visualPrompt: scene.prompt,
+        complianceNote: scene.compliance
+      },
       status: scene.status
     })),
     notes: campaign.elevenLabs.notes
@@ -3427,9 +4403,9 @@ function getRemotionBrief(campaign) {
     remotionOutputUrl: campaign.remotion.outputUrl || campaign.assets.remotionOutput,
     scenes: campaign.scenes.map((scene) => ({
       title: scene.title,
-      script: scene.script,
-      prompt: scene.prompt,
-      compliance: scene.compliance,
+      voiceoverScript: getSceneVoiceoverScript(scene),
+      visualPrompt: scene.prompt,
+      complianceNote: scene.compliance,
       status: scene.status
     })),
     notes: campaign.remotion.compositionNotes
@@ -3735,6 +4711,7 @@ elements.sceneForm.addEventListener("submit", (event) => {
   campaign.scenes.push({
     id: makeId(),
     title: data.title.trim(),
+    voiceoverScript: data.script.trim(),
     script: data.script.trim(),
     prompt: data.prompt.trim(),
     compliance: data.compliance.trim(),
@@ -3814,6 +4791,36 @@ document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-agent-action]");
   if (!button) return;
   applyAgentAction(button.dataset.agentAction);
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-restream-refresh]");
+  if (!button) return;
+  refreshRestreamOperations();
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-blotato-refresh]");
+  if (!button) return;
+  refreshBlotatoAccounts();
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-blotato-create-draft]");
+  if (!button) return;
+  createBlotatoDraftFromReview();
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-restream-project]");
+  if (!button) return;
+  inspectRestreamClipProject(button.dataset.restreamProject);
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-restream-promote-project]");
+  if (!button) return;
+  promoteRestreamClipProject(button.dataset.restreamPromoteProject, button.dataset.restreamClip || "");
 });
 
 document.addEventListener("keydown", (event) => {
@@ -4066,6 +5073,7 @@ function handleCommandCenterHash() {
     "#elevenlabs-audio-section": { selector: "#elevenlabs-audio-section" },
     "#remotion-pass-section": { selector: "#remotion-pass-section" },
     "#stage-higgsfield": { stageIndex: 4, selector: "#workflow-stage-panel" },
+    "#stage-heygen": { stageIndex: 7, selector: "#workflow-stage-panel" },
     "#approval-gate-section": { selector: "#approval-gate-section" },
     "#bunny-storage-section": { selector: "#bunny-storage-section" },
     "#publishing-package-section": { selector: "#publishing-package-section" },
@@ -4094,6 +5102,7 @@ if (!selectedCampaignId && state.campaigns[0]) {
 
 renderBrandOptions();
 render();
+refreshBackendStatus();
 showTutorialReturnLink();
 handleCommandCenterHash();
 window.addEventListener("hashchange", handleCommandCenterHash);
