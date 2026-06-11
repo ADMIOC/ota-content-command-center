@@ -727,6 +727,23 @@ p {
   line-height: 1;
 }
 
+.site-footer {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 22px 16px 32px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.site-footer strong {
+  color: var(--ink);
+}
+
 @media (max-width: 1180px) {
   .hero,
   .offer-band,
