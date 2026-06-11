@@ -1,9 +1,9 @@
 const reportState = {
-  dealName: "UDI Group EUR 150M Capital Raise",
-  principal: "Rock Eleven Group",
-  assetClass: "Real Estate Development",
-  raiseSize: "EUR 150M",
-  mode: "Concierge MVP",
+  dealName: "Northstar Urban Partners CAD 120M Growth Capital Review",
+  principal: "Atlas Ridge Capital Committee",
+  assetClass: "Residential Infrastructure",
+  raiseSize: "CAD 120M",
+  mode: "Expert Review",
   scores: {
     "Capital absorption": 72,
     "Downside protection": 52,
@@ -45,9 +45,9 @@ const questions = [
 ];
 
 const modeNotes = {
-  "Concierge MVP": "Expert-reviewed reports create revenue immediately while the platform learns from real deal flow.",
-  "Assisted App": "Clients upload deals and receive AI-generated drafts, but analyst approval is required before delivery.",
-  "Self-Serve SaaS": "Repeat users run reports, scenario labs, team reviews, and exports from their own workspace.",
+  "Expert Review": "Analyst oversight keeps evidence ratings, risk gates, and investment posture defensible.",
+  "Platform-Assisted": "Clients upload materials and receive a structured draft with analyst approval before delivery.",
+  "Institutional Workspace": "Repeat users manage report history, scenario labs, team review, and exports from a secure workspace.",
 };
 
 const sliders = {
@@ -171,11 +171,11 @@ function updateScenario() {
 }
 
 function persistState() {
-  localStorage.setItem("dealflowCoachDemo", JSON.stringify(reportState));
+  localStorage.setItem("dealflowCoachWorkspace", JSON.stringify(reportState));
 }
 
 function restoreState() {
-  const saved = localStorage.getItem("dealflowCoachDemo");
+  const saved = localStorage.getItem("dealflowCoachWorkspace");
   if (!saved) return;
   try {
     const parsed = JSON.parse(saved);
@@ -188,7 +188,7 @@ function restoreState() {
       slider.value = reportState.scores[label];
     });
   } catch {
-    localStorage.removeItem("dealflowCoachDemo");
+    localStorage.removeItem("dealflowCoachWorkspace");
   }
 }
 
@@ -230,7 +230,7 @@ document.getElementById("copySummary").addEventListener("click", async () => {
 });
 
 document.getElementById("resetApp").addEventListener("click", () => {
-  localStorage.removeItem("dealflowCoachDemo");
+  localStorage.removeItem("dealflowCoachWorkspace");
   window.location.reload();
 });
 

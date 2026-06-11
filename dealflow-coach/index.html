@@ -83,11 +83,11 @@
 
         <section id="workspace" class="workspace-section">
           <div class="section-heading">
-            <p class="eyebrow">Report app MVP</p>
-            <h2>Generate the first-pass fundability report.</h2>
+            <p class="eyebrow">Report workspace</p>
+            <h2>Generate an institutional fundability view.</h2>
             <p>
-              This MVP stores the working report locally and models the expert-report operating system.
-              The AI ingestion backend comes next; the product surface and decision logic are here now.
+              The workspace converts source materials into an evidence-rated report surface for sponsor
+              readiness, diligence planning, and capital committee review.
             </p>
           </div>
 
@@ -100,16 +100,16 @@
                 </div>
                 <label class="field">
                   <span>Deal name</span>
-                  <input id="dealName" type="text" value="UDI Group EUR 150M Capital Raise" />
+                  <input id="dealName" type="text" value="Northstar Urban Partners CAD 120M Growth Capital Review" />
                 </label>
                 <label class="field">
                   <span>Analyzed for</span>
-                  <input id="principal" type="text" value="Rock Eleven Group" />
+                  <input id="principal" type="text" value="Atlas Ridge Capital Committee" />
                 </label>
                 <label class="field">
                   <span>Asset class</span>
                   <select id="assetClass">
-                    <option>Real Estate Development</option>
+                    <option>Residential Infrastructure</option>
                     <option>Infrastructure</option>
                     <option>Private Equity</option>
                     <option>Private Credit</option>
@@ -118,7 +118,7 @@
                 </label>
                 <label class="field">
                   <span>Raise size</span>
-                  <input id="raiseSize" type="text" value="EUR 150M" />
+                  <input id="raiseSize" type="text" value="CAD 120M" />
                 </label>
                 <label class="field">
                   <span>Source package</span>
@@ -129,16 +129,16 @@
 
               <section class="panel">
                 <div class="panel-heading">
-                  <p class="eyebrow">Operating mode</p>
-                  <h3>Concierge first, SaaS next</h3>
+                  <p class="eyebrow">Delivery model</p>
+                  <h3>Expert-reviewed by default</h3>
                 </div>
                 <div class="mode-list">
-                  <button class="mode-button is-active" type="button" data-mode="Concierge MVP">Concierge MVP</button>
-                  <button class="mode-button" type="button" data-mode="Assisted App">Assisted App</button>
-                  <button class="mode-button" type="button" data-mode="Self-Serve SaaS">Self-Serve SaaS</button>
+                  <button class="mode-button is-active" type="button" data-mode="Expert Review">Expert Review</button>
+                  <button class="mode-button" type="button" data-mode="Platform-Assisted">Platform-Assisted</button>
+                  <button class="mode-button" type="button" data-mode="Institutional Workspace">Institutional Workspace</button>
                 </div>
                 <p id="modeNote" class="panel-note">
-                  Expert-reviewed reports create revenue immediately while the platform learns from real deal flow.
+                  Analyst oversight keeps evidence ratings, risk gates, and investment posture defensible.
                 </p>
               </section>
             </aside>
@@ -147,8 +147,8 @@
               <div class="report-header">
                 <div>
                   <p class="eyebrow">Institutional fundability report</p>
-                  <h3 id="reportTitle">UDI Group EUR 150M Capital Raise</h3>
-                  <p id="reportMeta">Prepared for Rock Eleven Group - Real Estate Development</p>
+                  <h3 id="reportTitle">Northstar Urban Partners CAD 120M Growth Capital Review</h3>
+                  <p id="reportMeta">Prepared for Atlas Ridge Capital Committee - Residential Infrastructure</p>
                 </div>
                 <div class="verdict-card">
                   <span id="verdictLabel">Engage - Do Not Commit</span>
@@ -266,9 +266,9 @@
               <p class="eyebrow">Review queue</p>
               <h3>3 reports in progress</h3>
               <div class="queue-list">
-                <span>UDI Group - Evidence review</span>
-                <span>Grid battery platform - Model gap check</span>
-                <span>Healthcare roll-up - Sponsor KYC</span>
+                <span>Northstar Urban Partners - Evidence review</span>
+                <span>Helios Grid Storage - Model gap check</span>
+                <span>Summit Care Holdings - Sponsor KYC</span>
               </div>
             </article>
             <article class="panel">
@@ -283,29 +283,29 @@
             <article class="panel">
               <p class="eyebrow">Export package</p>
               <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
-              <button id="resetApp" class="secondary-button" type="button">Reset Demo State</button>
-              <p id="copyStatus" class="panel-note">Exports become branded HTML/PDF packages in the next backend pass.</p>
+              <button id="resetApp" class="secondary-button" type="button">Clear Workspace</button>
+              <p id="copyStatus" class="panel-note">Exports are packaged as branded HTML/PDF report deliverables for client review.</p>
             </article>
           </div>
         </section>
 
         <section id="pricing" class="pricing-section">
           <div class="section-heading">
-            <p class="eyebrow">Pre-launch access</p>
-            <h2>Get started with our pre-launch cost model</h2>
+            <p class="eyebrow">Founding access</p>
+            <h2>Institutional readiness review, priced for initial sponsor adoption.</h2>
           </div>
           <div class="pricing-grid">
             <article class="pricing-card launch-card">
-              <span>Launch</span>
+              <span>Founding Access</span>
               <div class="launch-price-wrap">
-                <small>Includes 2 additional re-runs!</small>
+                <small>Includes two additional analysis refreshes</small>
                 <h3>$497</h3>
-                <div class="price-markdown" aria-label="Pre-launch markdown from original report range">
-                  <s>$2,500</s>
-                  <s>$7,500</s>
+                <div class="price-markdown" aria-label="Founding access rate compared with standard advisory range">
+                  <span>Standard advisory range</span>
+                  <s>$2,500-$7,500</s>
                 </div>
               </div>
-              <p>Single Institutional Fundability Report with expert review and interactive Scenario Lab.</p>
+              <p>One Institutional Fundability Report with expert review, diligence priorities, and interactive Scenario Lab.</p>
             </article>
             <article class="pricing-card">
               <span>Pro</span>
