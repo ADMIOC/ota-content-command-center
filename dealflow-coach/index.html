@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DealFlow.Coach - Institutional Fundability Reports</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="DealFlow.Coach home">
+          <span>DF</span>
+          <strong>DealFlow.Coach</strong>
+        </a>
+        <nav class="topnav" aria-label="Primary navigation">
+          <a href="#offer">Offer</a>
+          <a href="#workspace">Report App</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#analyst-console">Analyst Console</a>
+        </nav>
+        <a class="primary-link" href="#intake">Start Intake</a>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Vertical SaaS plus productized expert report</p>
+            <h1>Know whether a deal is institutionally fundable before the raise starts.</h1>
+            <p>
+              DealFlow.Coach converts raw deal packages into a BlackRock-style fundability report:
+              thesis, evidence quality, missing-data register, risk gates, diligence roadmap,
+              Scenario Lab, and an IC-ready verdict.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-link" href="#workspace">Open Report App</a>
+              <a class="secondary-link" href="#pricing">View Pricing</a>
+            </div>
+            <div class="trust-strip" aria-label="Report outputs">
+              <span>Fundability Index</span>
+              <span>Evidence Map</span>
+              <span>Risk Gates</span>
+              <span>Exit Readiness</span>
+            </div>
+          </div>
+          <div class="hero-visual" aria-label="DealFlow.Coach institutional command center preview">
+            <img src="./assets/dealflow-command-center.png" alt="Institutional deal analysis dashboard preview" />
+          </div>
+        </section>
+
+        <section id="offer" class="offer-band">
+          <div>
+            <p class="eyebrow">The launch product</p>
+            <h2>Institutional Fundability Report</h2>
+            <p>
+              A 48-72 hour expert-reviewed deliverable for sponsors, capital advisors, family offices,
+              and funds that need to know what institutional capital will reject, question, or fund.
+            </p>
+          </div>
+          <div class="deliverables-grid" aria-label="Report deliverables">
+            <article>
+              <span>01</span>
+              <strong>Executive Verdict</strong>
+              <p>Green light, advance diligence, engage-do-not-commit, or decline.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <strong>Evidence Quality</strong>
+              <p>Strong, moderate, weak, and absent claims separated before IC review.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <strong>Scenario Lab</strong>
+              <p>Live assumptions for leverage, FX, cap rates, cost stress, and exit cases.</p>
+            </article>
+            <article>
+              <span>04</span>
+              <strong>Diligence Roadmap</strong>
+              <p>Specific requests, management questions, KYC items, and decision gates.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="workspace" class="workspace-section">
+          <div class="section-heading">
+            <p class="eyebrow">Report app MVP</p>
+            <h2>Generate the first-pass fundability report.</h2>
+            <p>
+              This MVP stores the working report locally and models the expert-report operating system.
+              The AI ingestion backend comes next; the product surface and decision logic are here now.
+            </p>
+          </div>
+
+          <div class="app-grid">
+            <aside class="deal-rail" aria-label="Deal workspace controls">
+              <section id="intake" class="panel">
+                <div class="panel-heading">
+                  <p class="eyebrow">Deal intake</p>
+                  <h3>New report request</h3>
+                </div>
+                <label class="field">
+                  <span>Deal name</span>
+                  <input id="dealName" type="text" value="UDI Group EUR 150M Capital Raise" />
+                </label>
+                <label class="field">
+                  <span>Analyzed for</span>
+                  <input id="principal" type="text" value="Rock Eleven Group" />
+                </label>
+                <label class="field">
+                  <span>Asset class</span>
+                  <select id="assetClass">
+                    <option>Real Estate Development</option>
+                    <option>Infrastructure</option>
+                    <option>Private Equity</option>
+                    <option>Private Credit</option>
+                    <option>Operating Company</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Raise size</span>
+                  <input id="raiseSize" type="text" value="EUR 150M" />
+                </label>
+                <label class="field">
+                  <span>Source package</span>
+                  <input id="sourcePackage" type="file" multiple />
+                </label>
+                <button id="runReport" class="primary-button" type="button">Generate Fundability Report</button>
+              </section>
+
+              <section class="panel">
+                <div class="panel-heading">
+                  <p class="eyebrow">Operating mode</p>
+                  <h3>Concierge first, SaaS next</h3>
+                </div>
+                <div class="mode-list">
+                  <button class="mode-button is-active" type="button" data-mode="Concierge MVP">Concierge MVP</button>
+                  <button class="mode-button" type="button" data-mode="Assisted App">Assisted App</button>
+                  <button class="mode-button" type="button" data-mode="Self-Serve SaaS">Self-Serve SaaS</button>
+                </div>
+                <p id="modeNote" class="panel-note">
+                  Expert-reviewed reports create revenue immediately while the platform learns from real deal flow.
+                </p>
+              </section>
+            </aside>
+
+            <section class="report-stage" aria-live="polite">
+              <div class="report-header">
+                <div>
+                  <p class="eyebrow">Institutional fundability report</p>
+                  <h3 id="reportTitle">UDI Group EUR 150M Capital Raise</h3>
+                  <p id="reportMeta">Prepared for Rock Eleven Group - Real Estate Development</p>
+                </div>
+                <div class="verdict-card">
+                  <span id="verdictLabel">Engage - Do Not Commit</span>
+                  <strong id="fundabilityScore">54</strong>
+                  <small>Fundability Index</small>
+                </div>
+              </div>
+
+              <nav class="report-tabs" aria-label="Report sections">
+                <button class="tab-button is-active" type="button" data-tab="thesis">Thesis</button>
+                <button class="tab-button" type="button" data-tab="scenario">Scenario Lab</button>
+                <button class="tab-button" type="button" data-tab="diligence">Diligence</button>
+                <button class="tab-button" type="button" data-tab="exit">Exit Standards</button>
+              </nav>
+
+              <section id="tab-thesis" class="tab-panel is-active">
+                <div class="thesis-grid">
+                  <article class="panel">
+                    <p class="eyebrow">Core thesis</p>
+                    <h4>Good market. Unfundable package until evidence closes.</h4>
+                    <p>
+                      The fundability engine distinguishes the macro thesis from the sponsor package.
+                      A deal can ride a real secular trend and still fail institutional capital review.
+                    </p>
+                  </article>
+                  <article class="panel">
+                    <p class="eyebrow">Evidence map</p>
+                    <div id="evidenceMap" class="evidence-map"></div>
+                  </article>
+                </div>
+                <div id="scoreGrid" class="score-grid" aria-label="Fundability scoring dimensions"></div>
+              </section>
+
+              <section id="tab-scenario" class="tab-panel">
+                <div class="scenario-grid">
+                  <form class="scenario-controls">
+                    <label class="range-field">
+                      <span>Evidence completeness <strong id="evidenceValue">40%</strong></span>
+                      <input id="evidenceSlider" type="range" min="0" max="100" step="5" value="40" />
+                    </label>
+                    <label class="range-field">
+                      <span>Asset control <strong id="controlValue">40%</strong></span>
+                      <input id="controlSlider" type="range" min="0" max="100" step="5" value="40" />
+                    </label>
+                    <label class="range-field">
+                      <span>Cash-flow visibility <strong id="cashValue">45%</strong></span>
+                      <input id="cashSlider" type="range" min="0" max="100" step="5" value="45" />
+                    </label>
+                    <label class="range-field">
+                      <span>Exit liquidity <strong id="exitValue">55%</strong></span>
+                      <input id="exitSlider" type="range" min="0" max="100" step="5" value="55" />
+                    </label>
+                    <label class="range-field">
+                      <span>Reputation safety <strong id="reputationValue">45%</strong></span>
+                      <input id="reputationSlider" type="range" min="0" max="100" step="5" value="45" />
+                    </label>
+                  </form>
+                  <div class="scenario-output panel">
+                    <p class="eyebrow">Live institutional posture</p>
+                    <h4 id="scenarioVerdict">Engage - Do Not Commit</h4>
+                    <div class="meter" aria-hidden="true"><span id="scoreNeedle"></span></div>
+                    <p id="scenarioNarrative" class="panel-note"></p>
+                    <ul id="openGates" class="gate-list"></ul>
+                  </div>
+                </div>
+              </section>
+
+              <section id="tab-diligence" class="tab-panel">
+                <div class="diligence-layout">
+                  <div class="panel">
+                    <p class="eyebrow">DD request list</p>
+                    <ol id="ddList" class="number-list"></ol>
+                  </div>
+                  <div class="panel">
+                    <p class="eyebrow">Management questions</p>
+                    <div id="questionList" class="question-list"></div>
+                  </div>
+                </div>
+              </section>
+
+              <section id="tab-exit" class="tab-panel">
+                <div class="exit-grid">
+                  <article class="panel">
+                    <p class="eyebrow">Buyer universe</p>
+                    <h4>Who naturally owns this after stabilization?</h4>
+                    <p>REITs, pension funds, insurance balance sheets, infrastructure funds, strategic acquirers, or portfolio roll-up platforms.</p>
+                  </article>
+                  <article class="panel">
+                    <p class="eyebrow">Exit readiness</p>
+                    <h4 id="exitReadiness">Needs institutional data room</h4>
+                    <p>Exit readiness rises when legal control, clean reporting, audited sponsor history, third-party market proof, and financing terms are present.</p>
+                  </article>
+                  <article class="panel">
+                    <p class="eyebrow">No-brainer test</p>
+                    <h4>Large-scale capital wants downside control.</h4>
+                    <p>Best deals are exciting in macro, boring in governance, bankable in execution, and obvious to the next buyer.</p>
+                  </article>
+                </div>
+              </section>
+            </section>
+          </div>
+        </section>
+
+        <section id="analyst-console" class="analyst-section">
+          <div class="section-heading">
+            <p class="eyebrow">Internal analyst console</p>
+            <h2>Human-reviewed before delivery.</h2>
+            <p>
+              The launch model should not ship raw AI output. Analysts approve evidence ratings,
+              add context, and certify the final report before clients see it.
+            </p>
+          </div>
+          <div class="analyst-grid">
+            <article class="panel">
+              <p class="eyebrow">Review queue</p>
+              <h3>3 reports in progress</h3>
+              <div class="queue-list">
+                <span>UDI Group - Evidence review</span>
+                <span>Grid battery platform - Model gap check</span>
+                <span>Healthcare roll-up - Sponsor KYC</span>
+              </div>
+            </article>
+            <article class="panel">
+              <p class="eyebrow">Approval gates</p>
+              <div class="approval-list">
+                <label><input type="checkbox" checked /> Source claims separated from inference</label>
+                <label><input type="checkbox" /> Sponsor references verified</label>
+                <label><input type="checkbox" /> Financial model attached</label>
+                <label><input type="checkbox" checked /> Report disclaimer included</label>
+              </div>
+            </article>
+            <article class="panel">
+              <p class="eyebrow">Export package</p>
+              <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
+              <button id="resetApp" class="secondary-button" type="button">Reset Demo State</button>
+              <p id="copyStatus" class="panel-note">Exports become branded HTML/PDF packages in the next backend pass.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="pricing" class="pricing-section">
+          <div class="section-heading">
+            <p class="eyebrow">Profit center design</p>
+            <h2>Start with report revenue. Expand into ARR.</h2>
+          </div>
+          <div class="pricing-grid">
+            <article>
+              <span>Launch</span>
+              <h3>$2,500-$7,500</h3>
+              <p>Single Institutional Fundability Report with expert review and interactive Scenario Lab.</p>
+            </article>
+            <article>
+              <span>Pro</span>
+              <h3>$25K-$60K / year</h3>
+              <p>Recurring report credits, branded outputs, team workspaces, diligence tracking, and report archive.</p>
+            </article>
+            <article>
+              <span>Institutional</span>
+              <h3>$75K-$250K / year</h3>
+              <p>Custom scoring, audit logs, private workspaces, API access, and IC workflow controls.</p>
+            </article>
+            <article>
+              <span>Enterprise</span>
+              <h3>$250K+ / year</h3>
+              <p>Private deployment, proprietary frameworks, data integrations, and dedicated implementation.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
