@@ -1,3 +1,5 @@
+const STORAGE_KEY = "dealflowCoachWorkspaceV3";
+
 const reportState = {
   dealName: "Northstar Urban Partners CAD 120M Growth Capital Review",
   principal: "Atlas Ridge Capital Committee",
@@ -5,25 +7,25 @@ const reportState = {
   raiseSize: "CAD 120M",
   mode: "Expert Review",
   scores: {
-    "Capital absorption": 72,
-    "Downside protection": 52,
-    "Asset control": 40,
-    "Cash-flow visibility": 45,
-    "Sponsor bankability": 42,
-    "Governance readiness": 45,
-    "Policy alignment": 82,
-    "Exit liquidity": 55,
-    "Reputation safety": 45,
-    "Evidence completeness": 40,
+    "Capital absorption": 75,
+    "Downside protection": 70,
+    "Asset control": 70,
+    "Cash-flow visibility": 70,
+    "Sponsor bankability": 70,
+    "Governance readiness": 70,
+    "Policy alignment": 85,
+    "Exit liquidity": 70,
+    "Reputation safety": 70,
+    "Evidence completeness": 75,
   },
 };
 
 const evidenceRows = [
-  ["Market thesis", 82, "Strong"],
-  ["Asset control", 20, "Weak"],
-  ["Financial model", 12, "Absent"],
-  ["Sponsor verification", 30, "Weak"],
-  ["Exit path", 55, "Moderate"],
+  ["Market thesis", 85, "Strong"],
+  ["Asset control", 70, "Moderate"],
+  ["Financial model", 68, "Moderate"],
+  ["Sponsor verification", 70, "Moderate"],
+  ["Exit path", 70, "Moderate"],
 ];
 
 const ddItems = [
@@ -92,12 +94,22 @@ function gateList() {
   return gates;
 }
 
+function verdictTone(score) {
+  if (score >= 78) return "is-green";
+  if (score >= 64) return "is-gold";
+  if (score >= 45) return "is-cabernet";
+  return "is-red";
+}
+
 function updateHeader() {
   document.getElementById("reportTitle").textContent = reportState.dealName;
   document.getElementById("reportMeta").textContent = `Prepared for ${reportState.principal} - ${reportState.assetClass} - ${reportState.raiseSize}`;
   const score = weightedScore();
+  const verdictCard = document.getElementById("verdictCard");
   document.getElementById("fundabilityScore").textContent = score;
   document.getElementById("verdictLabel").textContent = verdictFor(score);
+  verdictCard.classList.remove("is-green", "is-gold", "is-cabernet", "is-red");
+  verdictCard.classList.add(verdictTone(score));
 }
 
 function renderEvidence() {
@@ -133,10 +145,13 @@ function renderScores() {
 function renderDiligence() {
   document.getElementById("ddList").innerHTML = ddItems.map((item) => `<li>${item}</li>`).join("");
   document.getElementById("questionList").innerHTML = questions
-    .map((question) => `<button type="button">${question}</button>`)
+    .map((question, index) => `<button type="button" aria-pressed="false">${question}</button>`)
     .join("");
   document.querySelectorAll(".question-list button").forEach((button) => {
-    button.addEventListener("click", () => button.classList.toggle("is-selected"));
+    button.addEventListener("click", () => {
+      const selected = button.classList.toggle("is-selected");
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
   });
 }
 
@@ -171,11 +186,11 @@ function updateScenario() {
 }
 
 function persistState() {
-  localStorage.setItem("dealflowCoachWorkspace", JSON.stringify(reportState));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(reportState));
 }
 
 function restoreState() {
-  const saved = localStorage.getItem("dealflowCoachWorkspace");
+  const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return;
   try {
     const parsed = JSON.parse(saved);
@@ -187,24 +202,59 @@ function restoreState() {
     Object.entries(sliders).forEach(([label, slider]) => {
       slider.value = reportState.scores[label];
     });
+    document.querySelectorAll(".mode-button").forEach((button) => {
+      const isActive = button.dataset.mode === reportState.mode;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-checked", isActive ? "true" : "false");
+    });
+    document.getElementById("modeNote").textContent = modeNotes[reportState.mode];
   } catch {
-    localStorage.removeItem("dealflowCoachWorkspace");
+    localStorage.removeItem(STORAGE_KEY);
   }
 }
 
+function activateTab(button, focusTab = false) {
+  document.querySelectorAll(".tab-button").forEach((item) => {
+    const isActive = item === button;
+    item.classList.toggle("is-active", isActive);
+    item.setAttribute("aria-selected", isActive ? "true" : "false");
+    item.tabIndex = isActive ? 0 : -1;
+  });
+  document.querySelectorAll(".tab-panel").forEach((item) => {
+    const isActive = item.id === `tab-${button.dataset.tab}`;
+    item.classList.toggle("is-active", isActive);
+    item.hidden = !isActive;
+  });
+  if (focusTab) button.focus();
+}
+
 document.querySelectorAll(".tab-button").forEach((button) => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll(".tab-button").forEach((item) => item.classList.remove("is-active"));
-    document.querySelectorAll(".tab-panel").forEach((item) => item.classList.remove("is-active"));
-    button.classList.add("is-active");
-    document.getElementById(`tab-${button.dataset.tab}`).classList.add("is-active");
+  button.addEventListener("click", () => activateTab(button));
+  button.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    const tabs = Array.from(document.querySelectorAll(".tab-button"));
+    const currentIndex = tabs.indexOf(button);
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? tabs.length - 1
+          : event.key === "ArrowRight"
+            ? (currentIndex + 1) % tabs.length
+            : (currentIndex - 1 + tabs.length) % tabs.length;
+    event.preventDefault();
+    activateTab(tabs[nextIndex], true);
   });
 });
 
 document.querySelectorAll(".mode-button").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelectorAll(".mode-button").forEach((item) => item.classList.remove("is-active"));
+    document.querySelectorAll(".mode-button").forEach((item) => {
+      item.classList.remove("is-active");
+      item.setAttribute("aria-checked", "false");
+    });
     button.classList.add("is-active");
+    button.setAttribute("aria-checked", "true");
     reportState.mode = button.dataset.mode;
     document.getElementById("modeNote").textContent = modeNotes[reportState.mode];
     persistState();
@@ -212,29 +262,54 @@ document.querySelectorAll(".mode-button").forEach((button) => {
 });
 
 document.getElementById("runReport").addEventListener("click", () => {
+  const button = document.getElementById("runReport");
+  const status = document.getElementById("reportStatus");
   reportState.dealName = document.getElementById("dealName").value.trim() || "Untitled Deal";
   reportState.principal = document.getElementById("principal").value.trim() || "Principal";
   reportState.assetClass = document.getElementById("assetClass").value;
   reportState.raiseSize = document.getElementById("raiseSize").value.trim() || "Undisclosed raise";
-  updateHeader();
-  persistState();
+  button.disabled = true;
+  button.textContent = "Reviewing evidence package...";
+  status.textContent = "Building the fundability view from intake details and current scenario assumptions.";
+  document.querySelector(".report-stage").classList.add("is-refreshing");
+  window.setTimeout(() => {
+    updateScenario();
+    persistState();
+    document.querySelector(".report-stage").classList.remove("is-refreshing");
+    button.disabled = false;
+    button.textContent = "Generate Fundability Report";
+    status.textContent = `Report refreshed: ${weightedScore()} Fundability Index, ${verdictFor(weightedScore())}.`;
+    document.querySelector(".report-stage").scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 450);
 });
 
 Object.values(sliders).forEach((slider) => slider.addEventListener("input", updateScenario));
 
+document.getElementById("sourcePackage").addEventListener("change", (event) => {
+  const files = Array.from(event.target.files || []).map((file) => file.name);
+  document.getElementById("sourceFeedback").textContent = files.length
+    ? `${files.length} file${files.length === 1 ? "" : "s"} selected: ${files.slice(0, 3).join(", ")}${files.length > 3 ? ", ..." : ""}. Analyst review occurs before final delivery.`
+    : "Selected materials are reviewed by an analyst before final delivery.";
+});
+
 document.getElementById("copySummary").addEventListener("click", async () => {
   const score = weightedScore();
+  const status = document.getElementById("copyStatus");
   const summary = `${reportState.dealName}\nPrepared for: ${reportState.principal}\nFundability Index: ${score}\nVerdict: ${verdictFor(score)}\nOpen gates:\n- ${gateList().join("\n- ")}`;
   await navigator.clipboard.writeText(summary);
-  document.getElementById("copyStatus").textContent = "Report summary copied to clipboard.";
+  status.textContent = "Report summary copied to clipboard.";
+  window.setTimeout(() => {
+    status.textContent = "Exports are packaged as branded HTML/PDF report deliverables for client review.";
+  }, 3500);
 });
 
 document.getElementById("resetApp").addEventListener("click", () => {
-  localStorage.removeItem("dealflowCoachWorkspace");
+  localStorage.removeItem(STORAGE_KEY);
   window.location.reload();
 });
 
 restoreState();
 renderEvidence();
 renderDiligence();
+activateTab(document.querySelector(".tab-button.is-active"));
 updateScenario();

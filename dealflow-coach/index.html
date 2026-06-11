@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DealFlow.Coach - Institutional Fundability Reports</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=ux-hardening-2" />
   </head>
   <body>
+    <a class="skip-link" href="#workspace">Skip to report workspace</a>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="#top" aria-label="DealFlow.Coach home">
@@ -15,9 +16,9 @@
         </a>
         <nav class="topnav" aria-label="Primary navigation">
           <a href="#offer">Offer</a>
-          <a href="#workspace">Report App</a>
+          <a href="#workspace">Workspace</a>
           <a href="#pricing">Pricing</a>
-          <a href="#analyst-console">Analyst Console</a>
+          <a href="#expert-review">Expert Review</a>
         </nav>
         <a class="primary-link" href="#intake">Start Intake</a>
       </header>
@@ -33,7 +34,7 @@
               Scenario Lab, and an IC-ready verdict.
             </p>
             <div class="hero-actions">
-              <a class="primary-link" href="#workspace">Open Report App</a>
+              <a class="primary-link" href="#workspace">Open Workspace</a>
               <a class="secondary-link" href="#pricing">View Pricing</a>
             </div>
             <div class="trust-strip" aria-label="Report outputs">
@@ -123,8 +124,10 @@
                 <label class="field">
                   <span>Source package</span>
                   <input id="sourcePackage" type="file" multiple />
+                  <small id="sourceFeedback">Selected materials are reviewed by an analyst before final delivery.</small>
                 </label>
                 <button id="runReport" class="primary-button" type="button">Generate Fundability Report</button>
+                <p id="reportStatus" class="status-note" role="status" aria-live="polite"></p>
               </section>
 
               <section class="panel">
@@ -132,10 +135,10 @@
                   <p class="eyebrow">Delivery model</p>
                   <h3>Expert-reviewed by default</h3>
                 </div>
-                <div class="mode-list">
-                  <button class="mode-button is-active" type="button" data-mode="Expert Review">Expert Review</button>
-                  <button class="mode-button" type="button" data-mode="Platform-Assisted">Platform-Assisted</button>
-                  <button class="mode-button" type="button" data-mode="Institutional Workspace">Institutional Workspace</button>
+                <div class="mode-list" role="radiogroup" aria-label="Delivery model">
+                  <button class="mode-button is-active" type="button" role="radio" aria-checked="true" data-mode="Expert Review">Expert Review</button>
+                  <button class="mode-button" type="button" role="radio" aria-checked="false" data-mode="Platform-Assisted">Platform-Assisted</button>
+                  <button class="mode-button" type="button" role="radio" aria-checked="false" data-mode="Institutional Workspace">Institutional Workspace</button>
                 </div>
                 <p id="modeNote" class="panel-note">
                   Analyst oversight keeps evidence ratings, risk gates, and investment posture defensible.
@@ -143,28 +146,28 @@
               </section>
             </aside>
 
-            <section class="report-stage" aria-live="polite">
+            <section class="report-stage" aria-live="polite" aria-labelledby="reportTitle">
               <div class="report-header">
                 <div>
                   <p class="eyebrow">Institutional fundability report</p>
                   <h3 id="reportTitle">Northstar Urban Partners CAD 120M Growth Capital Review</h3>
                   <p id="reportMeta">Prepared for Atlas Ridge Capital Committee - Residential Infrastructure</p>
                 </div>
-                <div class="verdict-card">
-                  <span id="verdictLabel">Engage - Do Not Commit</span>
-                  <strong id="fundabilityScore">54</strong>
+                <div class="verdict-card" id="verdictCard">
+                  <span id="verdictLabel">Advance Diligence</span>
+                  <strong id="fundabilityScore">72</strong>
                   <small>Fundability Index</small>
                 </div>
               </div>
 
-              <nav class="report-tabs" aria-label="Report sections">
-                <button class="tab-button is-active" type="button" data-tab="thesis">Thesis</button>
-                <button class="tab-button" type="button" data-tab="scenario">Scenario Lab</button>
-                <button class="tab-button" type="button" data-tab="diligence">Diligence</button>
-                <button class="tab-button" type="button" data-tab="exit">Exit Standards</button>
+              <nav class="report-tabs" role="tablist" aria-label="Report sections">
+                <button id="tab-button-thesis" class="tab-button is-active" type="button" role="tab" aria-selected="true" aria-controls="tab-thesis" data-tab="thesis">Thesis</button>
+                <button id="tab-button-scenario" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-scenario" data-tab="scenario">Scenario Lab</button>
+                <button id="tab-button-diligence" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-diligence" data-tab="diligence">Diligence</button>
+                <button id="tab-button-exit" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-exit" data-tab="exit">Exit Standards</button>
               </nav>
 
-              <section id="tab-thesis" class="tab-panel is-active">
+              <section id="tab-thesis" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-button-thesis">
                 <div class="thesis-grid">
                   <article class="panel">
                     <p class="eyebrow">Core thesis</p>
@@ -182,28 +185,28 @@
                 <div id="scoreGrid" class="score-grid" aria-label="Fundability scoring dimensions"></div>
               </section>
 
-              <section id="tab-scenario" class="tab-panel">
+              <section id="tab-scenario" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-scenario" hidden>
                 <div class="scenario-grid">
                   <form class="scenario-controls">
                     <label class="range-field">
-                      <span>Evidence completeness <strong id="evidenceValue">40%</strong></span>
-                      <input id="evidenceSlider" type="range" min="0" max="100" step="5" value="40" />
+                      <span>Evidence completeness <strong id="evidenceValue">75%</strong></span>
+                      <input id="evidenceSlider" type="range" min="0" max="100" step="5" value="75" />
                     </label>
                     <label class="range-field">
-                      <span>Asset control <strong id="controlValue">40%</strong></span>
-                      <input id="controlSlider" type="range" min="0" max="100" step="5" value="40" />
+                      <span>Asset control <strong id="controlValue">70%</strong></span>
+                      <input id="controlSlider" type="range" min="0" max="100" step="5" value="70" />
                     </label>
                     <label class="range-field">
-                      <span>Cash-flow visibility <strong id="cashValue">45%</strong></span>
-                      <input id="cashSlider" type="range" min="0" max="100" step="5" value="45" />
+                      <span>Cash-flow visibility <strong id="cashValue">70%</strong></span>
+                      <input id="cashSlider" type="range" min="0" max="100" step="5" value="70" />
                     </label>
                     <label class="range-field">
-                      <span>Exit liquidity <strong id="exitValue">55%</strong></span>
-                      <input id="exitSlider" type="range" min="0" max="100" step="5" value="55" />
+                      <span>Exit liquidity <strong id="exitValue">70%</strong></span>
+                      <input id="exitSlider" type="range" min="0" max="100" step="5" value="70" />
                     </label>
                     <label class="range-field">
-                      <span>Reputation safety <strong id="reputationValue">45%</strong></span>
-                      <input id="reputationSlider" type="range" min="0" max="100" step="5" value="45" />
+                      <span>Reputation safety <strong id="reputationValue">70%</strong></span>
+                      <input id="reputationSlider" type="range" min="0" max="100" step="5" value="70" />
                     </label>
                   </form>
                   <div class="scenario-output panel">
@@ -216,7 +219,7 @@
                 </div>
               </section>
 
-              <section id="tab-diligence" class="tab-panel">
+              <section id="tab-diligence" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-diligence" hidden>
                 <div class="diligence-layout">
                   <div class="panel">
                     <p class="eyebrow">DD request list</p>
@@ -229,7 +232,7 @@
                 </div>
               </section>
 
-              <section id="tab-exit" class="tab-panel">
+              <section id="tab-exit" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-exit" hidden>
                 <div class="exit-grid">
                   <article class="panel">
                     <p class="eyebrow">Buyer universe</p>
@@ -252,13 +255,13 @@
           </div>
         </section>
 
-        <section id="analyst-console" class="analyst-section">
+        <section id="expert-review" class="analyst-section">
           <div class="section-heading">
-            <p class="eyebrow">Internal analyst console</p>
+            <p class="eyebrow">Expert review layer</p>
             <h2>Human-reviewed before delivery.</h2>
             <p>
-              The launch model should not ship raw AI output. Analysts approve evidence ratings,
-              add context, and certify the final report before clients see it.
+              Every report is reviewed for evidence quality, risk posture, and investment-committee
+              readability before delivery.
             </p>
           </div>
           <div class="analyst-grid">
@@ -329,6 +332,6 @@
         <p>Powered by <strong>DealFlow.Coach</strong> | Developed by <strong>Own The Algo Production</strong></p>
       </footer>
     </div>
-    <script src="./app.js"></script>
+    <script src="./app.js?v=ux-hardening-2"></script>
   </body>
 </html>
