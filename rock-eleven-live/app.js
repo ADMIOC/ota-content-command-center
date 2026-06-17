@@ -1,4 +1,4 @@
-const STORAGE_KEY = "rockElevenDealflowWorkspaceV2";
+const STORAGE_KEY = "rockElevenDealflowWorkspaceV3";
 
 const reportState = {
   dealName: "Rock Eleven Institutional Fundability Review",
@@ -17,16 +17,16 @@ const reportState = {
     "Policy alignment": 85,
     "Exit liquidity": 70,
     "Reputation safety": 70,
-    "Evidence completeness": 75,
+    "Evidence completeness": 80,
   },
 };
 
-const evidenceRows = [
-  ["Market thesis", 85, "Strong"],
-  ["Asset control", 70, "Moderate"],
-  ["Financial model", 68, "Moderate"],
-  ["Sponsor verification", 70, "Moderate"],
-  ["Exit path", 70, "Moderate"],
+const evidenceDimensions = [
+  ["Market thesis", "Evidence completeness"],
+  ["Asset control", "Asset control"],
+  ["Financial model", "Cash-flow visibility"],
+  ["Sponsor verification", "Reputation safety"],
+  ["Exit path", "Exit liquidity"],
 ];
 
 const ddItems = [
@@ -62,19 +62,26 @@ const sliders = {
 };
 
 function weightedScore() {
-  const scores = reportState.scores;
-  return Math.round(
-    scores["Capital absorption"] * 0.1 +
-      scores["Downside protection"] * 0.13 +
-      scores["Asset control"] * 0.14 +
-      scores["Cash-flow visibility"] * 0.12 +
-      scores["Sponsor bankability"] * 0.12 +
-      scores["Governance readiness"] * 0.1 +
-      scores["Policy alignment"] * 0.08 +
-      scores["Exit liquidity"] * 0.08 +
-      scores["Reputation safety"] * 0.07 +
-      scores["Evidence completeness"] * 0.06,
-  );
+  const rows = evidenceRows();
+  return Math.round(rows.reduce((sum, row) => sum + row.score, 0) / rows.length);
+}
+
+function ratingFor(score) {
+  if (score >= 80) return "Strong";
+  if (score >= 65) return "Moderate";
+  if (score >= 45) return "Weak";
+  return "Absent";
+}
+
+function evidenceRows() {
+  return evidenceDimensions.map(([label, scoreKey]) => {
+    const score = Number(reportState.scores[scoreKey] || 0);
+    return {
+      label,
+      score,
+      rating: ratingFor(score),
+    };
+  });
 }
 
 function verdictFor(score) {
@@ -109,7 +116,7 @@ function reportPosture(score) {
 }
 
 function evidenceSummary() {
-  return evidenceRows.map(([label, score, rating]) => `${label}: ${rating} (${score}/100)`);
+  return evidenceRows().map(({ label, score, rating }) => `${label}: ${rating} (${score}/100)`);
 }
 
 function verdictTone(score) {
@@ -132,9 +139,9 @@ function updateHeader() {
 
 function renderEvidence() {
   const map = document.getElementById("evidenceMap");
-  map.innerHTML = evidenceRows
+  map.innerHTML = evidenceRows()
     .map(
-      ([label, score, rating]) => `
+      ({ label, score, rating }) => `
         <div class="evidence-row">
           <span>${label}</span>
           <b><i style="width: ${score}%"></i></b>
@@ -266,6 +273,7 @@ function updateScenario() {
       ? "Exit-ready with buyer mapping"
       : "Needs institutional data room";
   updateHeader();
+  renderEvidence();
   renderScores();
   renderFinalReport();
   persistState();
