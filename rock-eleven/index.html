@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ROCK ELEVEN - Institutional Fundability Workspace</title>
+    <link rel="stylesheet" href="./styles.css?v=rock-eleven-1" />
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to report workspace</a>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="ROCK ELEVEN home">
+          <img src="./assets/rock-eleven-logo.png" alt="" />
+          <span>
+            <strong>ROCK ELEVEN</strong>
+            <small>powered by: DEALFLOW.COACH</small>
+          </span>
+        </a>
+        <nav class="topnav" aria-label="Primary navigation">
+          <a href="#offer">Offer</a>
+          <a href="#workspace">Workspace</a>
+          <a href="#expert-review">Expert Review</a>
+        </nav>
+        <a class="primary-link" href="#intake">Start Intake</a>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy">
+            <div class="client-brand-lockup">
+              <img src="./assets/rock-eleven-logo.png" alt="" />
+              <h1>ROCK ELEVEN</h1>
+              <h4>powered by: DEALFLOW.COACH</h4>
+            </div>
+            <p class="eyebrow">Expert deal review, delivered through a smarter workspace</p>
+            <h2 class="hero-statement">Know whether a deal is institutionally fundable before the raise starts.</h2>
+            <p>
+              ROCK ELEVEN uses DealFlow.Coach to convert raw deal packages into a BlackRock-style fundability report:
+              thesis, evidence quality, missing-data register, risk gates, diligence roadmap,
+              Scenario Lab, and an IC-ready verdict.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-link" href="#workspace">Open Workspace</a>
+              <a class="secondary-link" href="#expert-review">View Review Layer</a>
+            </div>
+            <div class="trust-strip" aria-label="Report outputs">
+              <span>Fundability Index</span>
+              <span>Evidence Map</span>
+              <span>Risk Gates</span>
+              <span>Exit Readiness</span>
+            </div>
+          </div>
+          <div class="hero-visual" aria-label="DealFlow.Coach institutional command center preview">
+            <img src="./assets/dealflow-command-center.png" alt="Institutional deal analysis dashboard preview" />
+          </div>
+        </section>
+
+        <section id="offer" class="offer-band">
+          <div>
+            <p class="eyebrow">The launch product</p>
+            <h2>Institutional Fundability Report</h2>
+            <p>
+              A 48-72 hour expert-reviewed deliverable for sponsors, capital advisors, family offices,
+              and funds that need to know what institutional capital will reject, question, or fund.
+            </p>
+          </div>
+          <div class="deliverables-grid" aria-label="Report deliverables">
+            <article>
+              <span>01</span>
+              <strong>Executive Verdict</strong>
+              <p>Green light, advance diligence, engage-do-not-commit, or decline.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <strong>Evidence Quality</strong>
+              <p>Strong, moderate, weak, and absent claims separated before IC review.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <strong>Scenario Lab</strong>
+              <p>Live assumptions for leverage, FX, cap rates, cost stress, and exit cases.</p>
+            </article>
+            <article>
+              <span>04</span>
+              <strong>Diligence Roadmap</strong>
+              <p>Specific requests, management questions, KYC items, and decision gates.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="workspace" class="workspace-section">
+          <div class="section-heading">
+            <p class="eyebrow">Report workspace</p>
+            <h2>Generate an institutional fundability view.</h2>
+            <p>
+              The workspace converts source materials into an evidence-rated report surface for sponsor
+              readiness, diligence planning, and capital committee review.
+            </p>
+          </div>
+
+          <div class="app-grid">
+            <aside class="deal-rail" aria-label="Deal workspace controls">
+              <section id="intake" class="panel">
+                <div class="panel-heading">
+                  <p class="eyebrow">Deal intake</p>
+                  <h3>New report request</h3>
+                </div>
+                <label class="field">
+                  <span>Deal name</span>
+                  <input id="dealName" type="text" value="Rock Eleven Institutional Fundability Review" />
+                </label>
+                <label class="field">
+                  <span>Analyzed for</span>
+                  <input id="principal" type="text" value="Rock Eleven Capital Committee" />
+                </label>
+                <label class="field">
+                  <span>Asset class</span>
+                  <select id="assetClass">
+                    <option>Residential Infrastructure</option>
+                    <option>Infrastructure</option>
+                    <option>Private Equity</option>
+                    <option>Private Credit</option>
+                    <option>Operating Company</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Raise size</span>
+                  <input id="raiseSize" type="text" value="CAD 120M" />
+                </label>
+                <label class="field">
+                  <span>Source package</span>
+                  <input id="sourcePackage" type="file" multiple />
+                  <small id="sourceFeedback">Selected materials are reviewed by an analyst before final delivery.</small>
+                </label>
+                <button id="runReport" class="primary-button" type="button">Generate Fundability Report</button>
+                <p id="reportStatus" class="status-note" role="status" aria-live="polite"></p>
+              </section>
+
+              <section class="panel">
+                <div class="panel-heading">
+                  <p class="eyebrow">Delivery model</p>
+                  <h3>Expert-reviewed by default</h3>
+                </div>
+                <div class="mode-list" role="radiogroup" aria-label="Delivery model">
+                  <button class="mode-button is-active" type="button" role="radio" aria-checked="true" data-mode="Expert Review">Expert Review</button>
+                  <button class="mode-button" type="button" role="radio" aria-checked="false" data-mode="Platform-Assisted">Platform-Assisted</button>
+                  <button class="mode-button" type="button" role="radio" aria-checked="false" data-mode="Institutional Workspace">Institutional Workspace</button>
+                </div>
+                <p id="modeNote" class="panel-note">
+                  Analyst oversight keeps evidence ratings, risk gates, and investment posture defensible.
+                </p>
+              </section>
+            </aside>
+
+            <section class="report-stage" aria-live="polite" aria-labelledby="reportTitle">
+              <div class="report-header">
+                <div>
+                  <p class="eyebrow">Institutional fundability report</p>
+                  <h3 id="reportTitle">Rock Eleven Institutional Fundability Review</h3>
+                  <p id="reportMeta">Prepared for Rock Eleven Capital Committee - Residential Infrastructure</p>
+                </div>
+                <div class="verdict-card" id="verdictCard">
+                  <span id="verdictLabel">Advance Diligence</span>
+                  <strong id="fundabilityScore">72</strong>
+                  <small>Fundability Index</small>
+                </div>
+              </div>
+
+              <nav class="report-tabs" role="tablist" aria-label="Report sections">
+                <button id="tab-button-thesis" class="tab-button is-active" type="button" role="tab" aria-selected="true" aria-controls="tab-thesis" data-tab="thesis">Thesis</button>
+                <button id="tab-button-scenario" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-scenario" data-tab="scenario">Scenario Lab</button>
+                <button id="tab-button-diligence" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-diligence" data-tab="diligence">Diligence</button>
+                <button id="tab-button-exit" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tab-exit" data-tab="exit">Exit Standards</button>
+              </nav>
+
+              <section id="tab-thesis" class="tab-panel is-active" role="tabpanel" aria-labelledby="tab-button-thesis">
+                <div class="thesis-grid">
+                  <article class="panel">
+                    <p class="eyebrow">Core thesis</p>
+                    <h4>Good market. Unfundable package until evidence closes.</h4>
+                    <p>
+                      The fundability engine distinguishes the macro thesis from the sponsor package.
+                      A deal can ride a real secular trend and still fail institutional capital review.
+                    </p>
+                  </article>
+                  <article class="panel">
+                    <p class="eyebrow">Evidence map</p>
+                    <div id="evidenceMap" class="evidence-map"></div>
+                  </article>
+                </div>
+                <div id="scoreGrid" class="score-grid" aria-label="Fundability scoring dimensions"></div>
+              </section>
+
+              <section id="tab-scenario" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-scenario" hidden>
+                <div class="scenario-grid">
+                  <form class="scenario-controls">
+                    <label class="range-field">
+                      <span>Evidence completeness <strong id="evidenceValue">75%</strong></span>
+                      <input id="evidenceSlider" type="range" min="0" max="100" step="5" value="75" />
+                    </label>
+                    <label class="range-field">
+                      <span>Asset control <strong id="controlValue">70%</strong></span>
+                      <input id="controlSlider" type="range" min="0" max="100" step="5" value="70" />
+                    </label>
+                    <label class="range-field">
+                      <span>Cash-flow visibility <strong id="cashValue">70%</strong></span>
+                      <input id="cashSlider" type="range" min="0" max="100" step="5" value="70" />
+                    </label>
+                    <label class="range-field">
+                      <span>Exit liquidity <strong id="exitValue">70%</strong></span>
+                      <input id="exitSlider" type="range" min="0" max="100" step="5" value="70" />
+                    </label>
+                    <label class="range-field">
+                      <span>Reputation safety <strong id="reputationValue">70%</strong></span>
+                      <input id="reputationSlider" type="range" min="0" max="100" step="5" value="70" />
+                    </label>
+                  </form>
+                  <div class="scenario-output panel">
+                    <p class="eyebrow">Live institutional posture</p>
+                    <h4 id="scenarioVerdict">Engage - Do Not Commit</h4>
+                    <div class="meter" aria-hidden="true"><span id="scoreNeedle"></span></div>
+                    <p id="scenarioNarrative" class="panel-note"></p>
+                    <ul id="openGates" class="gate-list"></ul>
+                  </div>
+                </div>
+              </section>
+
+              <section id="tab-diligence" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-diligence" hidden>
+                <div class="diligence-layout">
+                  <div class="panel">
+                    <p class="eyebrow">DD request list</p>
+                    <ol id="ddList" class="number-list"></ol>
+                  </div>
+                  <div class="panel">
+                    <p class="eyebrow">Management questions</p>
+                    <div id="questionList" class="question-list"></div>
+                  </div>
+                </div>
+              </section>
+
+              <section id="tab-exit" class="tab-panel" role="tabpanel" aria-labelledby="tab-button-exit" hidden>
+                <div class="exit-grid">
+                  <article class="panel">
+                    <p class="eyebrow">Buyer universe</p>
+                    <h4>Who naturally owns this after stabilization?</h4>
+                    <p>REITs, pension funds, insurance balance sheets, infrastructure funds, strategic acquirers, or portfolio roll-up platforms.</p>
+                  </article>
+                  <article class="panel">
+                    <p class="eyebrow">Exit readiness</p>
+                    <h4 id="exitReadiness">Needs institutional data room</h4>
+                    <p>Exit readiness rises when legal control, clean reporting, audited sponsor history, third-party market proof, and financing terms are present.</p>
+                  </article>
+                  <article class="panel">
+                    <p class="eyebrow">No-brainer test</p>
+                    <h4>Large-scale capital wants downside control.</h4>
+                    <p>Best deals are exciting in macro, boring in governance, bankable in execution, and obvious to the next buyer.</p>
+                  </article>
+                </div>
+              </section>
+            </section>
+          </div>
+        </section>
+
+        <section id="expert-review" class="analyst-section">
+          <div class="section-heading">
+            <p class="eyebrow">Expert review layer</p>
+            <h2>Human-reviewed before delivery.</h2>
+            <p>
+              Every report is reviewed for evidence quality, risk posture, and investment-committee
+              readability before delivery.
+            </p>
+          </div>
+          <div class="analyst-grid">
+            <article class="panel">
+              <p class="eyebrow">Review queue</p>
+              <h3>3 reports in progress</h3>
+              <div class="queue-list">
+                <span>Northstar Urban Partners - Evidence review</span>
+                <span>Helios Grid Storage - Model gap check</span>
+                <span>Summit Care Holdings - Sponsor KYC</span>
+              </div>
+            </article>
+            <article class="panel">
+              <p class="eyebrow">Approval gates</p>
+              <div class="approval-list">
+                <label><input type="checkbox" checked /> Source claims separated from inference</label>
+                <label><input type="checkbox" /> Sponsor references verified</label>
+                <label><input type="checkbox" /> Financial model attached</label>
+                <label><input type="checkbox" checked /> Report disclaimer included</label>
+              </div>
+            </article>
+            <article class="panel">
+              <p class="eyebrow">Export package</p>
+              <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
+              <button id="resetApp" class="secondary-button" type="button">Clear Workspace</button>
+              <p id="copyStatus" class="panel-note">Exports are packaged as branded HTML/PDF report deliverables for client review.</p>
+            </article>
+          </div>
+        </section>
+
+      </main>
+      <footer class="site-footer">
+        <p><strong>ROCK ELEVEN</strong> | powered by: <strong>DEALFLOW.COACH</strong></p>
+      </footer>
+    </div>
+    <script src="./app.js?v=rock-eleven-1"></script>
+  </body>
+</html>
