@@ -1,33 +1,14 @@
-const STORAGE_KEY = "rockElevenDealflowWorkspaceV3";
+const STORAGE_KEY = "rockElevenDealflowWorkspaceV4";
 
 const reportState = {
-  dealName: "Rock Eleven Institutional Fundability Review",
-  principal: "Rock Eleven Capital Committee",
-  assetClass: "Residential Infrastructure",
-  raiseSize: "CAD 120M",
+  dealName: "",
+  principal: "",
+  assetClass: "",
+  raiseSize: "",
   mode: "Expert Review",
   reportGenerated: false,
-  scores: {
-    "Capital absorption": 75,
-    "Downside protection": 70,
-    "Asset control": 70,
-    "Cash-flow visibility": 70,
-    "Sponsor bankability": 70,
-    "Governance readiness": 70,
-    "Policy alignment": 85,
-    "Exit liquidity": 70,
-    "Reputation safety": 70,
-    "Evidence completeness": 80,
-  },
+  sourceFiles: [],
 };
-
-const evidenceDimensions = [
-  ["Market thesis", "Evidence completeness"],
-  ["Asset control", "Asset control"],
-  ["Financial model", "Cash-flow visibility"],
-  ["Sponsor verification", "Reputation safety"],
-  ["Exit path", "Exit liquidity"],
-];
 
 const ddItems = [
   "Executed site-control documents, purchase agreements, ROFR instruments, and pricing.",
@@ -48,141 +29,58 @@ const questions = [
 ];
 
 const modeNotes = {
-  "Expert Review": "Analyst oversight keeps evidence ratings, risk gates, and investment posture defensible.",
-  "Platform-Assisted": "Clients upload materials and receive a structured draft with analyst approval before delivery.",
-  "Institutional Workspace": "Repeat users manage report history, scenario labs, team review, and exports from a secure workspace.",
+  "Expert Review": "Analyst oversight keeps source-package review, risk gates, and investment-committee readability defensible.",
+  "Platform-Assisted": "Clients upload source materials and receive a structured draft only after analyst review.",
+  "Institutional Workspace": "Repeat users manage source packages, report history, team review, and exports from a secure workspace.",
 };
 
-const sliders = {
-  "Evidence completeness": document.getElementById("evidenceSlider"),
-  "Asset control": document.getElementById("controlSlider"),
-  "Cash-flow visibility": document.getElementById("cashSlider"),
-  "Exit liquidity": document.getElementById("exitSlider"),
-  "Reputation safety": document.getElementById("reputationSlider"),
-};
+const sliders = [
+  document.getElementById("evidenceSlider"),
+  document.getElementById("controlSlider"),
+  document.getElementById("cashSlider"),
+  document.getElementById("exitSlider"),
+  document.getElementById("reputationSlider"),
+];
 
-function weightedScore() {
-  const rows = evidenceRows();
-  return Math.round(rows.reduce((sum, row) => sum + row.score, 0) / rows.length);
+function hasSourcePackage() {
+  return reportState.sourceFiles.length > 0;
 }
 
-function ratingFor(score) {
-  if (score >= 80) return "Strong";
-  if (score >= 65) return "Moderate";
-  if (score >= 45) return "Weak";
-  return "Absent";
-}
-
-function evidenceRows() {
-  return evidenceDimensions.map(([label, scoreKey]) => {
-    const score = Number(reportState.scores[scoreKey] || 0);
-    return {
-      label,
-      score,
-      rating: ratingFor(score),
-    };
-  });
-}
-
-function verdictFor(score) {
-  if (score >= 78) return "Green Light Fundable";
-  if (score >= 64) return "Advance Diligence";
-  if (score >= 45) return "Engage - Do Not Commit";
-  return "Do Not Advance";
-}
-
-function gateList() {
-  const scores = reportState.scores;
-  const gates = [];
-  if (scores["Asset control"] < 65) gates.push("Asset control is below institutional funding threshold.");
-  if (scores["Evidence completeness"] < 70) gates.push("Evidence package is not complete enough for IC reliance.");
-  if (scores["Cash-flow visibility"] < 60) gates.push("Cash-flow bridge needs model support and third-party validation.");
-  if (scores["Reputation safety"] < 60) gates.push("KYC, document integrity, or governance risk remains unresolved.");
-  if (scores["Downside protection"] < 55) gates.push("Capital stack lacks sufficient downside controls.");
-  return gates;
-}
-
-function reportPosture(score) {
-  if (score >= 78) {
-    return "Green light fundable profile. The package is suitable for institutional capital review subject to final legal, KYC, and committee documentation.";
-  }
-  if (score >= 64) {
-    return "Advance diligence. The opportunity is credible enough for institutional review, but funding should remain conditional on closing the identified evidence and risk gaps.";
-  }
-  if (score >= 45) {
-    return "Engage, do not commit. The opportunity can stay in conversation, but the package is not yet bankable enough for a capital decision.";
-  }
-  return "Do not advance. The package requires material remediation before it should consume institutional committee time.";
-}
-
-function evidenceSummary() {
-  return evidenceRows().map(({ label, score, rating }) => `${label}: ${rating} (${score}/100)`);
-}
-
-function verdictTone(score) {
-  if (score >= 78) return "is-green";
-  if (score >= 64) return "is-gold";
-  if (score >= 45) return "is-cabernet";
-  return "is-red";
+function setText(id, value = "") {
+  const element = document.getElementById(id);
+  if (element) element.textContent = value;
 }
 
 function updateHeader() {
-  document.getElementById("reportTitle").textContent = reportState.dealName;
-  document.getElementById("reportMeta").textContent = `Prepared for ${reportState.principal} - ${reportState.assetClass} - ${reportState.raiseSize}`;
-  const score = weightedScore();
+  setText("reportTitle", reportState.dealName);
+  const meta = [reportState.principal, reportState.assetClass, reportState.raiseSize].filter(Boolean).join(" - ");
+  setText("reportMeta", meta);
+  setText("fundabilityScore");
+  setText("verdictLabel");
   const verdictCard = document.getElementById("verdictCard");
-  document.getElementById("fundabilityScore").textContent = score;
-  document.getElementById("verdictLabel").textContent = verdictFor(score);
   verdictCard.classList.remove("is-green", "is-gold", "is-cabernet", "is-red");
-  verdictCard.classList.add(verdictTone(score));
 }
 
 function renderEvidence() {
-  const map = document.getElementById("evidenceMap");
-  map.innerHTML = evidenceRows()
-    .map(
-      ({ label, score, rating }) => `
-        <div class="evidence-row">
-          <span>${label}</span>
-          <b><i style="width: ${score}%"></i></b>
-          <small>${rating}</small>
-        </div>
-      `,
-    )
-    .join("");
+  document.getElementById("evidenceMap").innerHTML = "";
 }
 
 function renderScores() {
-  const grid = document.getElementById("scoreGrid");
-  grid.innerHTML = Object.entries(reportState.scores)
-    .map(
-      ([label, score]) => `
-        <article class="score-card">
-          <strong>${score}</strong>
-          <span>${label}</span>
-          <p>${score >= 70 ? "Institutional-grade signal." : score >= 45 ? "Diligence required." : "Open funding gate."}</p>
-        </article>
-      `,
-    )
-    .join("");
+  document.getElementById("scoreGrid").innerHTML = "";
 }
 
-function renderFinalReport(generated = reportState.reportGenerated) {
+function renderFinalReport() {
   const title = document.getElementById("finalReportTitle");
   const badge = document.getElementById("finalReportBadge");
   const body = document.getElementById("finalReportBody");
   if (!title || !badge || !body) return;
 
-  if (!generated) {
-    title.textContent = "Ready to generate";
-    badge.textContent = "Awaiting intake";
-    body.innerHTML = "<p>Complete the intake or use the current demo assumptions, then select Generate Fundability Report.</p>";
-    return;
-  }
+  title.textContent = "";
+  badge.textContent = "";
+  body.innerHTML = "";
 
-  const score = weightedScore();
-  const verdict = verdictFor(score);
-  const gates = gateList();
+  if (!reportState.reportGenerated || !hasSourcePackage()) return;
+
   const generatedAt = new Date().toLocaleString([], {
     month: "short",
     day: "numeric",
@@ -190,21 +88,13 @@ function renderFinalReport(generated = reportState.reportGenerated) {
     minute: "2-digit",
   });
 
-  title.textContent = reportState.dealName;
-  badge.textContent = `${score} / ${verdict}`;
+  title.textContent = reportState.dealName || "Source Package Review";
+  badge.textContent = "Source package received";
   body.innerHTML = `
     <div class="report-summary-grid">
       <div>
-        <strong>Prepared for</strong>
-        <span>${reportState.principal}</span>
-      </div>
-      <div>
-        <strong>Asset class</strong>
-        <span>${reportState.assetClass}</span>
-      </div>
-      <div>
-        <strong>Raise size</strong>
-        <span>${reportState.raiseSize}</span>
+        <strong>Source package</strong>
+        <span>${reportState.sourceFiles.join(", ")}</span>
       </div>
       <div>
         <strong>Generated</strong>
@@ -212,75 +102,46 @@ function renderFinalReport(generated = reportState.reportGenerated) {
       </div>
     </div>
     <section>
-      <h5>Executive verdict</h5>
-      <p>${reportPosture(score)}</p>
-    </section>
-    <section>
-      <h5>Evidence map</h5>
-      <ul>${evidenceSummary().map((item) => `<li>${item}</li>`).join("")}</ul>
-    </section>
-    <section>
-      <h5>Open risk gates</h5>
-      ${
-        gates.length
-          ? `<ul>${gates.map((gate) => `<li>${gate}</li>`).join("")}</ul>`
-          : "<p>No critical open gates under the current scenario. Continue validating committee documentation and third-party support.</p>"
-      }
-    </section>
-    <section>
-      <h5>Diligence priorities</h5>
-      <ol>${ddItems.slice(0, 4).map((item) => `<li>${item}</li>`).join("")}</ol>
+      <h5>Review status</h5>
+      <p>Source package received. Institutional scoring, evidence ratings, risk gates, and fundability conclusions require source-package review before publication.</p>
     </section>
   `;
 }
 
 function renderDiligence() {
-  document.getElementById("ddList").innerHTML = ddItems.map((item) => `<li>${item}</li>`).join("");
-  document.getElementById("questionList").innerHTML = questions
-    .map((question, index) => `<button type="button" aria-pressed="false">${question}</button>`)
-    .join("");
-  document.querySelectorAll(".question-list button").forEach((button) => {
-    button.addEventListener("click", () => {
-      const selected = button.classList.toggle("is-selected");
-      button.setAttribute("aria-pressed", selected ? "true" : "false");
-    });
+  document.getElementById("ddList").innerHTML = "";
+  document.getElementById("questionList").innerHTML = "";
+}
+
+function resetScenarioLab() {
+  setText("evidenceValue");
+  setText("controlValue");
+  setText("cashValue");
+  setText("exitValue");
+  setText("reputationValue");
+  setText("scenarioVerdict");
+  setText("scenarioNarrative");
+  document.getElementById("scoreNeedle").style.left = "0%";
+  document.getElementById("openGates").innerHTML = "";
+  setText("exitReadiness");
+  sliders.forEach((slider) => {
+    slider.disabled = true;
+    slider.value = 0;
   });
 }
 
-function updateScenario() {
-  Object.entries(sliders).forEach(([label, slider]) => {
-    reportState.scores[label] = Number(slider.value);
-  });
-
-  const score = weightedScore();
-  const verdict = verdictFor(score);
-  document.getElementById("evidenceValue").textContent = `${reportState.scores["Evidence completeness"]}%`;
-  document.getElementById("controlValue").textContent = `${reportState.scores["Asset control"]}%`;
-  document.getElementById("cashValue").textContent = `${reportState.scores["Cash-flow visibility"]}%`;
-  document.getElementById("exitValue").textContent = `${reportState.scores["Exit liquidity"]}%`;
-  document.getElementById("reputationValue").textContent = `${reportState.scores["Reputation safety"]}%`;
-  document.getElementById("scenarioVerdict").textContent = verdict;
-  document.getElementById("scoreNeedle").style.left = `${score}%`;
-  document.getElementById("scenarioNarrative").textContent =
-    score >= 78
-      ? "This scenario starts to resemble a no-brainer institutional funding profile: strong evidence, controlled assets, visible cash flow, and reputation-safe governance."
-      : score >= 64
-        ? "This scenario is credible enough for deeper diligence, but still needs proof before capital commitment."
-        : "This scenario remains a conversation-starter, not an investable package. The next move is evidence remediation, not term negotiation.";
-  document.getElementById("openGates").innerHTML = gateList().map((gate) => `<li>${gate}</li>`).join("");
-  document.getElementById("exitReadiness").textContent =
-    reportState.scores["Exit liquidity"] >= 75 && reportState.scores["Evidence completeness"] >= 70
-      ? "Exit-ready with buyer mapping"
-      : "Needs institutional data room";
+function renderWorkspace() {
   updateHeader();
   renderEvidence();
   renderScores();
+  resetScenarioLab();
   renderFinalReport();
   persistState();
 }
 
 function persistState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(reportState));
+  const stateToPersist = { ...reportState, sourceFiles: [] };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist));
 }
 
 function restoreState() {
@@ -288,14 +149,17 @@ function restoreState() {
   if (!saved) return;
   try {
     const parsed = JSON.parse(saved);
-    Object.assign(reportState, parsed);
+    reportState.dealName = parsed.dealName || "";
+    reportState.principal = parsed.principal || "";
+    reportState.assetClass = parsed.assetClass || "";
+    reportState.raiseSize = parsed.raiseSize || "";
+    reportState.mode = parsed.mode || "Expert Review";
+    reportState.reportGenerated = false;
+    reportState.sourceFiles = [];
     document.getElementById("dealName").value = reportState.dealName;
     document.getElementById("principal").value = reportState.principal;
     document.getElementById("assetClass").value = reportState.assetClass;
     document.getElementById("raiseSize").value = reportState.raiseSize;
-    Object.entries(sliders).forEach(([label, slider]) => {
-      slider.value = reportState.scores[label];
-    });
     document.querySelectorAll(".mode-button").forEach((button) => {
       const isActive = button.dataset.mode === reportState.mode;
       button.classList.toggle("is-active", isActive);
@@ -351,52 +215,69 @@ document.querySelectorAll(".mode-button").forEach((button) => {
     button.setAttribute("aria-checked", "true");
     reportState.mode = button.dataset.mode;
     document.getElementById("modeNote").textContent = modeNotes[reportState.mode];
-    renderFinalReport();
     persistState();
+  });
+});
+
+["dealName", "principal", "assetClass", "raiseSize"].forEach((id) => {
+  document.getElementById(id).addEventListener("input", () => {
+    reportState.dealName = document.getElementById("dealName").value.trim();
+    reportState.principal = document.getElementById("principal").value.trim();
+    reportState.assetClass = document.getElementById("assetClass").value;
+    reportState.raiseSize = document.getElementById("raiseSize").value.trim();
+    reportState.reportGenerated = false;
+    renderWorkspace();
   });
 });
 
 document.getElementById("runReport").addEventListener("click", () => {
   const button = document.getElementById("runReport");
   const status = document.getElementById("reportStatus");
-  reportState.dealName = document.getElementById("dealName").value.trim() || "Untitled Deal";
-  reportState.principal = document.getElementById("principal").value.trim() || "Principal";
+  reportState.dealName = document.getElementById("dealName").value.trim();
+  reportState.principal = document.getElementById("principal").value.trim();
   reportState.assetClass = document.getElementById("assetClass").value;
-  reportState.raiseSize = document.getElementById("raiseSize").value.trim() || "Undisclosed raise";
+  reportState.raiseSize = document.getElementById("raiseSize").value.trim();
+
+  if (!hasSourcePackage()) {
+    reportState.reportGenerated = false;
+    status.textContent = "Attach a Source Package before generating a report.";
+    renderWorkspace();
+    return;
+  }
+
   reportState.reportGenerated = true;
   button.disabled = true;
-  button.textContent = "Reviewing evidence package...";
-  status.textContent = "Building the fundability view from intake details and current scenario assumptions.";
+  button.textContent = "Registering source package...";
+  status.textContent = "Source package received for review. No fundability score is generated from blank or manual assumptions.";
   document.querySelector(".report-stage").classList.add("is-refreshing");
   window.setTimeout(() => {
-    updateScenario();
-    renderFinalReport(true);
-    persistState();
+    renderWorkspace();
     document.querySelector(".report-stage").classList.remove("is-refreshing");
     button.disabled = false;
     button.textContent = "Generate Fundability Report";
-    status.textContent = `Report refreshed: ${weightedScore()} Fundability Index, ${verdictFor(weightedScore())}.`;
+    status.textContent = "Source package registered. Institutional scoring is withheld until review is complete.";
     document.querySelector(".report-stage").scrollIntoView({ behavior: "smooth", block: "start" });
-  }, 450);
+  }, 300);
 });
 
-Object.values(sliders).forEach((slider) => slider.addEventListener("input", updateScenario));
-
 document.getElementById("sourcePackage").addEventListener("change", (event) => {
-  const files = Array.from(event.target.files || []).map((file) => file.name);
-  document.getElementById("sourceFeedback").textContent = files.length
-    ? `${files.length} file${files.length === 1 ? "" : "s"} selected: ${files.slice(0, 3).join(", ")}${files.length > 3 ? ", ..." : ""}. Analyst review occurs before final delivery.`
-    : "Selected materials are reviewed by an analyst before final delivery.";
+  reportState.sourceFiles = Array.from(event.target.files || []).map((file) => file.name);
+  reportState.reportGenerated = false;
+  document.getElementById("sourceFeedback").textContent = hasSourcePackage()
+    ? `${reportState.sourceFiles.length} source file${reportState.sourceFiles.length === 1 ? "" : "s"} selected: ${reportState.sourceFiles.slice(0, 3).join(", ")}${reportState.sourceFiles.length > 3 ? ", ..." : ""}.`
+    : "Attach the Source Package before generating a report.";
+  renderWorkspace();
 });
 
 document.getElementById("copySummary").addEventListener("click", async () => {
-  const score = weightedScore();
   const status = document.getElementById("copyStatus");
-  const summary = `${reportState.dealName}\nPrepared for: ${reportState.principal}\nFundability Index: ${score}\nVerdict: ${verdictFor(score)}\nOpen gates:\n- ${gateList().join("\n- ")}`;
+  const summary = hasSourcePackage()
+    ? `Source package:\n- ${reportState.sourceFiles.join("\n- ")}\nStatus: Received for institutional review. Fundability scoring withheld until source-package review is complete.`
+    : "No Source Package attached. No report generated.";
   await navigator.clipboard.writeText(summary);
-  status.textContent = "Report summary copied to clipboard.";
+  status.textContent = "Source package status copied to clipboard.";
   window.setTimeout(() => {
-    status.textContent = "Exports are packaged as branded HTML/PDF report deliverables for client review.";
+    status.textContent = "Exports are packaged only after source-package review.";
   }, 3500);
 });
 
@@ -406,8 +287,6 @@ document.getElementById("resetApp").addEventListener("click", () => {
 });
 
 restoreState();
-renderEvidence();
 renderDiligence();
 activateTab(document.querySelector(".tab-button.is-active"));
-updateScenario();
-renderFinalReport();
+renderWorkspace();

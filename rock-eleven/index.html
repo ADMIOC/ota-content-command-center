@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ROCK ELEVEN - Institutional Fundability Workspace</title>
-    <link rel="stylesheet" href="./styles.css?v=rock-eleven-4" />
+    <link rel="stylesheet" href="./styles.css?v=rock-eleven-5" />
   </head>
   <body>
     <a class="skip-link" href="#workspace">Skip to report workspace</a>
@@ -108,15 +108,16 @@
                 </div>
                 <label class="field">
                   <span>Deal name</span>
-                  <input id="dealName" type="text" value="Rock Eleven Institutional Fundability Review" />
+                  <input id="dealName" type="text" value="" />
                 </label>
                 <label class="field">
                   <span>Analyzed for</span>
-                  <input id="principal" type="text" value="Rock Eleven Capital Committee" />
+                  <input id="principal" type="text" value="" />
                 </label>
                 <label class="field">
                   <span>Asset class</span>
                   <select id="assetClass">
+                    <option value="" selected></option>
                     <option>Residential Infrastructure</option>
                     <option>Infrastructure</option>
                     <option>Private Equity</option>
@@ -126,12 +127,12 @@
                 </label>
                 <label class="field">
                   <span>Raise size</span>
-                  <input id="raiseSize" type="text" value="CAD 120M" />
+                  <input id="raiseSize" type="text" value="" />
                 </label>
                 <label class="field">
                   <span>Source package</span>
                   <input id="sourcePackage" type="file" multiple />
-                  <small id="sourceFeedback">Selected materials are reviewed by an analyst before final delivery.</small>
+                  <small id="sourceFeedback">Attach the Source Package before generating a report.</small>
                 </label>
                 <button id="runReport" class="primary-button" type="button">Generate Fundability Report</button>
                 <p id="reportStatus" class="status-note" role="status" aria-live="polite"></p>
@@ -157,12 +158,12 @@
               <div class="report-header">
                 <div>
                   <p class="eyebrow">Institutional fundability report</p>
-                  <h3 id="reportTitle">Rock Eleven Institutional Fundability Review</h3>
-                  <p id="reportMeta">Prepared for Rock Eleven Capital Committee - Residential Infrastructure</p>
+                  <h3 id="reportTitle"></h3>
+                  <p id="reportMeta"></p>
                 </div>
                 <div class="verdict-card" id="verdictCard">
-                  <span id="verdictLabel">Advance Diligence</span>
-                  <strong id="fundabilityScore">72</strong>
+                  <span id="verdictLabel"></span>
+                  <strong id="fundabilityScore"></strong>
                   <small>Fundability Index</small>
                 </div>
               </div>
@@ -171,13 +172,11 @@
                 <div class="final-report-heading">
                   <div>
                     <p class="eyebrow">Final report output</p>
-                    <h4 id="finalReportTitle">Ready to generate</h4>
+                    <h4 id="finalReportTitle"></h4>
                   </div>
-                  <span id="finalReportBadge">Awaiting intake</span>
+                  <span id="finalReportBadge"></span>
                 </div>
-                <div id="finalReportBody" class="final-report-body">
-                  <p>Complete the intake or use the current demo assumptions, then select Generate Fundability Report.</p>
-                </div>
+                <div id="finalReportBody" class="final-report-body"></div>
               </article>
 
               <nav class="report-tabs" role="tablist" aria-label="Report sections">
@@ -191,11 +190,8 @@
                 <div class="thesis-grid">
                   <article class="panel">
                     <p class="eyebrow">Core thesis</p>
-                    <h4>Good market. Unfundable package until evidence closes.</h4>
-                    <p>
-                      The fundability engine distinguishes the macro thesis from the sponsor package.
-                      A deal can ride a real secular trend and still fail institutional capital review.
-                    </p>
+                    <h4></h4>
+                    <p></p>
                   </article>
                   <article class="panel">
                     <p class="eyebrow">Evidence map</p>
@@ -209,29 +205,29 @@
                 <div class="scenario-grid">
                   <form class="scenario-controls">
                     <label class="range-field">
-                      <span>Evidence completeness <strong id="evidenceValue">80%</strong></span>
-                      <input id="evidenceSlider" type="range" min="0" max="100" step="5" value="80" />
+                      <span>Evidence completeness <strong id="evidenceValue"></strong></span>
+                      <input id="evidenceSlider" type="range" min="0" max="100" step="5" value="0" disabled />
                     </label>
                     <label class="range-field">
-                      <span>Asset control <strong id="controlValue">70%</strong></span>
-                      <input id="controlSlider" type="range" min="0" max="100" step="5" value="70" />
+                      <span>Asset control <strong id="controlValue"></strong></span>
+                      <input id="controlSlider" type="range" min="0" max="100" step="5" value="0" disabled />
                     </label>
                     <label class="range-field">
-                      <span>Cash-flow visibility <strong id="cashValue">70%</strong></span>
-                      <input id="cashSlider" type="range" min="0" max="100" step="5" value="70" />
+                      <span>Cash-flow visibility <strong id="cashValue"></strong></span>
+                      <input id="cashSlider" type="range" min="0" max="100" step="5" value="0" disabled />
                     </label>
                     <label class="range-field">
-                      <span>Exit liquidity <strong id="exitValue">70%</strong></span>
-                      <input id="exitSlider" type="range" min="0" max="100" step="5" value="70" />
+                      <span>Exit liquidity <strong id="exitValue"></strong></span>
+                      <input id="exitSlider" type="range" min="0" max="100" step="5" value="0" disabled />
                     </label>
                     <label class="range-field">
-                      <span>Reputation safety <strong id="reputationValue">70%</strong></span>
-                      <input id="reputationSlider" type="range" min="0" max="100" step="5" value="70" />
+                      <span>Reputation safety <strong id="reputationValue"></strong></span>
+                      <input id="reputationSlider" type="range" min="0" max="100" step="5" value="0" disabled />
                     </label>
                   </form>
                   <div class="scenario-output panel">
                     <p class="eyebrow">Live institutional posture</p>
-                    <h4 id="scenarioVerdict">Engage - Do Not Commit</h4>
+                    <h4 id="scenarioVerdict"></h4>
                     <div class="meter" aria-hidden="true"><span id="scoreNeedle"></span></div>
                     <p id="scenarioNarrative" class="panel-note"></p>
                     <ul id="openGates" class="gate-list"></ul>
@@ -256,18 +252,18 @@
                 <div class="exit-grid">
                   <article class="panel">
                     <p class="eyebrow">Buyer universe</p>
-                    <h4>Who naturally owns this after stabilization?</h4>
-                    <p>REITs, pension funds, insurance balance sheets, infrastructure funds, strategic acquirers, or portfolio roll-up platforms.</p>
+                    <h4></h4>
+                    <p></p>
                   </article>
                   <article class="panel">
                     <p class="eyebrow">Exit readiness</p>
-                    <h4 id="exitReadiness">Needs institutional data room</h4>
-                    <p>Exit readiness rises when legal control, clean reporting, audited sponsor history, third-party market proof, and financing terms are present.</p>
+                    <h4 id="exitReadiness"></h4>
+                    <p></p>
                   </article>
                   <article class="panel">
                     <p class="eyebrow">No-brainer test</p>
-                    <h4>Large-scale capital wants downside control.</h4>
-                    <p>Best deals are exciting in macro, boring in governance, bankable in execution, and obvious to the next buyer.</p>
+                    <h4></h4>
+                    <p></p>
                   </article>
                 </div>
               </section>
@@ -307,7 +303,7 @@
               <p class="eyebrow">Export package</p>
               <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
               <button id="resetApp" class="secondary-button" type="button">Clear Workspace</button>
-              <p id="copyStatus" class="panel-note">Exports are packaged as branded HTML/PDF report deliverables for client review.</p>
+              <p id="copyStatus" class="panel-note">Exports are packaged only after source-package review.</p>
             </article>
           </div>
         </section>
@@ -317,6 +313,6 @@
         <p><strong>ROCK ELEVEN</strong> | powered by: <strong>DEALFLOW.COACH</strong></p>
       </footer>
     </div>
-    <script src="./app.js?v=rock-eleven-4"></script>
+    <script src="./app.js?v=rock-eleven-5"></script>
   </body>
 </html>
