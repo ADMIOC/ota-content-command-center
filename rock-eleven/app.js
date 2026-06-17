@@ -408,6 +408,27 @@ function renderWorkspace() {
   persistState();
 }
 
+function clearWorkspace() {
+  localStorage.removeItem(STORAGE_KEY);
+  reportState.dealName = "";
+  reportState.principal = "";
+  reportState.assetClass = "";
+  reportState.raiseSize = "";
+  reportState.reportGenerated = false;
+  reportState.sourceFiles = [];
+  reportState.analysis = null;
+  document.getElementById("dealName").value = "";
+  document.getElementById("principal").value = "";
+  document.getElementById("assetClass").value = "";
+  document.getElementById("raiseSize").value = "";
+  document.getElementById("sourcePackage").value = "";
+  document.getElementById("sourceFeedback").textContent = "Attach the Source Package before generating a report.";
+  document.getElementById("reportStatus").textContent = "";
+  document.getElementById("copyStatus").textContent = "Exports are packaged only after source-package review.";
+  document.getElementById("runReport").disabled = false;
+  renderWorkspace();
+}
+
 function persistState() {
   const stateToPersist = { ...reportState, sourceFiles: [], analysis: null, reportGenerated: false };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist));
@@ -539,10 +560,7 @@ document.getElementById("copySummary").addEventListener("click", async () => {
   }, 3500);
 });
 
-document.getElementById("resetApp").addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_KEY);
-  window.location.reload();
-});
+document.getElementById("resetWorkspace").addEventListener("click", clearWorkspace);
 
 restoreState();
 activateTab(document.querySelector(".tab-button.is-active"));

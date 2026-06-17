@@ -183,7 +183,8 @@ p {
 .primary-link,
 .secondary-link,
 .primary-button,
-.secondary-button {
+.secondary-button,
+.reset-workspace-button {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -205,6 +206,15 @@ p {
   background: #ffffff;
   border-color: var(--line);
   color: var(--ink);
+}
+
+.reset-workspace-button {
+  width: 100%;
+  margin-top: 8px;
+  background: #ffffff;
+  border-color: var(--line);
+  color: var(--ink);
+  opacity: 0.75;
 }
 
 .hero {
@@ -464,7 +474,8 @@ p {
 }
 
 .primary-button,
-.secondary-button {
+.secondary-button,
+.reset-workspace-button {
   width: 100%;
 }
 
@@ -801,6 +812,7 @@ p {
 .question-list button,
 .primary-button,
 .secondary-button,
+.reset-workspace-button,
 .primary-link,
 .secondary-link {
   transition:
@@ -815,6 +827,7 @@ p {
 .question-list button:hover,
 .primary-button:hover,
 .secondary-button:hover,
+.reset-workspace-button:hover,
 .primary-link:hover,
 .secondary-link:hover {
   transform: translateY(-1px);
