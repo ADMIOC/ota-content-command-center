@@ -6,6 +6,7 @@ const reportState = {
   assetClass: "Residential Infrastructure",
   raiseSize: "CAD 120M",
   mode: "Expert Review",
+  reportGenerated: false,
   scores: {
     "Capital absorption": 75,
     "Downside protection": 70,
@@ -94,6 +95,23 @@ function gateList() {
   return gates;
 }
 
+function reportPosture(score) {
+  if (score >= 78) {
+    return "Green light fundable profile. The package is suitable for institutional capital review subject to final legal, KYC, and committee documentation.";
+  }
+  if (score >= 64) {
+    return "Advance diligence. The opportunity is credible enough for institutional review, but funding should remain conditional on closing the identified evidence and risk gaps.";
+  }
+  if (score >= 45) {
+    return "Engage, do not commit. The opportunity can stay in conversation, but the package is not yet bankable enough for a capital decision.";
+  }
+  return "Do not advance. The package requires material remediation before it should consume institutional committee time.";
+}
+
+function evidenceSummary() {
+  return evidenceRows.map(([label, score, rating]) => `${label}: ${rating} (${score}/100)`);
+}
+
 function verdictTone(score) {
   if (score >= 78) return "is-green";
   if (score >= 64) return "is-gold";
@@ -142,6 +160,73 @@ function renderScores() {
     .join("");
 }
 
+function renderFinalReport(generated = reportState.reportGenerated) {
+  const title = document.getElementById("finalReportTitle");
+  const badge = document.getElementById("finalReportBadge");
+  const body = document.getElementById("finalReportBody");
+  if (!title || !badge || !body) return;
+
+  if (!generated) {
+    title.textContent = "Ready to generate";
+    badge.textContent = "Awaiting intake";
+    body.innerHTML = "<p>Complete the intake or use the current demo assumptions, then select Generate Fundability Report.</p>";
+    return;
+  }
+
+  const score = weightedScore();
+  const verdict = verdictFor(score);
+  const gates = gateList();
+  const generatedAt = new Date().toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  title.textContent = reportState.dealName;
+  badge.textContent = `${score} / ${verdict}`;
+  body.innerHTML = `
+    <div class="report-summary-grid">
+      <div>
+        <strong>Prepared for</strong>
+        <span>${reportState.principal}</span>
+      </div>
+      <div>
+        <strong>Asset class</strong>
+        <span>${reportState.assetClass}</span>
+      </div>
+      <div>
+        <strong>Raise size</strong>
+        <span>${reportState.raiseSize}</span>
+      </div>
+      <div>
+        <strong>Generated</strong>
+        <span>${generatedAt}</span>
+      </div>
+    </div>
+    <section>
+      <h5>Executive verdict</h5>
+      <p>${reportPosture(score)}</p>
+    </section>
+    <section>
+      <h5>Evidence map</h5>
+      <ul>${evidenceSummary().map((item) => `<li>${item}</li>`).join("")}</ul>
+    </section>
+    <section>
+      <h5>Open risk gates</h5>
+      ${
+        gates.length
+          ? `<ul>${gates.map((gate) => `<li>${gate}</li>`).join("")}</ul>`
+          : "<p>No critical open gates under the current scenario. Continue validating committee documentation and third-party support.</p>"
+      }
+    </section>
+    <section>
+      <h5>Diligence priorities</h5>
+      <ol>${ddItems.slice(0, 4).map((item) => `<li>${item}</li>`).join("")}</ol>
+    </section>
+  `;
+}
+
 function renderDiligence() {
   document.getElementById("ddList").innerHTML = ddItems.map((item) => `<li>${item}</li>`).join("");
   document.getElementById("questionList").innerHTML = questions
@@ -182,6 +267,7 @@ function updateScenario() {
       : "Needs institutional data room";
   updateHeader();
   renderScores();
+  renderFinalReport();
   persistState();
 }
 
@@ -257,6 +343,7 @@ document.querySelectorAll(".mode-button").forEach((button) => {
     button.setAttribute("aria-checked", "true");
     reportState.mode = button.dataset.mode;
     document.getElementById("modeNote").textContent = modeNotes[reportState.mode];
+    renderFinalReport();
     persistState();
   });
 });
@@ -268,12 +355,14 @@ document.getElementById("runReport").addEventListener("click", () => {
   reportState.principal = document.getElementById("principal").value.trim() || "Principal";
   reportState.assetClass = document.getElementById("assetClass").value;
   reportState.raiseSize = document.getElementById("raiseSize").value.trim() || "Undisclosed raise";
+  reportState.reportGenerated = true;
   button.disabled = true;
   button.textContent = "Reviewing evidence package...";
   status.textContent = "Building the fundability view from intake details and current scenario assumptions.";
   document.querySelector(".report-stage").classList.add("is-refreshing");
   window.setTimeout(() => {
     updateScenario();
+    renderFinalReport(true);
     persistState();
     document.querySelector(".report-stage").classList.remove("is-refreshing");
     button.disabled = false;
@@ -313,3 +402,4 @@ renderEvidence();
 renderDiligence();
 activateTab(document.querySelector(".tab-button.is-active"));
 updateScenario();
+renderFinalReport();
