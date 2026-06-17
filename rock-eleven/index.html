@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ROCK ELEVEN - Institutional Fundability Workspace</title>
-    <link rel="stylesheet" href="./styles.css?v=rock-eleven-9" />
+    <link rel="stylesheet" href="./styles.css?v=rock-eleven-10" />
   </head>
   <body>
     <a class="skip-link" href="#workspace">Skip to report workspace</a>
@@ -20,7 +20,6 @@
         <nav class="topnav" aria-label="Primary navigation">
           <a href="#offer">Offer</a>
           <a href="#workspace">Workspace</a>
-          <a href="#expert-review">Expert Review</a>
         </nav>
         <a class="primary-link" href="#intake">Start Intake</a>
       </header>
@@ -42,7 +41,7 @@
             </p>
             <div class="hero-actions">
               <a class="primary-link" href="#workspace">Open Workspace</a>
-              <a class="secondary-link" href="#expert-review">View Review Layer</a>
+              <a class="secondary-link" href="#offer">View Report Scope</a>
             </div>
             <div class="trust-strip" aria-label="Report outputs">
               <span>Fundability Index</span>
@@ -141,20 +140,6 @@
                 <p id="reportStatus" class="status-note" role="status" aria-live="polite"></p>
               </section>
 
-              <section class="panel">
-                <div class="panel-heading">
-                  <p class="eyebrow">Delivery model</p>
-                  <h3>Expert-reviewed by default</h3>
-                </div>
-                <div class="mode-list" role="radiogroup" aria-label="Delivery model">
-                  <button class="mode-button is-active" type="button" role="radio" aria-checked="true" data-mode="Expert Review">Expert Review</button>
-                  <button class="mode-button" type="button" role="radio" aria-checked="false" data-mode="Platform-Assisted">Platform-Assisted</button>
-                  <button class="mode-button" type="button" role="radio" aria-checked="false" data-mode="Institutional Workspace">Institutional Workspace</button>
-                </div>
-                <p id="modeNote" class="panel-note">
-                  Analyst oversight keeps source-package ratings, risk gates, and investment posture defensible.
-                </p>
-              </section>
             </aside>
 
             <section class="report-stage" aria-live="polite" aria-labelledby="reportTitle">
@@ -180,6 +165,19 @@
                   <span id="finalReportBadge"></span>
                 </div>
                 <div id="finalReportBody" class="final-report-body"></div>
+              </article>
+
+              <article class="panel report-export">
+                <div>
+                  <p class="eyebrow">Export package</p>
+                  <h4>Download the generated report.</h4>
+                </div>
+                <div class="export-actions">
+                  <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
+                  <button id="downloadDocx" class="secondary-button" type="button">Download .docx</button>
+                  <button id="downloadPdf" class="secondary-button" type="button">Download .pdf</button>
+                </div>
+                <p id="copyStatus" class="panel-note">Exports are packaged only after source-package review.</p>
               </article>
 
               <nav class="report-tabs" role="tablist" aria-label="Report sections">
@@ -274,51 +272,11 @@
           </div>
         </section>
 
-        <section id="expert-review" class="analyst-section">
-          <div class="section-heading">
-            <p class="eyebrow">Expert review layer</p>
-            <h2>Human-reviewed before delivery.</h2>
-            <p>
-              Every report is reviewed for evidence quality, risk posture, and investment-committee
-              readability before delivery.
-            </p>
-          </div>
-          <div class="analyst-grid">
-            <article class="panel">
-              <p class="eyebrow">Review queue</p>
-              <h3>3 reports in progress</h3>
-              <div class="queue-list">
-                <span>Northstar Urban Partners - Evidence review</span>
-                <span>Helios Grid Storage - Model gap check</span>
-                <span>Summit Care Holdings - Sponsor KYC</span>
-              </div>
-            </article>
-            <article class="panel">
-              <p class="eyebrow">Approval gates</p>
-              <div class="approval-list">
-                <label><input type="checkbox" checked /> Source claims separated from inference</label>
-                <label><input type="checkbox" /> Sponsor references verified</label>
-                <label><input type="checkbox" /> Financial model attached</label>
-                <label><input type="checkbox" checked /> Report disclaimer included</label>
-              </div>
-            </article>
-            <article class="panel">
-              <p class="eyebrow">Export package</p>
-              <div class="export-actions">
-                <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
-                <button id="downloadDocx" class="secondary-button" type="button">Download .docx</button>
-                <button id="downloadPdf" class="secondary-button" type="button">Download .pdf</button>
-              </div>
-              <p id="copyStatus" class="panel-note">Exports are packaged only after source-package review.</p>
-            </article>
-          </div>
-        </section>
-
       </main>
       <footer class="site-footer">
         <p><strong>ROCK ELEVEN</strong> | powered by: <strong>DEALFLOW.COACH</strong></p>
       </footer>
     </div>
-    <script src="./app.js?v=rock-eleven-9"></script>
+    <script src="./app.js?v=rock-eleven-10"></script>
   </body>
 </html>

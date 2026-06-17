@@ -636,6 +636,16 @@ p {
   padding-left: 20px;
 }
 
+.report-export {
+  display: grid;
+  gap: 14px;
+  box-shadow: none;
+}
+
+.report-export h4 {
+  font-size: 1.2rem;
+}
+
 .report-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
