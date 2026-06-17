@@ -791,7 +791,8 @@ p {
 
 .question-list,
 .queue-list,
-.approval-list {
+.approval-list,
+.export-actions {
   display: grid;
   gap: 10px;
 }

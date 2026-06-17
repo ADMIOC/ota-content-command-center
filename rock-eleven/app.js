@@ -458,6 +458,170 @@ function clearWorkspace() {
   renderWorkspace();
 }
 
+function exportLines() {
+  if (!hasSourcePackage()) return [];
+  const gates = openRiskGates();
+  const priorities = diligencePriorities();
+  return [
+    reportState.dealName,
+    "",
+    `Prepared for: ${reportState.principal}`,
+    `Asset class: ${reportState.assetClass || "Not identified in source"}`,
+    `Raise size: ${reportState.raiseSize || "Not identified in source"}`,
+    `Fundability Index: ${reportState.analysis.fundabilityIndex}`,
+    `Verdict: ${reportState.analysis.verdict}`,
+    `Source package: ${reportState.sourceFiles.join(", ")}`,
+    "",
+    "Core Thesis",
+    thesisView().body,
+    "",
+    "Evidence Map",
+    ...evidenceDimensions.map(([label, key]) => `${label}: ${ratingFor(reportState.analysis.scores[key])} (${reportState.analysis.scores[key]}/100)`),
+    "",
+    "Open Risk Gates",
+    ...(gates.length ? gates : ["No critical open gates detected from the source-package signals."]),
+    "",
+    "Diligence Priorities",
+    ...priorities.map((item, index) => `${index + 1}. ${item}`),
+  ];
+}
+
+function exportFileName(extension) {
+  const slug = (reportState.dealName || "fundability-report")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+  return `${slug || "fundability-report"}.${extension}`;
+}
+
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function crc32(bytes) {
+  let crc = -1;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ -1) >>> 0;
+}
+
+function concatBytes(parts) {
+  const size = parts.reduce((sum, part) => sum + part.length, 0);
+  const output = new Uint8Array(size);
+  let offset = 0;
+  parts.forEach((part) => {
+    output.set(part, offset);
+    offset += part.length;
+  });
+  return output;
+}
+
+function writeUint16(value) {
+  return new Uint8Array([value & 255, (value >>> 8) & 255]);
+}
+
+function writeUint32(value) {
+  return new Uint8Array([value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255]);
+}
+
+function zipStore(files) {
+  const encoder = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  files.forEach(({ name, content }) => {
+    const nameBytes = encoder.encode(name);
+    const data = encoder.encode(content);
+    const crc = crc32(data);
+    const localHeader = concatBytes([
+      writeUint32(0x04034b50), writeUint16(20), writeUint16(0), writeUint16(0), writeUint16(0), writeUint16(0),
+      writeUint32(crc), writeUint32(data.length), writeUint32(data.length), writeUint16(nameBytes.length), writeUint16(0), nameBytes,
+    ]);
+    localParts.push(localHeader, data);
+    centralParts.push(concatBytes([
+      writeUint32(0x02014b50), writeUint16(20), writeUint16(20), writeUint16(0), writeUint16(0), writeUint16(0), writeUint16(0),
+      writeUint32(crc), writeUint32(data.length), writeUint32(data.length), writeUint16(nameBytes.length), writeUint16(0), writeUint16(0),
+      writeUint16(0), writeUint16(0), writeUint32(0), writeUint32(offset), nameBytes,
+    ]));
+    offset += localHeader.length + data.length;
+  });
+  const central = concatBytes(centralParts);
+  return concatBytes([
+    ...localParts,
+    central,
+    writeUint32(0x06054b50), writeUint16(0), writeUint16(0), writeUint16(files.length), writeUint16(files.length),
+    writeUint32(central.length), writeUint32(offset), writeUint16(0),
+  ]);
+}
+
+function buildDocxBlob() {
+  const xmlText = exportLines()
+    .map((line) => `<w:p><w:r><w:t xml:space="preserve">${escapeHtml(line)}</w:t></w:r></w:p>`)
+    .join("");
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${xmlText}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720"/></w:sectPr></w:body></w:document>`;
+  const bytes = zipStore([
+    { name: "[Content_Types].xml", content: `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>` },
+    { name: "_rels/.rels", content: `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>` },
+    { name: "word/document.xml", content: documentXml },
+  ]);
+  return new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+
+function pdfEscape(text) {
+  return String(text).replace(/[\\()]/g, "\\$&");
+}
+
+function buildPdfBlob() {
+  const lines = exportLines().flatMap((line) => {
+    const chunks = [];
+    for (let index = 0; index < line.length || index === 0; index += 92) chunks.push(line.slice(index, index + 92));
+    return chunks;
+  });
+  const pages = [];
+  for (let index = 0; index < lines.length; index += 48) pages.push(lines.slice(index, index + 48));
+  const objects = ["<< /Type /Catalog /Pages 2 0 R >>"];
+  const pageRefs = pages.map((_, index) => `${3 + index * 2} 0 R`).join(" ");
+  objects.push(`<< /Type /Pages /Kids [${pageRefs}] /Count ${pages.length} >>`);
+  pages.forEach((pageLines, index) => {
+    const pageObject = 3 + index * 2;
+    const streamObject = pageObject + 1;
+    const stream = `BT /F1 11 Tf 50 760 Td 14 TL ${pageLines.map((line) => `(${pdfEscape(line)}) Tj T*`).join(" ")} ET`;
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents ${streamObject} 0 R >>`);
+    objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+  });
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length);
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xrefOffset = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  return new Blob([pdf], { type: "application/pdf" });
+}
+
+function requireReportForExport() {
+  if (hasSourcePackage()) return true;
+  document.getElementById("copyStatus").textContent = "Generate a report from a Source Package before exporting.";
+  return false;
+}
+
 function persistState() {
   const stateToPersist = { ...reportState, sourceFiles: [], analysis: null, reportGenerated: false };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToPersist));
@@ -578,15 +742,25 @@ document.getElementById("sourcePackage").addEventListener("change", async (event
 });
 
 document.getElementById("copySummary").addEventListener("click", async () => {
+  if (!requireReportForExport()) return;
   const status = document.getElementById("copyStatus");
-  const summary = hasSourcePackage()
-    ? `${reportState.dealName}\nSource package: ${reportState.sourceFiles.join(", ")}\nFundability Index: ${reportState.analysis.fundabilityIndex}\nVerdict: ${reportState.analysis.verdict}\nOpen gates:\n- ${openRiskGates().join("\n- ")}`
-    : "No Source Package attached. No report generated.";
-  await navigator.clipboard.writeText(summary);
+  await navigator.clipboard.writeText(exportLines().join("\n"));
   status.textContent = "Report summary copied to clipboard.";
   window.setTimeout(() => {
     status.textContent = "Exports are packaged only after source-package review.";
   }, 3500);
+});
+
+document.getElementById("downloadDocx").addEventListener("click", () => {
+  if (!requireReportForExport()) return;
+  downloadBlob(buildDocxBlob(), exportFileName("docx"));
+  document.getElementById("copyStatus").textContent = "DOCX report downloaded.";
+});
+
+document.getElementById("downloadPdf").addEventListener("click", () => {
+  if (!requireReportForExport()) return;
+  downloadBlob(buildPdfBlob(), exportFileName("pdf"));
+  document.getElementById("copyStatus").textContent = "PDF report downloaded.";
 });
 
 document.getElementById("resetWorkspace").addEventListener("click", clearWorkspace);

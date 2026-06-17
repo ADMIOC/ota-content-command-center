@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ROCK ELEVEN - Institutional Fundability Workspace</title>
-    <link rel="stylesheet" href="./styles.css?v=rock-eleven-8" />
+    <link rel="stylesheet" href="./styles.css?v=rock-eleven-9" />
   </head>
   <body>
     <a class="skip-link" href="#workspace">Skip to report workspace</a>
@@ -304,7 +304,11 @@
             </article>
             <article class="panel">
               <p class="eyebrow">Export package</p>
-              <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
+              <div class="export-actions">
+                <button id="copySummary" class="primary-button" type="button">Copy Report Summary</button>
+                <button id="downloadDocx" class="secondary-button" type="button">Download .docx</button>
+                <button id="downloadPdf" class="secondary-button" type="button">Download .pdf</button>
+              </div>
               <p id="copyStatus" class="panel-note">Exports are packaged only after source-package review.</p>
             </article>
           </div>
@@ -315,6 +319,6 @@
         <p><strong>ROCK ELEVEN</strong> | powered by: <strong>DEALFLOW.COACH</strong></p>
       </footer>
     </div>
-    <script src="./app.js?v=rock-eleven-8"></script>
+    <script src="./app.js?v=rock-eleven-9"></script>
   </body>
 </html>
