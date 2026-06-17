@@ -1,4 +1,4 @@
-const STORAGE_KEY = "rockElevenDealflowWorkspaceV1";
+const STORAGE_KEY = "rockElevenDealflowWorkspaceV2";
 
 const reportState = {
   dealName: "Rock Eleven Institutional Fundability Review",
