@@ -11,6 +11,8 @@ const reportState = {
   analysis: null,
 };
 
+const SOURCE_PACKAGE_PROMPT = "Attach the Source Package before generating a report. Source package details will populate below.";
+
 const modeNotes = {
   "Expert Review": "Analyst oversight keeps source-package review, risk gates, and investment-committee readability defensible.",
   "Platform-Assisted": "Clients upload source materials and receive a structured draft only after analyst review.",
@@ -451,7 +453,7 @@ function clearWorkspace() {
   document.getElementById("assetClass").value = "";
   document.getElementById("raiseSize").value = "";
   document.getElementById("sourcePackage").value = "";
-  document.getElementById("sourceFeedback").textContent = "Attach the Source Package before generating a report.";
+  document.getElementById("sourceFeedback").textContent = SOURCE_PACKAGE_PROMPT;
   document.getElementById("reportStatus").textContent = "";
   document.getElementById("copyStatus").textContent = "Exports are packaged only after source-package review.";
   document.getElementById("runReport").disabled = false;
@@ -723,7 +725,7 @@ document.getElementById("sourcePackage").addEventListener("change", async (event
     reportState.sourceFiles = [];
     reportState.analysis = null;
     reportState.reportGenerated = false;
-    document.getElementById("sourceFeedback").textContent = "Attach the Source Package before generating a report.";
+    document.getElementById("sourceFeedback").textContent = SOURCE_PACKAGE_PROMPT;
     renderWorkspace();
     return;
   }
