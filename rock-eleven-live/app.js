@@ -240,6 +240,34 @@ function renderEvidence() {
     .join("");
 }
 
+function thesisView() {
+  const { scores, fundabilityIndex, verdict, assetClass, raiseSize, readableTextLength } = reportState.analysis;
+  const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const strongest = ranked[0];
+  const weakest = ranked[ranked.length - 1];
+  const scope = [assetClass, raiseSize].filter(Boolean).join(" / ") || "source package";
+  const dataCaveat =
+    readableTextLength < 500
+      ? "The current package provides limited machine-readable evidence, so the thesis remains conditional on full document review."
+      : "The source package provides enough readable signals to establish an initial institutional thesis posture.";
+
+  return {
+    title: `${verdict}: ${scope}`,
+    body: `${dataCaveat} Strongest source signal: ${scoreLabels[strongest[0]]} (${strongest[1]}/100). Primary fundability constraint: ${scoreLabels[weakest[0]]} (${weakest[1]}/100). Current source-package posture is ${fundabilityIndex}/100 before analyst confirmation.`,
+  };
+}
+
+function renderThesis() {
+  if (!hasSourcePackage()) {
+    setText("coreThesisTitle");
+    setText("coreThesisBody");
+    return;
+  }
+  const thesis = thesisView();
+  setText("coreThesisTitle", thesis.title);
+  setText("coreThesisBody", thesis.body);
+}
+
 function renderScores() {
   const grid = document.getElementById("scoreGrid");
   if (!hasSourcePackage()) {
@@ -325,7 +353,7 @@ function renderFinalReport() {
     </div>
     <section>
       <h5>Executive verdict</h5>
-      <p>${escapeHtml(reportPosture())}</p>
+      <p>${escapeHtml(thesisView().body)}</p>
     </section>
     <section>
       <h5>Evidence map</h5>
@@ -400,6 +428,7 @@ function renderScenarioLab() {
 
 function renderWorkspace() {
   updateHeader();
+  renderThesis();
   renderEvidence();
   renderScores();
   renderScenarioLab();
