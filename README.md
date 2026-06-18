@@ -2,6 +2,15 @@
 
 HTML MVP plus a local backend action layer for launching and executing the OTA video workflow across campaign setup, scene planning, ElevenLabs script/audio generation, Codex + Remotion assembly, Higgsfield Studio generation, QA, final assembly, Descript enhancement, HeyGen avatar/lip-sync personalization, Bunny storage, Blotato publishing handoff, Restream live broadcast/clip capture, and repurpose planning.
 
+## DealFlow.Coach Backend Authority
+
+The DealFlow.Coach frontend is subordinate to the institutional-grade backend.
+Never limit, weaken, simplify, or reshape backend functionality to accommodate
+frontend constraints. When frontend assumptions conflict with the backend's real
+API contract, scoring model, evidence model, audit requirements, hard gates,
+caps, clearances, or review logic, the frontend must be changed to match the
+backend.
+
 Open `index.html` in a browser. The app stores workspace data in `localStorage` and can export a JSON workspace file from the top bar.
 
 For live backend actions, run:
