@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Viral Launch Control</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">OTA Social Engine</p>
+          <h1>Viral Launch Control</h1>
+        </div>
+        <div class="top-actions">
+          <a class="ghost-button top-link" href="./viral-launch-guide.html">Launch Guide</a>
+          <a class="ghost-button top-link" href="./command-center-tutorial.html#tutorial-section-20">Tutorial Section</a>
+          <a class="primary-button top-link" href="./index.html">Open Command Center</a>
+        </div>
+      </header>
+
+      <main class="launch-control-page">
+        <section class="panel launch-control-context">
+          <div>
+            <p class="eyebrow">Active campaign</p>
+            <h2>Choose the campaign you want to evaluate for immediate posting.</h2>
+            <p class="panel-note">This page uses the same temporary MVP workspace data as the Command Center.</p>
+          </div>
+          <label class="field">
+            <span>Campaign</span>
+            <select id="launchCampaignSelect"></select>
+          </label>
+        </section>
+
+        <section id="viral-launch-control-section" class="panel viral-launch-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Viral launch control</p>
+              <h3>Immediate Posting Readiness</h3>
+              <p class="panel-note">Score the strongest launch candidate, confirm assets, and copy a manual posting packet before content leaves the Command Center.</p>
+            </div>
+            <div class="panel-actions">
+              <a class="mini-button" href="./viral-launch-guide.html">Launch Guide</a>
+              <span id="viralLaunchStatus" class="status-pill not-started">Not launch ready</span>
+            </div>
+          </div>
+
+          <div id="viralLaunchScoreboard" class="viral-launch-scoreboard"></div>
+          <div id="agenticLaunchSummary" class="agentic-launch-summary"></div>
+          <div id="agentProgressPanel" class="agent-progress-panel" aria-live="polite"></div>
+
+          <div class="viral-launch-grid">
+            <article class="viral-launch-card">
+              <div class="panel-heading tight">
+                <div>
+                  <p class="eyebrow">Next post</p>
+                  <h4>Launch Candidate</h4>
+                </div>
+                <select id="viralLaunchCandidate" aria-label="Select launch candidate"></select>
+              </div>
+              <div id="viralLaunchCandidatePreview" class="viral-launch-preview"></div>
+            </article>
+
+            <article class="viral-launch-card">
+              <div class="panel-heading tight">
+                <div>
+                  <p class="eyebrow">Readiness</p>
+                  <h4>Viral Launch Checklist</h4>
+                </div>
+                <button id="scoreViralLaunch" class="mini-button" type="button">Run Scoring Agent</button>
+              </div>
+              <div id="viralLaunchChecklist" class="viral-launch-checklist"></div>
+            </article>
+          </div>
+
+          <div class="viral-launch-actions">
+            <button id="runLaunchAgent" class="ghost-button" type="button">Run Launch Agent</button>
+            <button id="markManualLaunchReady" class="ghost-button" type="button">Agent Prepare Manual Launch</button>
+            <button id="copyViralLaunchPack" class="primary-button" type="button">Agent Copy Launch Pack</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="./viral-launch-control.js"></script>
+  </body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTA Content Command Center Enhancement Ideas</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header id="command-topbar" class="topbar">
+        <div>
+          <p class="eyebrow">GitHub intake</p>
+          <h1>Got an Enhancement Idea?</h1>
+        </div>
+        <div class="top-actions">
+          <a class="ghost-button top-link" href="./command-center-tutorial.html">Tutorial</a>
+          <a id="backToCommandCenter" class="primary-button top-link" href="./index.html#campaign-overview">Back to Command Center</a>
+        </div>
+      </header>
+
+      <main class="enhancement-page">
+        <section class="panel enhancement-hero">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Enhancement workspace</p>
+              <h2>Turn creator ideas into trackable product improvements.</h2>
+              <p>
+                Use this page when feedback should become Command Center improvement work.
+                Team Collaboration stays inside the active campaign; enhancement ideas become GitHub-ready requests.
+              </p>
+            </div>
+            <span id="enhancementIdeaCount" class="status-pill not-started">0 ideas</span>
+          </div>
+          <div id="enhancementSummary" class="enhancement-summary-grid" aria-label="Enhancement idea summary"></div>
+        </section>
+
+        <section class="panel enhancement-intake-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Request details</p>
+              <h3>Enhancement Intake</h3>
+              <p class="panel-note">Testing data only. Any database used during this MVP phase is temporary and not the production system of record.</p>
+            </div>
+          </div>
+
+          <div class="review-form">
+            <label class="field">
+              <span>Campaign</span>
+              <select id="enhancementCampaign"></select>
+            </label>
+            <label class="field">
+              <span>Priority</span>
+              <select id="enhancementPriority">
+                <option>Nice to have</option>
+                <option>Important</option>
+                <option>Blocking</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Reviewer</span>
+              <input id="enhancementReviewer" type="text" autocomplete="name" />
+            </label>
+            <label class="field">
+              <span>Section</span>
+              <select id="enhancementSection"></select>
+            </label>
+            <label class="field full-width">
+              <span>Enhancement Idea</span>
+              <textarea id="enhancementComment" rows="6" placeholder="Describe what should improve, why it matters, and what a successful update should make easier for creators."></textarea>
+            </label>
+            <div class="review-actions full-width">
+              <button id="saveEnhancementIdea" class="ghost-button" type="button">Save Idea</button>
+              <button id="copyEnhancementRequest" class="ghost-button" type="button">Copy Request</button>
+              <button id="openEnhancementGithubIssue" class="primary-button" type="button">Open GitHub Issue</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel review-panel">
+          <div class="panel-heading tight">
+            <div>
+              <p class="eyebrow">Saved ideas</p>
+              <h3>Campaign Enhancement Requests</h3>
+            </div>
+          </div>
+          <div id="enhancementRequestList" class="review-request-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="./enhancement-ideas.js"></script>
+  </body>
+</html>

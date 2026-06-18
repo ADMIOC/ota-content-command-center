@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DealFlow.Coach - UDI Group IC Memo</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./dealflow-udi.css" />
+  </head>
+  <body class="dealflow-body">
+    <header class="dealflow-topbar">
+      <div>
+        <p class="eyebrow">DealFlow.Coach public memo</p>
+        <h1>UDI Group EUR 150M Capital Raise</h1>
+      </div>
+      <div class="top-actions">
+        <a class="primary-button top-link" href="#scenario-lab">Scenario Lab</a>
+      </div>
+    </header>
+
+    <main class="dealflow-page">
+      <section class="deal-hero" aria-labelledby="deal-title">
+        <div class="hero-main">
+          <p class="eyebrow">Rock Eleven Group review posture</p>
+          <h2 id="deal-title">Engage. Do not commit.</h2>
+          <p>
+            The Canadian housing thesis clears the first screen. The deal package does not yet clear
+            institutional diligence because the anchor site control, sponsor verification, financial
+            model, and fund terms remain unresolved.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-button top-link" href="#scenario-lab">Model alternate scenarios</a>
+            <a class="ghost-button top-link" href="#diligence">View DD priorities</a>
+          </div>
+        </div>
+        <aside class="verdict-panel" aria-label="DealFlow verdict">
+          <div class="verdict-score">
+            <strong id="heroScore">5.1</strong>
+            <span>/10 composite</span>
+          </div>
+          <dl>
+            <div>
+              <dt>Instrument</dt>
+              <dd>Development equity plus SPV leverage</dd>
+            </div>
+            <div>
+              <dt>Raise</dt>
+              <dd>EUR 150M equity</dd>
+            </div>
+            <div>
+              <dt>Target</dt>
+              <dd>CAD 2.0B rental portfolio at +15% IRR</dd>
+            </div>
+            <div>
+              <dt>Evidence state</dt>
+              <dd>Strong market, absent financial substantiation</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="memo-strip" aria-label="Key thesis facts">
+        <article>
+          <span>01</span>
+          <strong>Market</strong>
+          <p>Canada's housing deficit and Halifax catalysts are the strongest evidence in the memo.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <strong>Anchor asset</strong>
+          <p>Ocean Breeze Village is attractive, but UDI's secured control is not demonstrated.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <strong>Financials</strong>
+          <p>No pro forma, waterfall, cost basis, absorption schedule, or sensitivity package was provided.</p>
+        </article>
+        <article>
+          <span>04</span>
+          <strong>Action</strong>
+          <p>Run a structured information request before any term discussion.</p>
+        </article>
+      </section>
+
+      <section id="scenario-lab" class="scenario-grid" aria-labelledby="scenario-title">
+        <div class="scenario-copy">
+          <p class="eyebrow">Interactive scenario lab</p>
+          <h2 id="scenario-title">Stress the EUR 150M to CAD 2.0B bridge.</h2>
+          <p>
+            Adjust the assumptions below to see how sensitive the portfolio bridge and IC posture are
+            to FX, leverage, cost overrun, NOI yield, exit cap rate, and evidence quality. This is a
+            directional underwriting sandbox, not a substitute for UDI's missing model.
+          </p>
+          <div class="scenario-summary">
+            <div>
+              <span>Modeled equity</span>
+              <strong id="cadEquity">CAD 225M</strong>
+            </div>
+            <div>
+              <span>Implied portfolio</span>
+              <strong id="portfolioValue">CAD 900M</strong>
+            </div>
+            <div>
+              <span>Gap to target</span>
+              <strong id="targetGap">CAD 1.10B short</strong>
+            </div>
+            <div>
+              <span>IC posture</span>
+              <strong id="icPosture">Engage - Do Not Commit</strong>
+            </div>
+          </div>
+        </div>
+
+        <form class="scenario-controls" aria-label="Scenario controls">
+          <label class="range-field">
+            <span>EUR to CAD exchange rate <strong id="fxValue">1.50</strong></span>
+            <input id="fxRate" type="range" min="1.35" max="1.65" step="0.01" value="1.50" />
+          </label>
+          <label class="range-field">
+            <span>Blended effective LTV <strong id="ltvValue">75%</strong></span>
+            <input id="ltv" type="range" min="50" max="82" step="1" value="75" />
+          </label>
+          <label class="range-field">
+            <span>Construction cost overrun <strong id="overrunValue">10%</strong></span>
+            <input id="overrun" type="range" min="0" max="35" step="1" value="10" />
+          </label>
+          <label class="range-field">
+            <span>Stabilized NOI yield on cost <strong id="yieldValue">5.0%</strong></span>
+            <input id="noiYield" type="range" min="3.5" max="7.0" step="0.1" value="5.0" />
+          </label>
+          <label class="range-field">
+            <span>Exit cap rate <strong id="capValue">5.5%</strong></span>
+            <input id="capRate" type="range" min="4.5" max="7.0" step="0.1" value="5.5" />
+          </label>
+          <label class="range-field">
+            <span>Evidence remediation <strong id="evidenceValue">0%</strong></span>
+            <input id="evidence" type="range" min="0" max="100" step="5" value="0" />
+          </label>
+          <button id="resetScenario" class="ghost-button" type="button">Reset base case</button>
+        </form>
+      </section>
+
+      <section class="dashboard-grid" aria-label="Scenario outputs">
+        <article class="panel metric-panel">
+          <p class="eyebrow">Modeled outcome</p>
+          <h3>Portfolio bridge</h3>
+          <div class="bridge-bars" aria-label="Portfolio bridge bars">
+            <div>
+              <span>Equity</span>
+              <b id="equityBar"></b>
+            </div>
+            <div>
+              <span>Levered capacity</span>
+              <b id="capacityBar"></b>
+            </div>
+            <div>
+              <span>Cap-rate value</span>
+              <b id="valueBar"></b>
+            </div>
+            <div>
+              <span>CAD 2.0B target</span>
+              <b class="target-bar"></b>
+            </div>
+          </div>
+          <p id="bridgeNote" class="panel-note"></p>
+        </article>
+
+        <article class="panel metric-panel">
+          <p class="eyebrow">Live IC score</p>
+          <h3 id="liveScore">5.1 / 10</h3>
+          <div class="score-meter" aria-hidden="true">
+            <span id="scoreNeedle"></span>
+          </div>
+          <p id="scoreNote" class="panel-note"></p>
+        </article>
+
+        <article class="panel metric-panel">
+          <p class="eyebrow">Risk gate</p>
+          <h3 id="riskGate">Four kill factors open</h3>
+          <ul id="riskGateList" class="risk-list"></ul>
+        </article>
+      </section>
+
+      <section class="scorecard-section" aria-labelledby="scorecard-title">
+        <div class="section-heading">
+          <p class="eyebrow">Institutional scorecard</p>
+          <h2 id="scorecard-title">The market scores well. The package does not.</h2>
+        </div>
+        <div id="scorecard" class="scorecard"></div>
+      </section>
+
+      <section class="risk-section" aria-labelledby="risk-title">
+        <div class="section-heading">
+          <p class="eyebrow">Risk map</p>
+          <h2 id="risk-title">What must be solved before commitment.</h2>
+        </div>
+        <div class="risk-grid">
+          <article class="risk-card kill">
+            <span>Kill-factor tier</span>
+            <h3>Disqualifying if unresolved</h3>
+            <p>Unverified EUR 2.5B sponsor claim, no secured Ocean Breeze site control, absent financial model, and no disclosed fund structure or alignment terms.</p>
+          </article>
+          <article class="risk-card high">
+            <span>High tier</span>
+            <h3>Execution and financing stress</h3>
+            <p>Construction cost exposure, interest-rate sensitivity, modular delivery risk, Halifax absorption, unhedged FX, and key-person concentration.</p>
+          </article>
+          <article class="risk-card integrity">
+            <span>Document integrity tier</span>
+            <h3>Early-stage raise signals</h3>
+            <p>Draft status, assembly artifacts, currency ambiguity, typoed figures, and a non-corporate advisory email domain increase KYC and verification priority.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="diligence" class="diligence-grid" aria-labelledby="dd-title">
+        <div class="section-heading">
+          <p class="eyebrow">First-call readiness</p>
+          <h2 id="dd-title">Structured information request.</h2>
+        </div>
+        <ol class="dd-list">
+          <li>Full schedule of claimed EUR 2.5B active projects with addresses, completion status, and lender or partner references.</li>
+          <li>Executed LOIs or purchase agreements and pricing for Ocean Breeze Lots 5/6, plus ROFR instruments.</li>
+          <li>Complete financial model bridging EUR 150M to CAD 2.0B with rate, cost, and absorption sensitivities.</li>
+          <li>Fund vehicle, jurisdiction, fee/promote waterfall, and GP commitment.</li>
+          <li>Corporate registry, beneficial ownership, and KYC on UDI Group and all principals.</li>
+          <li>Heimstaden reference check on Martin Tucek.</li>
+          <li>Modular construction supplier identity and Canadian certification status.</li>
+        </ol>
+        <div class="questions-panel">
+          <h3>Management questions</h3>
+          <button class="question-button" type="button">Who currently owns Ocean Breeze Village, and what is binding for each negotiated lot?</button>
+          <button class="question-button" type="button">What is the equity deployment schedule by phase?</button>
+          <button class="question-button" type="button">Why is the raise denominated in EUR while all targets are CAD, and what is the hedging policy?</button>
+          <button class="question-button" type="button">What happens if Schedule A construction financing tightens below 75% LTV?</button>
+        </div>
+      </section>
+
+      <footer class="dealflow-footer">
+        <p>
+          Generated by DealFlow.Coach - Drop a deck. Get a thesis. Own The Algo Holdings.
+          Document-based analysis only; not investment, legal, tax, or financial advice.
+        </p>
+      </footer>
+    </main>
+
+    <script src="./dealflow-udi.js"></script>
+  </body>
+</html>
