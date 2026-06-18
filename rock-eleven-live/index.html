@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ROCK ELEVEN - Institutional Fundability Workspace</title>
-    <link rel="stylesheet" href="./styles.css?v=rock-eleven-12" />
+    <link rel="stylesheet" href="./styles.css?v=rock-eleven-13" />
   </head>
   <body>
     <a class="skip-link" href="#workspace">Skip to report workspace</a>
@@ -108,8 +108,9 @@
                 <label class="field">
                   <span>Source package</span>
                   <input id="sourcePackage" type="file" multiple />
-                  <small id="sourceFeedback">Attach the Source Package before generating a report. <strong>Source package details will populate below.</strong></small>
+                  <small id="sourceFeedback">Attach the Source Package before generating a report. Source package details will populate below.</small>
                 </label>
+                <button id="runReport" class="primary-button" type="button">Generate Fundability Report</button>
                 <label class="field">
                   <span>Deal name</span>
                   <input id="dealName" type="text" value="" />
@@ -135,7 +136,6 @@
                   <span>Raise size</span>
                   <input id="raiseSize" type="text" value="" />
                 </label>
-                <button id="runReport" class="primary-button" type="button">Generate Fundability Report</button>
                 <button id="resetWorkspace" class="reset-workspace-button" type="button">Reset Workspace</button>
                 <p id="reportStatus" class="status-note" role="status" aria-live="polite"></p>
               </section>
@@ -277,6 +277,6 @@
         <p><strong>ROCK ELEVEN</strong> | powered by: <strong>DEALFLOW.COACH</strong></p>
       </footer>
     </div>
-    <script src="./app.js?v=rock-eleven-12"></script>
+    <script src="./app.js?v=rock-eleven-13"></script>
   </body>
 </html>
