@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Social Profile by Brand</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./social-profiles.css" />
+  </head>
+  <body>
+    <div class="app-shell social-app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">OTA Social Engine</p>
+          <h1>Social Profile by Brand</h1>
+        </div>
+        <div class="top-actions">
+          <a class="ghost-button top-link" href="https://app.notion.com/p/38fa90a45ed78194ad95d43d43d39d4f" target="_blank" rel="noreferrer">Notion Control Plane</a>
+          <a class="ghost-button top-link" href="./index.html">Command Center</a>
+          <button id="exportProfiles" class="icon-button" type="button" title="Export social profile database">Export</button>
+          <button id="resetProfiles" class="ghost-button" type="button">Reset Demo</button>
+          <button id="addPlatform" class="primary-button" type="button">Add Platform</button>
+        </div>
+      </header>
+
+      <main class="social-workspace">
+        <aside class="brand-rail" aria-label="Brand profiles">
+          <section class="metric-strip" aria-label="Social profile summary">
+            <div>
+              <strong id="metricBrands">0</strong>
+              <span>Brands</span>
+            </div>
+            <div>
+              <strong id="metricReady">0</strong>
+              <span>Ready</span>
+            </div>
+            <div>
+              <strong id="metricBlocked">0</strong>
+              <span>Blocked</span>
+            </div>
+          </section>
+
+          <section class="panel compact-panel">
+            <label class="field">
+              <span>Brand</span>
+              <select id="brandSelect"></select>
+            </label>
+            <label class="field">
+              <span>Search Platforms</span>
+              <input id="platformSearch" type="search" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span>Readiness Filter</span>
+              <select id="stateFilter">
+                <option value="all">All States</option>
+                <option value="human_action_required">Human Action Required</option>
+                <option value="connector_candidate">Connector Candidate</option>
+                <option value="restream_ready">Restream Ready</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </label>
+          </section>
+
+          <nav id="profileList" class="profile-list" aria-label="Platform profiles"></nav>
+        </aside>
+
+        <section class="social-content" aria-live="polite">
+          <section id="profileEmptyState" class="empty-state" hidden>
+            <h2>No platform profile selected</h2>
+            <p>Add a platform to begin building brand profile readiness.</p>
+            <button class="primary-button" type="button" data-action="add-platform">Add Platform</button>
+          </section>
+
+          <section id="profileView" class="profile-view">
+            <div class="profile-header">
+              <div>
+                <p id="brandKicker" class="eyebrow"></p>
+                <h2 id="platformTitle"></h2>
+                <div id="profileMeta" class="meta-row"></div>
+              </div>
+              <div class="readiness-stack" aria-label="Readiness score">
+                <div class="readiness-card">
+                  <span id="profileScore">0%</span>
+                  <small>ready</small>
+                </div>
+                <button id="markBlocked" class="ghost-button" type="button">Toggle Block</button>
+              </div>
+            </div>
+
+            <section class="state-grid" aria-label="Readiness states">
+              <button class="state-card" type="button" data-state-key="ownershipState">
+                <span>Ownership</span>
+                <strong id="ownershipStateLabel"></strong>
+              </button>
+              <button class="state-card" type="button" data-state-key="securityState">
+                <span>Security</span>
+                <strong id="securityStateLabel"></strong>
+              </button>
+              <button class="state-card" type="button" data-state-key="profileState">
+                <span>Profile</span>
+                <strong id="profileStateLabel"></strong>
+              </button>
+              <button class="state-card" type="button" data-state-key="connectorState">
+                <span>Connector</span>
+                <strong id="connectorStateLabel"></strong>
+              </button>
+            </section>
+
+            <div class="profile-grid">
+              <section class="panel profile-panel">
+                <div class="panel-heading tight">
+                  <div>
+                    <span class="step-pill">Step 1</span>
+                    <p class="eyebrow">Platform builder</p>
+                    <h3>Profile Elements</h3>
+                    <p id="profileGuidance" class="section-description"></p>
+                  </div>
+                  <button id="saveProfile" class="primary-button" type="button">Save Profile</button>
+                </div>
+
+                <div class="profile-form">
+                  <label class="field">
+                    <span>Target Handle</span>
+                    <input id="targetHandle" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Actual Handle</span>
+                    <input id="actualHandle" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Profile URL</span>
+                    <input id="profileUrl" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Display Name</span>
+                    <input id="displayName" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field full-width">
+                    <span>Bio</span>
+                    <textarea id="bio" rows="4"></textarea>
+                  </label>
+                  <label class="field">
+                    <span>Website URL</span>
+                    <input id="websiteUrl" type="url" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Business Account Status</span>
+                    <select id="businessStatus">
+                      <option value="unknown">Unknown</option>
+                      <option value="not_required">Not Required</option>
+                      <option value="required_missing">Required Missing</option>
+                      <option value="pending">Pending</option>
+                      <option value="verified">Verified</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Profile Image Asset</span>
+                    <input id="profileImage" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Banner Asset</span>
+                    <input id="bannerAsset" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field full-width">
+                    <span>Operator Notes</span>
+                    <textarea id="profileNotes" rows="4"></textarea>
+                  </label>
+                </div>
+              </section>
+
+              <aside class="side-stack">
+                <section class="panel">
+                  <div class="panel-heading tight">
+                    <div>
+                      <span class="step-pill">Step 2</span>
+                      <h3>Media Asset Library</h3>
+                      <p id="mediaGuidance" class="section-description"></p>
+                    </div>
+                    <button id="addMediaAsset" class="ghost-button" type="button">Add Asset</button>
+                  </div>
+                  <div id="mediaAssetList" class="media-asset-list"></div>
+                </section>
+
+                <section class="panel">
+                  <div class="panel-heading tight">
+                    <div>
+                      <span class="step-pill">Step 3</span>
+                      <h3>Evidence Vault</h3>
+                      <p id="evidenceGuidance" class="section-description"></p>
+                    </div>
+                    <button id="addEvidence" class="ghost-button" type="button">Add Evidence</button>
+                  </div>
+                  <div id="evidenceList" class="evidence-list"></div>
+                </section>
+
+              </aside>
+            </div>
+
+            <section class="restream-grid">
+              <article class="panel">
+                <div class="panel-heading tight">
+                  <div>
+                    <span class="step-pill">Step 4</span>
+                    <p class="eyebrow">Restream channel candidate</p>
+                    <h3>Manual Configuration</h3>
+                    <p id="restreamGuidance" class="section-description"></p>
+                  </div>
+                  <span id="restreamStatus" class="status-pill not-started"></span>
+                </div>
+
+                <div class="restream-form">
+                  <label class="field">
+                    <span>Restream Platform</span>
+                    <select id="restreamPlatform"></select>
+                  </label>
+                  <label class="field">
+                    <span>Restream Display Name</span>
+                    <input id="restreamDisplayName" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Stream URL Secret Ref</span>
+                    <input id="streamUrlRef" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Stream Key Secret Ref</span>
+                    <input id="streamKeyRef" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>RTMP Username Secret Ref</span>
+                    <input id="rtmpUserRef" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>RTMP Password Secret Ref</span>
+                    <input id="rtmpPasswordRef" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Instagram Username</span>
+                    <input id="instagramUsername" type="text" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Approval State</span>
+                    <select id="restreamApprovalState">
+                      <option value="draft">Draft</option>
+                      <option value="needs_approval">Needs Approval</option>
+                      <option value="approved">Approved</option>
+                      <option value="submitted">Submitted</option>
+                      <option value="connected">Connected</option>
+                      <option value="failed">Failed</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="restream-actions">
+                  <button id="saveRestreamCandidate" class="ghost-button" type="button">Save Candidate</button>
+                  <button id="approveRestreamCandidate" class="primary-button" type="button">Approve Candidate</button>
+                </div>
+              </article>
+            </section>
+
+            <section class="panel audit-panel">
+              <div class="panel-heading tight">
+                <div>
+                  <h3>Audit Timeline</h3>
+                </div>
+                <span id="auditCount" class="status-pill not-started">0 events</span>
+              </div>
+              <div id="auditTimeline" class="audit-timeline"></div>
+            </section>
+
+            <section class="panel required-panel">
+              <div class="panel-heading tight">
+                <div>
+                  <h3>Required Fields</h3>
+                </div>
+                <span id="requiredSummary" class="status-pill"></span>
+              </div>
+              <div id="requiredFields" class="required-list"></div>
+            </section>
+
+            <article class="panel payload-panel">
+              <div class="panel-heading tight">
+                <div>
+                  <h3>Payload Preview</h3>
+                </div>
+                <button id="copyRestreamPayload" class="ghost-button" type="button">Copy Payload</button>
+              </div>
+              <pre id="payloadPreview" class="payload-preview"></pre>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="platformDialog" class="campaign-dialog compact-dialog">
+      <form id="platformForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Platform setup</p>
+            <h2>Add Social Platform</h2>
+          </div>
+          <button class="icon-button close-button" value="cancel" type="submit" title="Close">Close</button>
+        </div>
+        <div class="dialog-grid one-column">
+          <label class="field">
+            <span>Platform</span>
+            <select name="platformKey" id="newPlatformKey"></select>
+          </label>
+          <label class="field">
+            <span>Target Handle</span>
+            <input name="targetHandle" type="text" autocomplete="off" />
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Add Platform</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="mediaDialog" class="campaign-dialog compact-dialog">
+      <form id="mediaForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Media asset library</p>
+            <h2>Add Profile Asset</h2>
+          </div>
+          <button class="icon-button close-button" value="cancel" type="submit" title="Close">Close</button>
+        </div>
+        <div class="dialog-grid one-column">
+          <label class="field">
+            <span>Asset Type</span>
+            <select name="assetType">
+              <option value="avatar">Profile Image / Avatar</option>
+              <option value="banner">Header / Banner Image</option>
+              <option value="logo">Brand Logo Variant</option>
+              <option value="screenshot">Proof Screenshot</option>
+              <option value="intro_video">Short Intro Video</option>
+              <option value="pinned_media">Pinned Profile Media</option>
+              <option value="thumbnail">Thumbnail / Cover</option>
+              <option value="document">Document</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Media File</span>
+            <input id="mediaFile" name="mediaFile" type="file" accept="image/*,video/*,.pdf" />
+          </label>
+          <label class="field">
+            <span>Asset Name</span>
+            <input name="assetName" type="text" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Usage Context</span>
+            <input name="usageContext" type="text" autocomplete="off" placeholder="Example: YouTube banner, Instagram avatar" />
+          </label>
+          <div class="asset-dimension-grid">
+            <label class="field">
+              <span>Width</span>
+              <input id="assetWidth" name="assetWidth" type="number" min="0" inputmode="numeric" />
+            </label>
+            <label class="field">
+              <span>Height</span>
+              <input id="assetHeight" name="assetHeight" type="number" min="0" inputmode="numeric" />
+            </label>
+            <label class="field">
+              <span>Duration Seconds</span>
+              <input id="assetDuration" name="assetDuration" type="number" min="0" step="0.1" inputmode="decimal" />
+            </label>
+          </div>
+          <label class="field">
+            <span>Description</span>
+            <textarea name="assetDescription" rows="4" placeholder="Describe what this asset is for. Dimensions will be included with the saved description."></textarea>
+          </label>
+          <label class="field">
+            <span>Approval State</span>
+            <select name="approvalState">
+              <option value="needs_review">Needs Review</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Add Asset</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="evidenceDialog" class="campaign-dialog compact-dialog">
+      <form id="evidenceForm" method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Evidence vault</p>
+            <h2>Add Evidence</h2>
+          </div>
+          <button class="icon-button close-button" value="cancel" type="submit" title="Close">Close</button>
+        </div>
+        <div class="dialog-grid one-column">
+          <label class="field">
+            <span>Evidence Type</span>
+            <select name="evidenceType">
+              <option value="ownership">Ownership</option>
+              <option value="security">Security</option>
+              <option value="profile">Profile</option>
+              <option value="connector">Connector</option>
+              <option value="approval">Approval</option>
+              <option value="restream">Restream</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Title</span>
+            <input name="title" type="text" required autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Evidence URL</span>
+            <input name="evidenceUrl" type="url" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Description</span>
+            <textarea name="description" rows="4" required></textarea>
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select name="status">
+              <option value="accepted">Accepted</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+              <option value="superseded">Superseded</option>
+            </select>
+          </label>
+        </div>
+        <div class="dialog-actions">
+          <button class="ghost-button" value="cancel" type="submit">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Add Evidence</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <script src="./social-profiles.js"></script>
+  </body>
+</html>

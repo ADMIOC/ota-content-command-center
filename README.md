@@ -2,6 +2,8 @@
 
 HTML MVP plus a local backend action layer for launching and executing the OTA video workflow across campaign setup, scene planning, ElevenLabs script/audio generation, Codex + Remotion assembly, Higgsfield Studio generation, QA, final assembly, Descript enhancement, HeyGen avatar/lip-sync personalization, Bunny storage, Blotato publishing handoff, Restream live broadcast/clip capture, and repurpose planning.
 
+It also includes the Phase 9C-2 Social Engine app/backend shell for social profile readiness, evidence capture, media asset storage, secret references, Restream channel validation, connector activation, governance, deployment readiness, hosting architecture, production data modeling, persistence adapters, and publishing handoff.
+
 ## DealFlow.Coach Backend Authority
 
 The DealFlow.Coach frontend is subordinate to the institutional-grade backend.
@@ -32,6 +34,29 @@ The long-term system map lives in [docs/ota-social-engine-operating-model.md](do
 Secure API boundaries for future ElevenLabs, Remotion, Bunny, Blotato, Descript, HeyGen, and Restream services live in [docs/backend-integration-boundaries.md](docs/backend-integration-boundaries.md).
 
 The official internal creator tutorial lives in [command-center-tutorial.html](command-center-tutorial.html). It explains the strategy and tactical use of every Content Command Center section for team adoption.
+
+## Standing Blindspot Gate
+
+Before any deployment, connector activation, credential workflow, production-readiness claim, or major architecture decision, the team must ask:
+
+> Based on what our goal is, what blindspots are we not seeing to achieve the ultimate goal?
+
+This is now a standing operating rule for OTA Social Engine work. Deployable is not the same as operationally official. The system must surface pass, warning, and blocker risks before moving profile, asset, evidence, credential, Restream, Notion, or cross-brand governance workflows into production use.
+
+## OTA Social Engine Phase 9C-2
+
+The Social Profile by Brand workflow now has a React app shell with a trusted backend API, server-side readiness gates, audit routes, Notion-sync status, local media uploads, encrypted local secret storage, Restream OAuth, connected-channel validation, connector activation tracking, role-based governance controls, a deployment blindspot gate, an enterprise-lite AWS target architecture, a Postgres production data model, a persistence adapter boundary, and file-backed local state for development.
+
+Run it locally:
+
+```bash
+npm install
+npm run dev:social
+```
+
+Open `http://localhost:5174/app.html`.
+
+The Phase 9C-2 app stores working state in `data/social-engine-state.json`, uploaded media in `data/media-assets/`, and encrypted local secrets in `data/secrets/`, all intentionally ignored by git. Those local stores are not production state. The persistence adapter contract lives in `server/persistenceAdapter.mjs`; the production data model lives in `db/migrations/001_production_data_model.sql`. The static HTML prototype remains available at `social-profiles.html`.
 
 ## Current MVP
 
@@ -69,8 +94,21 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Dedicated "Got an Enhancement Idea?" intake page with section-specific GitHub issue drafts
 - Team Collaboration Hub with section threads, reviewer roles, @mentions, focus jumps, and status controls
 - Official section-by-section creator tutorial for internal adoption
+- Restream MCP connector runbook in `ops/connectors/RESTREAM_MCP_CONNECTOR.md`
+- Section-specific improvement requests with prefilled GitHub issue drafts
 - Creator day-in-the-life infographic for in-house review
 - Workspace JSON export
+- OTAP Social Account Launchpad Loop demo in `ops/loops/OTAP_SOCIAL_ACCOUNT_LAUNCHPAD_LOOP_DEMO.md`
+- Social Profile by Brand frontend scope in `ops/social-profile/social-profile-by-brand-frontend-scope.md`
+- Static Social Profile by Brand MVP in `social-profiles.html`
+- Phase 9C-2 Social Engine app in `app.html`, `src/`, and `server/`
+- Phase 7 connector activation and brand buildout note in `ops/social-profile/ota-social-engine-phase-7-connector-activation-brand-buildout.md`
+- Phase 8 governance and permissions note in `ops/social-profile/ota-social-engine-phase-8-governance-permissions.md`
+- Phase 9A deployment blindspot gate note in `ops/social-profile/ota-social-engine-phase-9a-deployment-blindspot-gate.md`
+- Phase 9B enterprise hosting architecture note in `ops/social-profile/ota-social-engine-phase-9b-enterprise-hosting-architecture.md`
+- Phase 9C-1 production data model note in `ops/social-profile/ota-social-engine-phase-9c-1-production-data-model.md`
+- Phase 9C-2 production persistence adapter note in `ops/social-profile/ota-social-engine-phase-9c-2-production-persistence-adapter.md`
+- Notion Social Account Command Center control plane: `https://app.notion.com/p/38fa90a45ed78194ad95d43d43d39d4f`
 
 ## Next API Wiring
 
@@ -82,6 +120,12 @@ The official internal creator tutorial lives in [command-center-tutorial.html](c
 - Descript project handoff and enhanced asset tracking after Descript API access is available
 - HeyGen OAuth MCP completion or `HEYGEN_API_KEY` fallback for avatar videos, lip-sync jobs, translations, and personalized variants; model routing is staged for Avatar IV by default and Avatar V only after avatar-look eligibility confirms `avatar_v`
 - Restream event creation, chat websocket ingestion, and go-live actions after OAuth scopes, approval workflows, and live-event payloads are production backed
+- Restream broadcast readiness, recording retrieval, and analytics checks
+- Social Profile by Brand database and Restream manual channel creation workflow
+- Live Notion writes for the Phase 6 Social Engine API
+- Durable Drive/cloud asset storage adapter for uploaded media
+- Production secret-store adapter for Restream credentials
+- Media upload storage and secret reference storage
 - Temporary testing database for team-wide campaign state
 - Authentication and reviewer roles
 - File upload surfaces for final video, thumbnails, captions, scene files, and approval docs
